@@ -3929,6 +3929,1028 @@
         }
     };
 
+    // ==================== JQUERY-BEATING FEATURES ====================
+
+    // ==================== 1. ENHANCED HTTP WITH ERROR HANDLING ====================
+
+    // Override existing HTTP methods with comprehensive error handling
+    const originalGet = Yaka.get;
+    const originalPost = Yaka.post;
+    const originalPut = Yaka.put;
+    const originalDelete = Yaka.delete;
+    const originalAjax = Yaka.ajax;
+
+    // HTTP Error class
+    class YakaHttpError extends Error {
+        constructor(message, status, response) {
+            super(message);
+            this.name = 'YakaHttpError';
+            this.status = status;
+            this.response = response;
+        }
+    }
+
+    // Enhanced HTTP with error handling, timeout, retry
+    const enhancedHttp = async function(method, url, data, options = {}) {
+        const {
+            timeout = 30000,
+            retries = 0,
+            retryDelay = 1000,
+            onError = null,
+            validateStatus = (status) => status >= 200 && status < 300,
+            parseResponse = true
+        } = options;
+
+        let lastError;
+        const maxAttempts = retries + 1;
+
+        for (let attempt = 0; attempt < maxAttempts; attempt++) {
+            try {
+                // Create abort controller for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                const config = {
+                    method,
+                    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+                    signal: controller.signal
+                };
+
+                if (method !== 'GET' && method !== 'DELETE' && data) {
+                    config.body = JSON.stringify(data);
+                }
+
+                const fullUrl = method === 'GET' && data
+                    ? url + '?' + new URLSearchParams(data)
+                    : url;
+
+                const response = await fetch(fullUrl, config);
+                clearTimeout(timeoutId);
+
+                // Validate response status
+                if (!validateStatus(response.status)) {
+                    const errorText = await response.text();
+                    throw new YakaHttpError(
+                        `HTTP ${response.status}: ${response.statusText}`,
+                        response.status,
+                        errorText
+                    );
+                }
+
+                // Parse response based on content type
+                let result;
+                if (parseResponse) {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        result = await response.json();
+                    } else {
+                        result = await response.text();
+                    }
+                } else {
+                    result = response;
+                }
+
+                Yaka._log('info', `HTTP ${method} ${url} succeeded`, { attempt: attempt + 1 });
+                return result;
+
+            } catch (error) {
+                lastError = error;
+                
+                if (error.name === 'AbortError') {
+                    lastError = new YakaHttpError(`Request timeout after ${timeout}ms`, 0, null);
+                }
+
+                Yaka._log('warn', `HTTP ${method} ${url} failed (attempt ${attempt + 1}/${maxAttempts})`, error.message);
+
+                // Don't retry on last attempt
+                if (attempt < maxAttempts - 1) {
+                    // Exponential backoff
+                    const delay = retryDelay * Math.pow(2, attempt);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                } else {
+                    // Last attempt failed, call error handler if provided
+                    if (onError) {
+                        onError(lastError);
+                    }
+                }
+            }
+        }
+
+        // All attempts failed
+        throw lastError;
+    };
+
+    // Replace HTTP methods with enhanced versions
+    Yaka.get = async function(url, data, options) {
+        return enhancedHttp('GET', url, data, options);
+    };
+
+    Yaka.post = async function(url, data, options) {
+        return enhancedHttp('POST', url, data, options);
+    };
+
+    Yaka.put = async function(url, data, options) {
+        return enhancedHttp('PUT', url, data, options);
+    };
+
+    Yaka.delete = async function(url, data, options) {
+        return enhancedHttp('DELETE', url, data, options);
+    };
+
+    Yaka.ajax = async function(options) {
+        const { url, method = 'GET', data, ...rest } = options;
+        return enhancedHttp(method, url, data, rest);
+    };
+
+    // HTTP Cache
+    Yaka.cache = {
+        _store: new Map(),
+        _ttl: new Map(),
+
+        set: function(key, value, ttl = 300000) { // 5 minutes default
+            this._store.set(key, value);
+            this._ttl.set(key, Date.now() + ttl);
+            Yaka._log('info', `Cache set: ${key}`, { ttl: `${ttl}ms` });
+        },
+
+        get: function(key) {
+            if (this.has(key)) {
+                return this._store.get(key);
+            }
+            return null;
+        },
+
+        has: function(key) {
+            if (!this._store.has(key)) return false;
+            
+            const expiry = this._ttl.get(key);
+            if (Date.now() > expiry) {
+                this.delete(key);
+                return false;
+            }
+            return true;
+        },
+
+        delete: function(key) {
+            this._store.delete(key);
+            this._ttl.delete(key);
+            Yaka._log('info', `Cache deleted: ${key}`);
+        },
+
+        clear: function() {
+            this._store.clear();
+            this._ttl.clear();
+            Yaka._log('info', 'Cache cleared');
+        },
+
+        // Cached HTTP request
+        request: async function(url, options = {}) {
+            const cacheKey = `${options.method || 'GET'}:${url}:${JSON.stringify(options.data || {})}`;
+            
+            if (options.cache !== false && this.has(cacheKey)) {
+                Yaka._log('info', `Cache hit: ${url}`);
+                return this.get(cacheKey);
+            }
+
+            const result = await Yaka.ajax({ url, ...options });
+            
+            if (options.cache !== false) {
+                this.set(cacheKey, result, options.cacheTTL);
+            }
+
+            return result;
+        }
+    };
+
+    // ==================== 2. ADVANCED ROUTING ====================
+
+    // Enhanced router with nested routes, params, guards
+    Yaka.Router = class {
+        constructor(options = {}) {
+            this.routes = [];
+            this.guards = {
+                before: [],
+                after: []
+            };
+            this.current = null;
+            this.params = {};
+            this.query = {};
+            this.notFoundHandler = options.notFoundHandler || (() => console.warn('404: Route not found'));
+            this.baseUrl = options.baseUrl || '';
+        }
+
+        // Add route with pattern matching
+        addRoute(path, config) {
+            const { component, handler, children, beforeEnter, name, redirect } = config;
+            
+            // Convert path to regex pattern
+            const paramNames = [];
+            const pattern = path
+                .replace(/\//g, '\\/')
+                .replace(/:(\w+)/g, (_, name) => {
+                    paramNames.push(name);
+                    return '([^\\/]+)';
+                })
+                .replace(/\*/g, '.*');
+
+            this.routes.push({
+                path,
+                pattern: new RegExp(`^${pattern}$`),
+                paramNames,
+                component,
+                handler,
+                children: children || [],
+                beforeEnter,
+                name,
+                redirect
+            });
+
+            return this;
+        }
+
+        // Batch add routes
+        addRoutes(routes) {
+            Object.entries(routes).forEach(([path, config]) => {
+                this.addRoute(path, config);
+            });
+            return this;
+        }
+
+        // Add global guards
+        beforeEach(fn) {
+            this.guards.before.push(fn);
+            return this;
+        }
+
+        afterEach(fn) {
+            this.guards.after.push(fn);
+            return this;
+        }
+
+        // Match route
+        match(pathname) {
+            for (const route of this.routes) {
+                const match = pathname.match(route.pattern);
+                if (match) {
+                    const params = {};
+                    route.paramNames.forEach((name, i) => {
+                        params[name] = match[i + 1];
+                    });
+                    return { route, params };
+                }
+            }
+            return null;
+        }
+
+        // Parse query string
+        parseQuery(search) {
+            const query = {};
+            const params = new URLSearchParams(search);
+            params.forEach((value, key) => {
+                query[key] = value;
+            });
+            return query;
+        }
+
+        // Navigate to path
+        async navigate(path, options = {}) {
+            const { replace = false, state = {} } = options;
+            const url = new URL(path, window.location.origin);
+            const pathname = url.pathname.replace(this.baseUrl, '');
+            
+            // Parse query
+            this.query = this.parseQuery(url.search);
+
+            // Match route
+            const matched = this.match(pathname);
+            
+            if (!matched) {
+                Yaka._log('warn', `Route not found: ${pathname}`);
+                this.notFoundHandler(pathname);
+                return false;
+            }
+
+            const { route, params } = matched;
+            this.params = params;
+
+            // Handle redirect
+            if (route.redirect) {
+                const redirectPath = typeof route.redirect === 'function'
+                    ? route.redirect(params)
+                    : route.redirect;
+                return this.navigate(redirectPath, options);
+            }
+
+            // Run global before guards
+            for (const guard of this.guards.before) {
+                const result = await guard(route, this.current);
+                if (result === false) {
+                    Yaka._log('info', 'Navigation cancelled by guard');
+                    return false;
+                }
+            }
+
+            // Run route-specific guard
+            if (route.beforeEnter) {
+                const result = await route.beforeEnter(route, this.current);
+                if (result === false) {
+                    Yaka._log('info', 'Navigation cancelled by route guard');
+                    return false;
+                }
+            }
+
+            // Update history
+            const fullPath = this.baseUrl + path;
+            if (replace) {
+                history.replaceState({ ...state, path: fullPath }, '', fullPath);
+            } else {
+                history.pushState({ ...state, path: fullPath }, '', fullPath);
+            }
+
+            // Render component
+            if (route.component) {
+                const target = route.target || '#app';
+                const html = typeof route.component === 'function'
+                    ? route.component(params, this.query)
+                    : route.component;
+                _(target).html(html);
+            }
+
+            // Call handler
+            if (route.handler) {
+                route.handler(params, this.query);
+            }
+
+            const previousRoute = this.current;
+            this.current = route;
+
+            // Run after guards
+            for (const guard of this.guards.after) {
+                guard(route, previousRoute);
+            }
+
+            Yaka._log('info', `Navigated to: ${pathname}`, { params, query: this.query });
+            return true;
+        }
+
+        // Navigate by route name
+        navigateTo(name, params = {}, query = {}) {
+            const route = this.routes.find(r => r.name === name);
+            if (!route) {
+                Yaka._log('error', `Route name not found: ${name}`);
+                return false;
+            }
+
+            let path = route.path;
+            Object.entries(params).forEach(([key, value]) => {
+                path = path.replace(`:${key}`, value);
+            });
+
+            const queryString = new URLSearchParams(query).toString();
+            const fullPath = queryString ? `${path}?${queryString}` : path;
+
+            return this.navigate(fullPath);
+        }
+
+        // Go back
+        back() {
+            history.back();
+        }
+
+        // Go forward
+        forward() {
+            history.forward();
+        }
+
+        // Initialize router
+        init() {
+            // Handle popstate (back/forward buttons)
+            window.addEventListener('popstate', (e) => {
+                if (e.state?.path) {
+                    this.navigate(e.state.path, { replace: true });
+                } else {
+                    this.navigate(window.location.pathname + window.location.search, { replace: true });
+                }
+            });
+
+            // Handle initial load
+            this.navigate(window.location.pathname + window.location.search, { replace: true });
+
+            return this;
+        }
+    };
+
+    // Shorthand for creating router
+    Yaka.createRouter = (options) => new Yaka.Router(options);
+
+    // ==================== 3. ADVANCED VALIDATION FRAMEWORK ====================
+
+    Yaka.validator = {
+        rules: {
+            required: (value) => value !== null && value !== undefined && value !== '',
+            email: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
+            url: (value) => {
+                try {
+                    new URL(value);
+                    return true;
+                } catch {
+                    return false;
+                }
+            },
+            number: (value) => !isNaN(parseFloat(value)) && isFinite(value),
+            integer: (value) => Number.isInteger(Number(value)),
+            min: (value, min) => Number(value) >= min,
+            max: (value, max) => Number(value) <= max,
+            minLength: (value, length) => String(value).length >= length,
+            maxLength: (value, length) => String(value).length <= length,
+            pattern: (value, regex) => regex.test(value),
+            match: (value, field, formData) => value === formData[field],
+            alpha: (value) => /^[a-zA-Z]+$/.test(value),
+            alphanumeric: (value) => /^[a-zA-Z0-9]+$/.test(value),
+            phone: (value) => /^[\d\s\-\+\(\)]+$/.test(value),
+            creditCard: (value) => {
+                // Luhn algorithm
+                const cleaned = value.replace(/\D/g, '');
+                if (cleaned.length < 13 || cleaned.length > 19) return false;
+                
+                let sum = 0;
+                let isEven = false;
+                for (let i = cleaned.length - 1; i >= 0; i--) {
+                    let digit = parseInt(cleaned[i]);
+                    if (isEven) {
+                        digit *= 2;
+                        if (digit > 9) digit -= 9;
+                    }
+                    sum += digit;
+                    isEven = !isEven;
+                }
+                return sum % 10 === 0;
+            }
+        },
+
+        messages: {
+            required: 'This field is required',
+            email: 'Please enter a valid email address',
+            url: 'Please enter a valid URL',
+            number: 'Please enter a valid number',
+            integer: 'Please enter a valid integer',
+            min: 'Value must be at least {min}',
+            max: 'Value must be at most {max}',
+            minLength: 'Minimum length is {minLength} characters',
+            maxLength: 'Maximum length is {maxLength} characters',
+            pattern: 'Invalid format',
+            match: 'Fields do not match',
+            alpha: 'Only letters are allowed',
+            alphanumeric: 'Only letters and numbers are allowed',
+            phone: 'Please enter a valid phone number',
+            creditCard: 'Please enter a valid credit card number'
+        },
+
+        // Add custom rule
+        addRule(name, validator, message) {
+            this.rules[name] = validator;
+            this.messages[name] = message;
+        },
+
+        // Validate single value
+        validate(value, rules, formData = {}) {
+            const errors = [];
+
+            for (const [ruleName, ruleValue] of Object.entries(rules)) {
+                const validator = this.rules[ruleName];
+                
+                if (!validator) {
+                    Yaka._log('warn', `Unknown validation rule: ${ruleName}`);
+                    continue;
+                }
+
+                let isValid;
+                if (typeof ruleValue === 'boolean' && ruleValue) {
+                    isValid = validator(value);
+                } else if (ruleName === 'match') {
+                    isValid = validator(value, ruleValue, formData);
+                } else {
+                    isValid = validator(value, ruleValue);
+                }
+
+                if (!isValid) {
+                    let message = rules.message || this.messages[ruleName] || 'Invalid value';
+                    // Replace placeholders
+                    message = message.replace(`{${ruleName}}`, ruleValue);
+                    errors.push(message);
+                }
+            }
+
+            return errors;
+        },
+
+        // Async validation
+        async validateAsync(value, asyncValidator) {
+            try {
+                const result = await asyncValidator(value);
+                return result === true ? [] : [result || 'Validation failed'];
+            } catch (error) {
+                return [error.message || 'Validation error'];
+            }
+        }
+    };
+
+    // Enhanced form validation
+    Yaka.prototype.validateForm = function(schema, options = {}) {
+        const { realTime = false, showErrors = true } = options;
+        const form = this.elements[0];
+        if (!form) return { valid: true, errors: {} };
+
+        const errors = {};
+        let valid = true;
+
+        // Get all form data
+        const formData = {};
+        form.querySelectorAll('[name]').forEach(input => {
+            formData[input.name] = input.value;
+        });
+
+        // Validate each field
+        Object.entries(schema).forEach(([fieldName, fieldRules]) => {
+            const input = form.querySelector(`[name="${fieldName}"]`);
+            if (!input) return;
+
+            const value = input.value;
+            const fieldErrors = Yaka.validator.validate(value, fieldRules, formData);
+
+            if (fieldErrors.length > 0) {
+                errors[fieldName] = fieldErrors;
+                valid = false;
+
+                if (showErrors) {
+                    // Add error class
+                    input.classList.add('yaka-error');
+                    
+                    // Show error message
+                    let errorElement = input.parentElement.querySelector('.yaka-error-message');
+                    if (!errorElement) {
+                        errorElement = document.createElement('div');
+                        errorElement.className = 'yaka-error-message';
+                        input.parentElement.appendChild(errorElement);
+                    }
+                    errorElement.textContent = fieldErrors[0];
+                }
+            } else if (showErrors) {
+                // Remove error state
+                input.classList.remove('yaka-error');
+                const errorElement = input.parentElement.querySelector('.yaka-error-message');
+                if (errorElement) {
+                    errorElement.remove();
+                }
+            }
+
+            // Real-time validation
+            if (realTime && !input._yakaValidationBound) {
+                input.addEventListener('blur', () => {
+                    const currentValue = input.value;
+                    const currentErrors = Yaka.validator.validate(currentValue, fieldRules, formData);
+                    
+                    if (currentErrors.length > 0 && showErrors) {
+                        input.classList.add('yaka-error');
+                        let errorElement = input.parentElement.querySelector('.yaka-error-message');
+                        if (!errorElement) {
+                            errorElement = document.createElement('div');
+                            errorElement.className = 'yaka-error-message';
+                            input.parentElement.appendChild(errorElement);
+                        }
+                        errorElement.textContent = currentErrors[0];
+                    } else if (showErrors) {
+                        input.classList.remove('yaka-error');
+                        const errorElement = input.parentElement.querySelector('.yaka-error-message');
+                        if (errorElement) {
+                            errorElement.remove();
+                        }
+                    }
+                });
+                input._yakaValidationBound = true;
+            }
+        });
+
+        return { valid, errors };
+    };
+
+    // ==================== 4. SECURITY UTILITIES ====================
+
+    Yaka.security = {
+        // XSS sanitization
+        sanitizeHtml(html) {
+            const div = document.createElement('div');
+            div.textContent = html;
+            return div.innerHTML;
+        },
+
+        // Escape HTML entities
+        escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#x27;',
+                '/': '&#x2F;'
+            };
+            return String(text).replace(/[&<>"'/]/g, (char) => map[char]);
+        },
+
+        // CSRF token management
+        csrf: {
+            _token: null,
+            _headerName: 'X-CSRF-Token',
+
+            setToken(token) {
+                this._token = token;
+                // Store in meta tag
+                let meta = document.querySelector('meta[name="csrf-token"]');
+                if (!meta) {
+                    meta = document.createElement('meta');
+                    meta.name = 'csrf-token';
+                    document.head.appendChild(meta);
+                }
+                meta.content = token;
+                Yaka._log('info', 'CSRF token set');
+            },
+
+            getToken() {
+                if (this._token) return this._token;
+                
+                // Try to get from meta tag
+                const meta = document.querySelector('meta[name="csrf-token"]');
+                if (meta) {
+                    this._token = meta.content;
+                }
+                return this._token;
+            },
+
+            // Add CSRF token to request
+            addToRequest(config) {
+                const token = this.getToken();
+                if (token) {
+                    config.headers = config.headers || {};
+                    config.headers[this._headerName] = token;
+                }
+                return config;
+            }
+        },
+
+        // Content Security Policy helper
+        csp: {
+            nonce: null,
+
+            setNonce(nonce) {
+                this.nonce = nonce;
+            },
+
+            getNonce() {
+                if (this.nonce) return this.nonce;
+                
+                // Try to get from script tag
+                const script = document.querySelector('script[nonce]');
+                if (script) {
+                    this.nonce = script.getAttribute('nonce');
+                }
+                return this.nonce;
+            }
+        },
+
+        // Sanitize input for SQL-like operations
+        sanitizeInput(input) {
+            return String(input)
+                .replace(/['";\\]/g, '')
+                .trim();
+        },
+
+        // Validate and sanitize URL
+        sanitizeUrl(url) {
+            try {
+                const parsed = new URL(url, window.location.origin);
+                // Only allow http and https
+                if (!['http:', 'https:'].includes(parsed.protocol)) {
+                    return '';
+                }
+                return parsed.href;
+            } catch {
+                return '';
+            }
+        }
+    };
+
+    // Auto-add CSRF token to all HTTP requests
+    Yaka.http.addRequestInterceptor((config) => {
+        return Yaka.security.csrf.addToRequest(config);
+    });
+
+    // ==================== 5. ADVANCED STATE MANAGEMENT (STORE) ====================
+
+    Yaka.Store = class {
+        constructor(options = {}) {
+            this._state = options.state || {};
+            this._getters = options.getters || {};
+            this._mutations = options.mutations || {};
+            this._actions = options.actions || {};
+            this._subscribers = [];
+            this._history = [];
+            this._historyIndex = -1;
+            this._maxHistory = options.maxHistory || 50;
+            this._plugins = options.plugins || [];
+            
+            // Make state reactive
+            this._makeReactive();
+            
+            // Run plugins
+            this._plugins.forEach(plugin => plugin(this));
+            
+            // Save initial state
+            this._saveHistory();
+        }
+
+        _makeReactive() {
+            const self = this;
+            this.state = new Proxy(this._state, {
+                set(target, key, value) {
+                    const oldValue = target[key];
+                    target[key] = value;
+                    self._notify({ type: 'state', key, value, oldValue });
+                    return true;
+                },
+                get(target, key) {
+                    return target[key];
+                }
+            });
+        }
+
+        _notify(mutation) {
+            this._subscribers.forEach(fn => fn(mutation, this.state));
+        }
+
+        _saveHistory() {
+            // Remove future history if we've time-traveled
+            if (this._historyIndex < this._history.length - 1) {
+                this._history = this._history.slice(0, this._historyIndex + 1);
+            }
+
+            // Add current state to history
+            this._history.push(JSON.parse(JSON.stringify(this._state)));
+            
+            // Limit history size
+            if (this._history.length > this._maxHistory) {
+                this._history.shift();
+            } else {
+                this._historyIndex++;
+            }
+        }
+
+        // Getters
+        get(name) {
+            const getter = this._getters[name];
+            if (!getter) {
+                Yaka._log('warn', `Getter not found: ${name}`);
+                return undefined;
+            }
+            return getter(this.state, this._getters);
+        }
+
+        // Mutations (synchronous state changes)
+        commit(type, payload) {
+            const mutation = this._mutations[type];
+            if (!mutation) {
+                Yaka._log('error', `Mutation not found: ${type}`);
+                return;
+            }
+
+            Yaka._log('info', `Mutation: ${type}`, payload);
+            mutation(this._state, payload);
+            this._notify({ type: 'mutation', mutation: type, payload });
+            this._saveHistory();
+        }
+
+        // Actions (can be asynchronous)
+        async dispatch(type, payload) {
+            const action = this._actions[type];
+            if (!action) {
+                Yaka._log('error', `Action not found: ${type}`);
+                return;
+            }
+
+            Yaka._log('info', `Action: ${type}`, payload);
+            const context = {
+                state: this.state,
+                commit: this.commit.bind(this),
+                dispatch: this.dispatch.bind(this),
+                getters: this._getters
+            };
+
+            return action(context, payload);
+        }
+
+        // Subscribe to state changes
+        subscribe(fn) {
+            this._subscribers.push(fn);
+            return () => {
+                const index = this._subscribers.indexOf(fn);
+                if (index > -1) {
+                    this._subscribers.splice(index, 1);
+                }
+            };
+        }
+
+        // Watch specific state property
+        watch(key, callback) {
+            return this.subscribe((mutation, state) => {
+                if (mutation.key === key) {
+                    callback(state[key], mutation.oldValue);
+                }
+            });
+        }
+
+        // Time travel debugging
+        timeTravel(index) {
+            if (index < 0 || index >= this._history.length) {
+                Yaka._log('warn', 'Invalid history index');
+                return;
+            }
+
+            this._historyIndex = index;
+            this._state = JSON.parse(JSON.stringify(this._history[index]));
+            this._makeReactive();
+            this._notify({ type: 'timeTravel', index });
+            Yaka._log('info', `Time traveled to state #${index}`);
+        }
+
+        // Undo last mutation
+        undo() {
+            if (this._historyIndex > 0) {
+                this.timeTravel(this._historyIndex - 1);
+            }
+        }
+
+        // Redo mutation
+        redo() {
+            if (this._historyIndex < this._history.length - 1) {
+                this.timeTravel(this._historyIndex + 1);
+            }
+        }
+
+        // Persist state to storage
+        persist(key = 'yaka-store') {
+            try {
+                localStorage.setItem(key, JSON.stringify(this._state));
+                Yaka._log('info', 'State persisted');
+            } catch (error) {
+                Yaka._log('error', 'Failed to persist state:', error);
+            }
+        }
+
+        // Restore state from storage
+        restore(key = 'yaka-store') {
+            try {
+                const saved = localStorage.getItem(key);
+                if (saved) {
+                    this._state = JSON.parse(saved);
+                    this._makeReactive();
+                    this._saveHistory();
+                    Yaka._log('info', 'State restored');
+                }
+            } catch (error) {
+                Yaka._log('error', 'Failed to restore state:', error);
+            }
+        }
+    };
+
+    // Create store helper
+    Yaka.createStore = (options) => new Yaka.Store(options);
+
+    // ==================== 6. PERFORMANCE MONITORING ====================
+
+    Yaka.performance = {
+        marks: {},
+        measures: {},
+        _observers: [],
+
+        // Start performance mark
+        mark(name) {
+            this.marks[name] = performance.now();
+            if (performance.mark) {
+                performance.mark(name);
+            }
+        },
+
+        // Measure performance between marks
+        measure(name, startMark, endMark) {
+            const start = this.marks[startMark];
+            const end = endMark ? this.marks[endMark] : performance.now();
+            
+            if (start === undefined) {
+                Yaka._log('warn', `Start mark not found: ${startMark}`);
+                return null;
+            }
+
+            const duration = end - start;
+            this.measures[name] = duration;
+
+            if (performance.measure) {
+                try {
+                    performance.measure(name, startMark, endMark);
+                } catch (e) {
+                    // Ignore if marks don't exist in Performance API
+                }
+            }
+
+            Yaka._log('info', `Performance: ${name}`, `${duration.toFixed(2)}ms`);
+            return duration;
+        },
+
+        // Get FPS
+        getFPS(callback, duration = 1000) {
+            let frames = 0;
+            let lastTime = performance.now();
+            const startTime = lastTime;
+
+            const countFrame = (currentTime) => {
+                frames++;
+                
+                if (currentTime - startTime < duration) {
+                    requestAnimationFrame(countFrame);
+                } else {
+                    const fps = Math.round(frames / (duration / 1000));
+                    callback(fps);
+                }
+            };
+
+            requestAnimationFrame(countFrame);
+        },
+
+        // Monitor long tasks
+        observeLongTasks(callback) {
+            if ('PerformanceObserver' in window) {
+                try {
+                    const observer = new PerformanceObserver((list) => {
+                        list.getEntries().forEach(entry => {
+                            callback({
+                                name: entry.name,
+                                duration: entry.duration,
+                                startTime: entry.startTime
+                            });
+                        });
+                    });
+                    observer.observe({ entryTypes: ['longtask'] });
+                    this._observers.push(observer);
+                } catch (e) {
+                    Yaka._log('warn', 'Long task monitoring not supported');
+                }
+            }
+        },
+
+        // Get performance report
+        getReport() {
+            const report = {
+                marks: this.marks,
+                measures: this.measures,
+                memory: null,
+                navigation: null
+            };
+
+            if (performance.memory) {
+                report.memory = {
+                    usedJSHeapSize: (performance.memory.usedJSHeapSize / 1048576).toFixed(2) + ' MB',
+                    totalJSHeapSize: (performance.memory.totalJSHeapSize / 1048576).toFixed(2) + ' MB',
+                    limit: (performance.memory.jsHeapSizeLimit / 1048576).toFixed(2) + ' MB'
+                };
+            }
+
+            if (performance.getEntriesByType) {
+                const navEntries = performance.getEntriesByType('navigation');
+                if (navEntries.length > 0) {
+                    const nav = navEntries[0];
+                    report.navigation = {
+                        domContentLoaded: nav.domContentLoadedEventEnd - nav.domContentLoadedEventStart,
+                        loadComplete: nav.loadEventEnd - nav.loadEventStart,
+                        domInteractive: nav.domInteractive,
+                        totalTime: nav.loadEventEnd - nav.fetchStart
+                    };
+                }
+            }
+
+            return report;
+        },
+
+        // Clear all performance data
+        clear() {
+            this.marks = {};
+            this.measures = {};
+            if (performance.clearMarks) {
+                performance.clearMarks();
+            }
+            if (performance.clearMeasures) {
+                performance.clearMeasures();
+            }
+        }
+    };
+
     // Add CSS animations
     const style = document.createElement('style');
     style.textContent = `
@@ -3973,6 +4995,17 @@
         @keyframes skeleton-loading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
+        }
+        
+        /* Validation styles */
+        .yaka-error {
+            border-color: #e74c3c !important;
+            box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.2) !important;
+        }
+        .yaka-error-message {
+            color: #e74c3c;
+            font-size: 0.875em;
+            margin-top: 0.25rem;
         }
     `;
     document.head.appendChild(style);
