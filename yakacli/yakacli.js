@@ -91,12 +91,12 @@ function showBanner() {
     console.log(`
 ╔═══════════════════════════════════════════════════════╗
 ║                                                       ║
-║     ✨  ${colors.magenta}YakaCLI${colors.cyan} ${colors.bright}v1.0.0${colors.cyan}  ✨                        ║
-║     ${colors.white}🚀  YakaJS Project Scaffolding Tool  🚀${colors.cyan}        ║
+║              ${colors.magenta}${colors.bright}YakaCLI${colors.cyan}  ${colors.white}v1.0.0${colors.cyan}                         ║
+║        ${colors.dim}Professional Project Scaffolding${colors.cyan}${colors.bright}           ║
 ║                                                       ║
 ║     ${colors.yellow}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.cyan}      ║
 ║                                                       ║
-║     ${colors.green}💎  Build Custom Libraries  •  Scaffold Projects${colors.cyan}  ║
+║     ${colors.green}⚡ Custom Builds${colors.cyan}  ${colors.dim}•${colors.cyan}  ${colors.blue}📦 Scaffolding${colors.cyan}  ${colors.dim}•${colors.cyan}  ${colors.magenta}📊 Analysis${colors.cyan}  ║
 ║                                                       ║
 ╚═══════════════════════════════════════════════════════╝
     `);
@@ -115,12 +115,22 @@ function showSectionHeader(icon, title, color = colors.bright) {
     showSeparator('─', colors.dim);
 }
 
+// Progress indicator
+function showProgress(message) {
+    console.log(`${colors.blue}${colors.bright}⏳${colors.reset} ${colors.dim}${message}...${colors.reset}`);
+}
+
 // Show help
 function showHelp() {
     showBanner();
     
     showSectionHeader('📖', 'USAGE', colors.cyan + colors.bright);
     console.log(`  ${colors.white}yakacli${colors.reset} ${colors.dim}<command> [options]${colors.reset}`);
+    
+    showSectionHeader('💾', 'INSTALLATION', colors.green + colors.bright);
+    console.log(`  ${colors.green}Global Install:${colors.reset}  ${colors.cyan}npm install -g yakacli${colors.reset}`);
+    console.log(`  ${colors.blue}Local Usage:${colors.reset}     ${colors.cyan}npx yakacli <command>${colors.reset}`);
+    console.log(`  ${colors.yellow}From Source:${colors.reset}     ${colors.cyan}node yakacli/yakacli.js <command>${colors.reset}`);
     
     showSectionHeader('⚡', 'COMMANDS', colors.green + colors.bright);
     console.log(`  ${colors.cyan}create ${colors.dim}<project-name>${colors.reset}  ${colors.white}Create a new YakaJS project${colors.reset}`);
@@ -146,6 +156,10 @@ function showHelp() {
     console.log(`  ${colors.cyan}yakacli build${colors.reset}         ${colors.dim}# Generate custom YakaJS build${colors.reset}`);
     console.log(`  ${colors.cyan}yakacli create my-app${colors.reset} ${colors.dim}# Scaffold new project${colors.reset}`);
     console.log(`  ${colors.cyan}yakacli analyze${colors.reset}       ${colors.dim}# Analyze codebase${colors.reset}`);
+    
+    showSectionHeader('🔗', 'MORE INFO', colors.magenta + colors.bright);
+    console.log(`  ${colors.white}Documentation:${colors.reset}  ${colors.cyan}https://github.com/Yaka-UI-Labs/YakaJS${colors.reset}`);
+    console.log(`  ${colors.white}Issues:${colors.reset}         ${colors.cyan}https://github.com/Yaka-UI-Labs/YakaJS/issues${colors.reset}`);
     
     console.log();
     showSeparator('═', colors.cyan);

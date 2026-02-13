@@ -1,49 +1,92 @@
 # YakaCLI
 
-Command-line tool for scaffolding YakaJS projects and generating custom builds.
+> Professional command-line tool for scaffolding YakaJS projects and generating custom builds.
 
-## Features
+[![npm version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://www.npmjs.com/package/yakacli)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node](https://img.shields.io/badge/node-%3E%3D12.0.0-brightgreen.svg)](https://nodejs.org/)
 
-🚀 **Project Scaffolding** - Create new projects with 4 templates  
-🔧 **Custom Builds** - Generate YakaJS with only the features you need  
-📊 **Codebase Analysis** - Inspect YakaJS structure and statistics  
-⚡ **Size Optimization** - Reduce bundle size by 50-90%
+## ✨ Features
 
-## Installation
+- 🚀 **Project Scaffolding** - Create new projects with 4 professional templates  
+- 🔧 **Custom Builds** - Generate YakaJS with only the features you need  
+- 📊 **Codebase Analysis** - Inspect YakaJS structure and statistics  
+- ⚡ **Size Optimization** - Reduce bundle size by 50-90%
 
-### Global Installation (Recommended)
+## 📦 Installation
+
+### Quick Start
+
+```bash
+# Install globally (recommended)
+npm install -g yakacli
+
+# Or use without installing
+npx yakacli help
+```
+
+### Prerequisites
+
+- Node.js >= 12.0.0
+- npm (comes with Node.js)
+
+### Installation Methods
+
+**1. Global Installation (Recommended)**
 
 ```bash
 npm install -g yakacli
 ```
 
-### Local Usage
+After installation, use `yakacli` command anywhere:
 
 ```bash
-cd yakacli
+yakacli help
+yakacli build
+yakacli create my-project
+```
+
+**2. NPX (No Installation)**
+
+```bash
+npx yakacli help
+npx yakacli create my-project
+```
+
+**3. From Source**
+
+```bash
+git clone https://github.com/Yaka-UI-Labs/YakaJS.git
+cd YakaJS/yakacli
 npm link
 ```
 
-Or run directly:
+**4. Direct Execution**
 
 ```bash
 node yakacli/yakacli.js <command>
 ```
 
-## Commands
+> 📖 **Need help with installation?** See [INSTALLATION.md](INSTALLATION.md) for detailed guide and troubleshooting.
+
+## 🚀 Usage
 
 ### Create a New Project
 
 ```bash
-yakacli create my-project
+yakacli create my-awesome-app
 ```
 
 This will prompt you to select a template:
 
-1. **Basic Project** - Simple HTML page with YakaJS
-2. **SPA (Single Page App)** - Full routing and state management
-3. **Dashboard** - Admin dashboard with charts and tables
-4. **PWA (Progressive Web App)** - Offline-capable progressive web app
+**Available Templates:**
+
+| Template | Description | Best For |
+|----------|-------------|----------|
+| 🌱 **basic** | Simple HTML page with YakaJS | Learning, simple websites |
+| ⚡ **spa** | Single Page App with routing & state | Web applications |
+| 📊 **dashboard** | Admin dashboard with charts | Analytics, admin panels |
+| 📱 **pwa** | Progressive Web App (offline-capable) | Mobile-first apps |
 
 ### Generate Custom Build 🆕
 
