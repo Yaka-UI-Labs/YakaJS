@@ -1431,15 +1431,31 @@
             onClose: options.onClose || (() => { })
         };
 
-        ws.addEventListener('open', handlers.onOpen);
-        ws.addEventListener('message', (e) => handlers.onMessage(JSON.parse(e.data)));
-        ws.addEventListener('error', handlers.onError);
-        ws.addEventListener('close', handlers.onClose);
+        const wrappedHandlers = {
+            open: (e) => handlers.onOpen(e),
+            message: (e) => handlers.onMessage(JSON.parse(e.data)),
+            error: (e) => handlers.onError(e),
+            close: (e) => handlers.onClose(e)
+        };
+
+        ws.addEventListener('open', wrappedHandlers.open);
+        ws.addEventListener('message', wrappedHandlers.message);
+        ws.addEventListener('error', wrappedHandlers.error);
+        ws.addEventListener('close', wrappedHandlers.close);
 
         return {
             send: (data) => ws.send(JSON.stringify(data)),
             close: () => ws.close(),
-            ws: ws
+            ws: ws,
+            cleanup: () => {
+                ws.removeEventListener('open', wrappedHandlers.open);
+                ws.removeEventListener('message', wrappedHandlers.message);
+                ws.removeEventListener('error', wrappedHandlers.error);
+                ws.removeEventListener('close', wrappedHandlers.close);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+            }
         };
     };
 
@@ -1610,7 +1626,7 @@
 
                 elem.innerHTML = html;
 
-                // Add sorting
+                // Add sorting using event delegation to avoid listener accumulation
                 elem.querySelectorAll('th[data-sort]').forEach(th => {
                     th.addEventListener('click', () => {
                         const key = th.dataset.sort;
@@ -1620,7 +1636,7 @@
                             return 0;
                         });
                         render();
-                    });
+                    }, { once: true }); // Use 'once' to automatically remove after first click
                 });
             };
 
@@ -1636,6 +1652,9 @@
                 console.error('autocomplete requires a data array');
                 return;
             }
+            
+            if (input._yaka_autocomplete) return;
+            input._yaka_autocomplete = true;
             
             const dropdown = document.createElement('div');
             dropdown.style.cssText = `
@@ -1653,7 +1672,7 @@
             input.parentNode.style.position = 'relative';
             input.parentNode.appendChild(dropdown);
 
-            input.addEventListener('input', () => {
+            const handleInput = () => {
                 const value = input.value.toLowerCase();
                 if (!value) {
                     dropdown.style.display = 'none';
@@ -1680,13 +1699,25 @@
                 } else {
                     dropdown.style.display = 'none';
                 }
-            });
+            };
 
-            document.addEventListener('click', (e) => {
-                if (e.target !== input) {
+            const handleDocumentClick = (e) => {
+                if (e.target !== input && !dropdown.contains(e.target)) {
                     dropdown.style.display = 'none';
                 }
-            });
+            };
+
+            input.addEventListener('input', handleInput);
+            document.addEventListener('click', handleDocumentClick);
+            
+            // Store cleanup method
+            input._yaka_autocomplete_cleanup = () => {
+                input.removeEventListener('input', handleInput);
+                document.removeEventListener('click', handleDocumentClick);
+                dropdown.remove();
+                delete input._yaka_autocomplete;
+                delete input._yaka_autocomplete_cleanup;
+            };
         });
     };
 
@@ -2830,7 +2861,16 @@
                 '_yaka_scroll_cleanup',        // infiniteScroll
                 '_yaka_scrollspy_cleanup',
                 '_yaka_tilt_cleanup',
-                '_yaka_magnetic_cleanup'
+                '_yaka_magnetic_cleanup',
+                '_yaka_tooltip_cleanup',
+                '_yaka_colorpicker_cleanup',
+                '_yaka_datepicker_cleanup',
+                '_yaka_slider_cleanup',
+                '_yaka_tabs_cleanup',
+                '_yaka_accordion_cleanup',
+                '_yaka_carousel_cleanup',
+                '_yaka_confetti_cleanup',
+                '_yaka_autocomplete_cleanup'
             ];
             
             cleanupMethods.forEach(method => {
