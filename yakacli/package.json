@@ -4,7 +4,7 @@
   "description": "Command-line tool for scaffolding YakaJS projects and generating custom builds",
   "main": "yakacli.js",
   "bin": {
-    "yakacli": "./bin/yakacli"
+    "yakacli": "bin/yakacli"
   },
   "files": [
     "bin/",
@@ -42,7 +42,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Yaka-UI-Labs/YakaJS",
+    "url": "git+https://github.com/Yaka-UI-Labs/YakaJS.git",
     "directory": "yakacli"
   },
   "bugs": {
