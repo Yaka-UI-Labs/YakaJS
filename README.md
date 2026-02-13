@@ -2,7 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Size](https://img.shields.io/badge/size-75%20KB%20minified-success.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
+[![Size](https://img.shields.io/badge/size-91%20KB%20minified-success.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/min.yaka.js)
 
 > Next-Gen JavaScript Library - More powerful than jQuery, simpler to write
@@ -10,8 +10,8 @@
 YakaJS is a modern, lightweight JavaScript library that combines the simplicity of jQuery with cutting-edge browser features. It's designed to be error-free, performant, and developer-friendly.
 
 **⚡ Quick Stats:**
-- 📦 **75 KB minified** (177 KB full source)
-- 🚀 **58% smaller** than unminified version
+- 📦 **91 KB minified** (208 KB full source)
+- 🚀 **56% smaller** than unminified version
 - 🗺️ **Source maps included** for debugging
 - 🔒 **Zero dependencies**
 - ✅ **130+ features** ready to use (including 15+ animations & 20+ UI components)
@@ -84,13 +84,13 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 
 ### Option 1: CDN (Recommended for Production)
 
-**Minified Version** (75 KB - Recommended):
+**Minified Version** (91 KB - Recommended):
 ```html
 <!-- Production: Minified + Source Maps -->
 <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/min.yaka.js"></script>
 ```
 
-**Full Version** (177 KB - For Development):
+**Full Version** (208 KB - For Development):
 ```html
 <!-- Development: Full source with comments -->
 <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/yaka.js"></script>
@@ -98,8 +98,8 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 
 **Specific Version:**
 ```html
-<!-- Lock to a specific version (replace v2.1.0 with desired version) -->
-<script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@v2.1.0/min.yaka.js"></script>
+<!-- Lock to a specific version (replace v2.2.0 with desired version) -->
+<script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@v2.2.0/min.yaka.js"></script>
 ```
 
 **Alternative CDNs:**
@@ -141,9 +141,9 @@ npm run build
 
 | Version | Size | Lines | Use Case | Debugging |
 |---------|------|-------|----------|-----------|
-| **min.yaka.js** | 75 KB | 10 | ✅ Production | With source maps |
-| **yaka.js** | 177 KB | 5,019 | ✅ Development | Direct |
-| **Reduction** | **-58%** | **-99.8%** | - | - |
+| **min.yaka.js** | 91 KB | 9 | ✅ Production | With source maps |
+| **yaka.js** | 208 KB | 5,827 | ✅ Development | Direct |
+| **Reduction** | **-56%** | **-99.8%** | - | - |
 
 > 💡 **Tip:** Always use `min.yaka.js` in production for faster load times. The minified version includes a source map reference for debugging.
 
@@ -1104,8 +1104,8 @@ Advanced features (AI, Bluetooth, View Transitions) require newer browsers and m
 - For offline use, download and host locally
 
 **Q: Which version should I use?**
-- **Production:** `min.yaka.js` (75 KB, faster loading)
-- **Development:** `yaka.js` (177 KB, readable source)
+- **Production:** `min.yaka.js` (91 KB, faster loading)
+- **Development:** `yaka.js` (208 KB, readable source)
 - **Both versions** have identical functionality
 
 **Q: Source maps not working?**
