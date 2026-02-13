@@ -1,0 +1,20 @@
+{
+  "name": "yakajs",
+  "version": "1.0.0",
+  "description": "YakaJS - A modern JavaScript library",
+  "main": "yaka.js",
+  "scripts": {
+    "build": "terser yaka.js -o min.yaka.js -c -m --comments /^!/ --source-map \"url=min.yaka.js.map\""
+  },
+  "keywords": [
+    "javascript",
+    "library",
+    "ui",
+    "framework"
+  ],
+  "author": "Yaka-UI-Labs",
+  "license": "MIT",
+  "devDependencies": {
+    "terser": "^5.27.0"
+  }
+}
