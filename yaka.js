@@ -1544,6 +1544,13 @@
             }
             
             let currentData = [...data];
+            
+            // Helper to escape HTML to prevent XSS
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
 
             const render = () => {
                 let html = '<table style="width: 100%; border-collapse: collapse;">';
@@ -1551,7 +1558,7 @@
                 // Header
                 html += '<thead><tr>';
                 options.columns.forEach(col => {
-                    html += `<th style="padding: 12px; background: #f5f5f5; cursor: pointer; border-bottom: 2px solid #ddd;" data-sort="${col.key}">${col.label}</th>`;
+                    html += `<th style="padding: 12px; background: #f5f5f5; cursor: pointer; border-bottom: 2px solid #ddd;" data-sort="${col.key}">${escapeHtml(col.label)}</th>`;
                 });
                 html += '</tr></thead>';
 
@@ -1560,7 +1567,8 @@
                 currentData.forEach(row => {
                     html += '<tr>';
                     options.columns.forEach(col => {
-                        html += `<td style="padding: 12px; border-bottom: 1px solid #eee;">${row[col.key] || ''}</td>`;
+                        const value = row[col.key] || '';
+                        html += `<td style="padding: 12px; border-bottom: 1px solid #eee;">${escapeHtml(String(value))}</td>`;
                     });
                     html += '</tr>';
                 });
@@ -2698,7 +2706,7 @@
                 '_yaka_parallax_cleanup',
                 '_yaka_sticky_cleanup',
                 '_yaka_draggable_cleanup',
-                '_yaka_scroll_cleanup',
+                '_yaka_scroll_cleanup',        // infiniteScroll
                 '_yaka_scrollspy_cleanup',
                 '_yaka_tilt_cleanup',
                 '_yaka_magnetic_cleanup'
