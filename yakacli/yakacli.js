@@ -101,10 +101,15 @@ function showHelp() {
     
     console.log(`${colors.bright}COMMANDS:${colors.reset}`);
     console.log(`  ${colors.cyan}create <project-name>${colors.reset}  Create a new YakaJS project`);
-    console.log(`  ${colors.cyan}build${colors.reset}                   Generate custom YakaJS build with selected features`);
+    console.log(`  ${colors.green}build${colors.reset}                   Generate custom YakaJS build ${colors.green}(MAIN FEATURE)${colors.reset}`);
     console.log(`  ${colors.cyan}analyze${colors.reset}                 Analyze current codebase`);
     console.log(`  ${colors.cyan}help${colors.reset}                    Show this help message`);
     console.log(`  ${colors.cyan}version${colors.reset}                 Show version number\n`);
+    
+    console.log(`${colors.bright}BUILD OPTIONS:${colors.reset}`);
+    console.log(`  ${colors.green}Quick Build${colors.reset}    - Choose from 7 optimized presets (recommended)`);
+    console.log(`  ${colors.cyan}Custom Build${colors.reset}   - Select specific feature categories`);
+    console.log(`  ${colors.cyan}View Features${colors.reset}  - Browse all available modules\n`);
     
     console.log(`${colors.bright}PROJECT TEMPLATES:${colors.reset}`);
     Object.keys(templates).forEach(key => {
@@ -114,9 +119,9 @@ function showHelp() {
     console.log();
     
     console.log(`${colors.bright}EXAMPLES:${colors.reset}`);
-    console.log(`  yakacli create my-app`);
-    console.log(`  yakacli build`);
-    console.log(`  yakacli analyze`);
+    console.log(`  ${colors.cyan}yakacli build${colors.reset}         # Generate custom YakaJS build`);
+    console.log(`  ${colors.cyan}yakacli create my-app${colors.reset} # Scaffold new project`);
+    console.log(`  ${colors.cyan}yakacli analyze${colors.reset}       # Analyze codebase`);
     console.log();
 }
 
@@ -230,19 +235,29 @@ async function buildCustom() {
         return;
     }
     
-    console.log(`${colors.bright}Choose how to build:${colors.reset}\n`);
-    console.log(`  ${colors.cyan}1${colors.reset}. Use a preset (minimal, standard, full, spa, media, etc.)`);
-    console.log(`  ${colors.cyan}2${colors.reset}. Select custom feature categories\n`);
+    console.log(`${colors.bright}Build your custom YakaJS library:${colors.reset}\n`);
+    console.log(`  ${colors.green}${colors.bright}⭐ 1${colors.reset}. ${colors.bright}Quick Build${colors.reset} - Use a preset ${colors.green}(RECOMMENDED)${colors.reset}`);
+    console.log(`     Choose from 7 optimized presets (minimal, spa, media, etc.)`);
+    console.log();
+    console.log(`  ${colors.cyan}2${colors.reset}. ${colors.bright}Custom Build${colors.reset} - Select specific feature categories`);
+    console.log(`     Pick exactly what you need from 10 categories`);
+    console.log();
+    console.log(`  ${colors.cyan}3${colors.reset}. ${colors.bright}View All Features${colors.reset} - See what's available`);
+    console.log(`     Browse all modules and categories before deciding\n`);
     
-    const buildChoice = await prompt(`${colors.bright}Select option (1-2): ${colors.reset}`);
+    const buildChoice = await prompt(`${colors.bright}Select option (1-3): ${colors.reset}`);
     
     if (buildChoice === '1') {
-        // Show presets
-        console.log(`\n${colors.bright}Available Presets:${colors.reset}\n`);
+        // Quick Build - Show presets
+        console.log(`\n${colors.bright}${colors.green}⭐ Quick Build - Choose a Preset${colors.reset}\n`);
+        console.log(`${colors.yellow}💡 Recommended for most users - optimized, tested configurations${colors.reset}\n`);
+        
         const presetKeys = Object.keys(featuresMap.presets);
         presetKeys.forEach((key, index) => {
             const preset = featuresMap.presets[key];
-            console.log(`  ${colors.cyan}${index + 1}${colors.reset}. ${colors.bright}${preset.name}${colors.reset}`);
+            const tag = key === 'standard' ? ` ${colors.green}[POPULAR]${colors.reset}` : 
+                       key === 'minimal' ? ` ${colors.blue}[SMALLEST]${colors.reset}` : '';
+            console.log(`  ${colors.cyan}${index + 1}${colors.reset}. ${colors.bright}${preset.name}${colors.reset}${tag}`);
             console.log(`     ${preset.description}\n`);
         });
         
@@ -283,20 +298,21 @@ async function buildCustom() {
         }
         
     } else if (buildChoice === '2') {
-        // Show feature categories
-        console.log(`\n${colors.bright}Select Feature Categories:${colors.reset}\n`);
-        console.log(`${colors.yellow}Note: Core features are always included${colors.reset}\n`);
+        // Custom Build - Select categories
+        console.log(`\n${colors.bright}${colors.cyan}🎯 Custom Build - Select Feature Categories${colors.reset}\n`);
+        console.log(`${colors.yellow}💡 Core features (DOM, Events, HTTP) are always included${colors.reset}\n`);
         
         const categoryKeys = Object.keys(featuresMap.categories).filter(key => key !== 'core');
         categoryKeys.forEach((key, index) => {
             const category = featuresMap.categories[key];
             console.log(`  ${colors.cyan}${index + 1}${colors.reset}. ${colors.bright}${category.name}${colors.reset}`);
-            console.log(`     ${category.description}`);
-            console.log(`     Modules: ${colors.cyan}${category.modules.length}${colors.reset}\n`);
+            console.log(`     ${colors.reset}${category.description}${colors.reset}\n`);
         });
         
-        console.log(`${colors.bright}Enter category numbers separated by commas (e.g., 1,3,5)${colors.reset}`);
-        console.log(`${colors.bright}Or enter 'all' for everything:${colors.reset}\n`);
+        console.log(`${colors.bright}How to select:${colors.reset}`);
+        console.log(`  • Enter numbers separated by commas: ${colors.cyan}1,3,5${colors.reset}`);
+        console.log(`  • Enter ${colors.cyan}'all'${colors.reset} for everything`);
+        console.log(`  • Press Enter for minimal build (core only)\n`);
         
         const categoriesInput = await prompt(`${colors.bright}Your selection: ${colors.reset}`);
         
@@ -341,6 +357,28 @@ async function buildCustom() {
         } catch (error) {
             console.log(`${colors.red}❌ Error generating build: ${error.message}${colors.reset}`);
         }
+        
+    } else if (buildChoice === '3') {
+        // View All Features
+        console.log(`\n${colors.bright}${colors.magenta}📚 YakaJS Features Overview${colors.reset}\n`);
+        
+        const allCategories = Object.keys(featuresMap.categories);
+        allCategories.forEach(categoryKey => {
+            const category = featuresMap.categories[categoryKey];
+            const isRequired = category.required ? ` ${colors.yellow}[REQUIRED]${colors.reset}` : '';
+            console.log(`${colors.bright}${category.name}${colors.reset}${isRequired}`);
+            console.log(`${category.description}`);
+            console.log(`Modules: ${colors.cyan}${category.modules.length}${colors.reset}\n`);
+        });
+        
+        console.log(`${colors.bright}Presets Available:${colors.reset}\n`);
+        const presetKeys = Object.keys(featuresMap.presets);
+        presetKeys.forEach(key => {
+            const preset = featuresMap.presets[key];
+            console.log(`  • ${colors.bright}${preset.name}${colors.reset} - ${preset.description}`);
+        });
+        
+        console.log(`\n${colors.yellow}💡 Tip: Run 'yakacli build' again to create your custom build${colors.reset}\n`);
         
     } else {
         console.log(`${colors.red}❌ Invalid selection${colors.reset}`);

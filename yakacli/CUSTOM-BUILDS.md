@@ -23,53 +23,62 @@ cd YakaJS
 node yakacli/yakacli.js build
 ```
 
-## Usage
+## Three Ways to Build
 
-### Option 1: Use a Preset
+### 1. Quick Build (⭐ Recommended)
 
-Choose from 7 pre-configured presets:
+Choose from 7 optimized presets - perfect for most users:
 
 ```bash
 $ yakacli build
 
-Choose how to build:
-  1. Use a preset (minimal, standard, full, spa, media, etc.)
-  2. Select custom feature categories
-
-Select option (1-2): 1
+Select option: 1 (Quick Build)
 
 Available Presets:
-  1. Minimal         - Just core DOM, events, and HTTP
-  2. Standard        - Core + animations + UI components  
-  3. Full            - Everything included
-  4. SPA Framework   - Perfect for single-page apps
-  5. Media Rich      - For camera/audio/video apps
-  6. Interactive     - Rich effects and interactions
-  7. Developer       - With debug and dev tools
+  1. Minimal [SMALLEST]     - Just core (18 KB)
+  2. Standard [POPULAR]     - Core + UI (41 KB)
+  3. Full                   - Everything (176 KB)
+  4. SPA Framework          - For web apps (73 KB)
+  5. Media Rich             - With webcam (36 KB)
+  6. Interactive            - Rich effects (67 KB)
+  7. Developer              - Debug tools (52 KB)
 ```
 
-### Option 2: Custom Selection
+### 2. Custom Build
 
-Select specific feature categories:
+Pick exactly what you need from 10 feature categories:
 
 ```bash
 $ yakacli build
 
-Select option (1-2): 2
+Select option: 2 (Custom Build)
 
-Select Feature Categories:
-  1. Animations          - Fade, slide, animate effects
-  2. UI Components       - Modals, tooltips, tabs, etc.
-  3. Forms & Validation  - Form handling and validation
-  4. Routing & State     - SPA routing and state management
-  5. Visual Effects      - Parallax, tilt, ripple, glitch
-  6. Media & WebRTC      - Webcam, audio, video, recording
-  7. Device APIs         - Geolocation, battery, bluetooth
-  8. Advanced Features   - Drag & drop, web workers
-  9. AI & ML             - WebNN, sentiment analysis
-  10. Developer Tools    - Theme, debug, performance
+Feature Categories:
+  1. Animations
+  2. UI Components
+  3. Forms & Validation
+  4. Routing & State
+  5. Visual Effects
+  6. Media & WebRTC
+  7. Device APIs
+  8. Advanced Features
+  9. AI & ML
+  10. Developer Tools
 
-Enter category numbers separated by commas: 1,2,4,5
+Your selection: 1,2,4  # Choose what you need
+```
+
+### 3. View All Features
+
+Browse all available modules before deciding:
+
+```bash
+$ yakacli build
+
+Select option: 3 (View All Features)
+
+# See complete list of features and modules
+# Then run 'yakacli build' again to create your build
 ```
 
 ## Build Presets
