@@ -653,10 +653,9 @@
             return this.each((i, elem) => {
                 elem.textContent = '';
                 let index = 0;
-                const chars = text.split('');
                 const timer = setInterval(() => {
-                    if (index < chars.length) {
-                        elem.textContent += chars[index];
+                    if (index < text.length) {
+                        elem.textContent += text.charAt(index);
                         index++;
                     } else {
                         clearInterval(timer);
