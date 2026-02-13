@@ -4,7 +4,8 @@
   "description": "YakaJS - A modern JavaScript library",
   "main": "yaka.js",
   "scripts": {
-    "build": "terser yaka.js -o min.yaka.js -c -m --comments /^!/ --source-map \"url=min.yaka.js.map\""
+    "build": "terser yaka.js -o min.yaka.js -c -m --comments /^!/ --source-map \"url=min.yaka.js.map\"",
+    "build:ultra": "terser yaka.js -o ultra.min.yaka.js -c passes=3,pure_getters,unsafe,unsafe_comps,unsafe_math,unsafe_methods,unsafe_proto,unsafe_regexp,unsafe_undefined -m --comments /^!/"
   },
   "keywords": [
     "javascript",
