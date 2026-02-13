@@ -10,6 +10,9 @@
 (function (window) {
     'use strict';
 
+    // WeakMap to store event wrappers for proper cleanup
+    const eventWrappers = new WeakMap();
+
     // Main @ constructor
     function Yaka(selector, context) {
         if (!(this instanceof Yaka)) {
@@ -153,7 +156,8 @@
                     // Add the class
                     classes.forEach(cls => elem.classList.add(cls));
                     
-                    // Force reflow to ensure styles are recalculated
+                    // Force reflow - reading offsetHeight triggers layout recalculation
+                    // This ensures the browser applies the new class styles before we read them
                     void elem.offsetHeight;
                     
                     // Get new computed styles
@@ -200,7 +204,8 @@
                     // Remove the class
                     classes.forEach(cls => elem.classList.remove(cls));
                     
-                    // Force reflow to ensure styles are recalculated
+                    // Force reflow - reading offsetHeight triggers layout recalculation
+                    // This ensures the browser applies the removed class styles before we read them
                     void elem.offsetHeight;
                     
                     // Get new computed styles
@@ -750,17 +755,22 @@
 
             return this.each((i, elem) => {
                 if (selector) {
-                    // Create wrapper function and store reference
+                    // Create wrapper function
                     const wrapper = function(e) {
                         const target = e.target.closest(selector);
                         if (target && elem.contains(target)) {
                             handler.call(target, e);
                         }
                     };
-                    // Store wrapper on handler so off() can find it
-                    if (!handler._yakaWrapper) {
-                        handler._yakaWrapper = wrapper;
+                    
+                    // Store wrapper in WeakMap for proper cleanup
+                    if (!eventWrappers.has(handler)) {
+                        eventWrappers.set(handler, new Map());
                     }
+                    const handlerMap = eventWrappers.get(handler);
+                    const key = `${event}:${selector}:${elem}`;
+                    handlerMap.set(key, wrapper);
+                    
                     elem.addEventListener(event, wrapper);
                 } else {
                     elem.addEventListener(event, handler);
@@ -768,11 +778,27 @@
             });
         },
 
-        off: function (event, handler) {
+        off: function (event, selector, handler) {
+            // Support both 2 and 3 argument forms for backward compatibility
+            if (typeof selector === 'function') {
+                handler = selector;
+                selector = null;
+            }
+            
             return this.each((i, elem) => {
-                // Use the wrapper if it exists, otherwise use handler directly
-                const listener = handler._yakaWrapper || handler;
-                elem.removeEventListener(event, listener);
+                if (selector && eventWrappers.has(handler)) {
+                    // Remove delegated event listener
+                    const handlerMap = eventWrappers.get(handler);
+                    const key = `${event}:${selector}:${elem}`;
+                    const wrapper = handlerMap.get(key);
+                    if (wrapper) {
+                        elem.removeEventListener(event, wrapper);
+                        handlerMap.delete(key);
+                    }
+                } else {
+                    // Remove direct event listener
+                    elem.removeEventListener(event, handler);
+                }
             });
         },
 
@@ -960,17 +986,18 @@
                 const fieldErrors = [];
 
                 // Check all rules independently
+                // Support both old 'message' and new specific message properties for backward compatibility
                 if (rule.required && !value) {
-                    fieldErrors.push(rule.requiredMessage || 'This field is required');
+                    fieldErrors.push(rule.requiredMessage || rule.message || 'This field is required');
                 }
                 if (value && rule.pattern && !rule.pattern.test(value)) {
-                    fieldErrors.push(rule.patternMessage || 'Invalid format');
+                    fieldErrors.push(rule.patternMessage || rule.message || 'Invalid format');
                 }
                 if (value && rule.min && value.length < rule.min) {
-                    fieldErrors.push(rule.minMessage || `Minimum ${rule.min} characters`);
+                    fieldErrors.push(rule.minMessage || rule.message || `Minimum ${rule.min} characters`);
                 }
                 if (value && rule.max && value.length > rule.max) {
-                    fieldErrors.push(rule.maxMessage || `Maximum ${rule.max} characters`);
+                    fieldErrors.push(rule.maxMessage || rule.message || `Maximum ${rule.max} characters`);
                 }
 
                 if (fieldErrors.length > 0) {
