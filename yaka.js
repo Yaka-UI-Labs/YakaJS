@@ -1162,6 +1162,528 @@
         return result;
     };
 
+    // ==================== UTILITY FUNCTIONS ====================
+
+    // Deep Object Utilities
+    Yaka.deepClone = function (obj, hash = new WeakMap()) {
+        // Handle primitives and null
+        if (obj === null || typeof obj !== 'object') return obj;
+        
+        // Handle circular references
+        if (hash.has(obj)) return hash.get(obj);
+        
+        // Handle Date
+        if (obj instanceof Date) return new Date(obj);
+        
+        // Handle RegExp
+        if (obj instanceof RegExp) return new RegExp(obj);
+        
+        // Handle Arrays
+        if (Array.isArray(obj)) {
+            const arrCopy = [];
+            hash.set(obj, arrCopy);
+            obj.forEach((item, index) => {
+                arrCopy[index] = Yaka.deepClone(item, hash);
+            });
+            return arrCopy;
+        }
+        
+        // Handle Objects
+        const objCopy = Object.create(Object.getPrototypeOf(obj));
+        hash.set(obj, objCopy);
+        Object.keys(obj).forEach(key => {
+            objCopy[key] = Yaka.deepClone(obj[key], hash);
+        });
+        return objCopy;
+    };
+
+    Yaka.merge = function (...sources) {
+        const result = {};
+        
+        sources.forEach(source => {
+            if (!source || typeof source !== 'object') return;
+            
+            Object.keys(source).forEach(key => {
+                const sourceValue = source[key];
+                const resultValue = result[key];
+                
+                if (Array.isArray(sourceValue)) {
+                    result[key] = Yaka.deepClone(sourceValue);
+                } else if (sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
+                    if (resultValue && typeof resultValue === 'object') {
+                        result[key] = Yaka.merge(resultValue, sourceValue);
+                    } else {
+                        result[key] = Yaka.deepClone(sourceValue);
+                    }
+                } else {
+                    result[key] = sourceValue;
+                }
+            });
+        });
+        
+        return result;
+    };
+
+    Yaka.isEqual = function (a, b) {
+        if (a === b) return true;
+        if (a == null || b == null) return false;
+        if (typeof a !== typeof b) return false;
+        
+        if (a instanceof Date && b instanceof Date) {
+            return a.getTime() === b.getTime();
+        }
+        
+        if (Array.isArray(a) && Array.isArray(b)) {
+            if (a.length !== b.length) return false;
+            return a.every((item, index) => Yaka.isEqual(item, b[index]));
+        }
+        
+        if (typeof a === 'object' && typeof b === 'object') {
+            const keysA = Object.keys(a);
+            const keysB = Object.keys(b);
+            if (keysA.length !== keysB.length) return false;
+            return keysA.every(key => Yaka.isEqual(a[key], b[key]));
+        }
+        
+        return false;
+    };
+
+    Yaka.get = function (obj, path, defaultValue) {
+        if (!obj || typeof path !== 'string') return defaultValue;
+        
+        const keys = path.split('.');
+        let result = obj;
+        
+        for (const key of keys) {
+            if (result == null) return defaultValue;
+            result = result[key];
+        }
+        
+        return result !== undefined ? result : defaultValue;
+    };
+
+    Yaka.set = function (obj, path, value) {
+        if (!obj || typeof path !== 'string') return obj;
+        
+        const keys = path.split('.');
+        const lastKey = keys.pop();
+        let target = obj;
+        
+        for (const key of keys) {
+            if (!(key in target) || typeof target[key] !== 'object') {
+                target[key] = {};
+            }
+            target = target[key];
+        }
+        
+        target[lastKey] = value;
+        return obj;
+    };
+
+    Yaka.pick = function (obj, keys) {
+        const result = {};
+        keys.forEach(key => {
+            if (key in obj) result[key] = obj[key];
+        });
+        return result;
+    };
+
+    Yaka.omit = function (obj, keys) {
+        const result = { ...obj };
+        keys.forEach(key => delete result[key]);
+        return result;
+    };
+
+    // Array & Collection Methods
+    Yaka.chunk = function (array, size = 1) {
+        const chunks = [];
+        for (let i = 0; i < array.length; i += size) {
+            chunks.push(array.slice(i, i + size));
+        }
+        return chunks;
+    };
+
+    Yaka.flatten = function (array, depth = 1) {
+        if (depth === 0) return array.slice();
+        
+        return array.reduce((acc, item) => {
+            if (Array.isArray(item)) {
+                acc.push(...Yaka.flatten(item, depth - 1));
+            } else {
+                acc.push(item);
+            }
+            return acc;
+        }, []);
+    };
+
+    Yaka.flattenDeep = function (array) {
+        return Yaka.flatten(array, Infinity);
+    };
+
+    Yaka.uniq = function (array) {
+        return [...new Set(array)];
+    };
+
+    Yaka.uniqBy = function (array, iteratee) {
+        const seen = new Set();
+        return array.filter(item => {
+            const key = typeof iteratee === 'function' ? iteratee(item) : item[iteratee];
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    };
+
+    Yaka.range = function (start, end, step = 1) {
+        if (end === undefined) {
+            end = start;
+            start = 0;
+        }
+        
+        const result = [];
+        if (step > 0) {
+            for (let i = start; i < end; i += step) {
+                result.push(i);
+            }
+        } else {
+            for (let i = start; i > end; i += step) {
+                result.push(i);
+            }
+        }
+        return result;
+    };
+
+    Yaka.shuffle = function (array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    };
+
+    Yaka.sample = function (array, n = 1) {
+        if (n === 1) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+        const shuffled = Yaka.shuffle(array);
+        return shuffled.slice(0, Math.min(n, shuffled.length));
+    };
+
+    Yaka.groupBy = function (array, iteratee) {
+        return array.reduce((result, item) => {
+            const key = typeof iteratee === 'function' ? iteratee(item) : item[iteratee];
+            if (!result[key]) result[key] = [];
+            result[key].push(item);
+            return result;
+        }, {});
+    };
+
+    Yaka.sortBy = function (array, iteratee) {
+        return [...array].sort((a, b) => {
+            const aVal = typeof iteratee === 'function' ? iteratee(a) : a[iteratee];
+            const bVal = typeof iteratee === 'function' ? iteratee(b) : b[iteratee];
+            if (aVal < bVal) return -1;
+            if (aVal > bVal) return 1;
+            return 0;
+        });
+    };
+
+    Yaka.partition = function (array, predicate) {
+        const truthy = [];
+        const falsy = [];
+        array.forEach((item, index) => {
+            if (predicate(item, index, array)) {
+                truthy.push(item);
+            } else {
+                falsy.push(item);
+            }
+        });
+        return [truthy, falsy];
+    };
+
+    Yaka.intersection = function (...arrays) {
+        if (arrays.length === 0) return [];
+        const [first, ...rest] = arrays;
+        return first.filter(item => rest.every(arr => arr.includes(item)));
+    };
+
+    Yaka.union = function (...arrays) {
+        return Yaka.uniq(arrays.flat());
+    };
+
+    Yaka.difference = function (array, ...others) {
+        const othersFlat = others.flat();
+        return array.filter(item => !othersFlat.includes(item));
+    };
+
+    // String Utilities
+    Yaka.camelCase = function (str) {
+        return str
+            .toLowerCase()
+            .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase());
+    };
+
+    Yaka.kebabCase = function (str) {
+        return str
+            .replace(/([a-z])([A-Z])/g, '$1-$2')
+            .replace(/[\s_]+/g, '-')
+            .toLowerCase();
+    };
+
+    Yaka.snakeCase = function (str) {
+        return str
+            .replace(/([a-z])([A-Z])/g, '$1_$2')
+            .replace(/[\s-]+/g, '_')
+            .toLowerCase();
+    };
+
+    Yaka.capitalize = function (str) {
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
+
+    Yaka.capitalizeWords = function (str) {
+        return str.replace(/\b\w/g, char => char.toUpperCase());
+    };
+
+    Yaka.truncate = function (str, length = 50, ending = '...') {
+        if (str.length <= length) return str;
+        return str.substring(0, length - ending.length) + ending;
+    };
+
+    Yaka.slugify = function (str) {
+        return str
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    };
+
+    Yaka.escape = function (str) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '/': '&#x2F;'
+        };
+        return str.replace(/[&<>"'/]/g, char => map[char]);
+    };
+
+    Yaka.unescape = function (str) {
+        const map = {
+            '&amp;': '&',
+            '&lt;': '<',
+            '&gt;': '>',
+            '&quot;': '"',
+            '&#x27;': "'",
+            '&#x2F;': '/'
+        };
+        return str.replace(/&(?:amp|lt|gt|quot|#x27|#x2F);/g, entity => map[entity]);
+    };
+
+    // Date & Time Utilities
+    Yaka.formatDate = function (date, format = 'YYYY-MM-DD') {
+        const d = new Date(date);
+        const map = {
+            YYYY: d.getFullYear(),
+            MM: String(d.getMonth() + 1).padStart(2, '0'),
+            DD: String(d.getDate()).padStart(2, '0'),
+            HH: String(d.getHours()).padStart(2, '0'),
+            mm: String(d.getMinutes()).padStart(2, '0'),
+            ss: String(d.getSeconds()).padStart(2, '0')
+        };
+        
+        return format.replace(/YYYY|MM|DD|HH|mm|ss/g, match => map[match]);
+    };
+
+    Yaka.fromNow = function (date) {
+        const now = Date.now();
+        const diff = now - new Date(date).getTime();
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        const months = Math.floor(days / 30);
+        const years = Math.floor(days / 365);
+        
+        if (seconds < 60) return 'just now';
+        if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
+        if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`;
+        return `${years} year${years > 1 ? 's' : ''} ago`;
+    };
+
+    Yaka.diffDates = function (date1, date2, unit = 'days') {
+        const diff = new Date(date2) - new Date(date1);
+        const units = {
+            milliseconds: 1,
+            seconds: 1000,
+            minutes: 1000 * 60,
+            hours: 1000 * 60 * 60,
+            days: 1000 * 60 * 60 * 24,
+            weeks: 1000 * 60 * 60 * 24 * 7,
+            months: 1000 * 60 * 60 * 24 * 30,
+            years: 1000 * 60 * 60 * 24 * 365
+        };
+        return Math.floor(diff / (units[unit] || units.days));
+    };
+
+    Yaka.addDays = function (date, days) {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    };
+
+    Yaka.addHours = function (date, hours) {
+        const result = new Date(date);
+        result.setHours(result.getHours() + hours);
+        return result;
+    };
+
+    Yaka.addMinutes = function (date, minutes) {
+        const result = new Date(date);
+        result.setMinutes(result.getMinutes() + minutes);
+        return result;
+    };
+
+    // Type Checking Utilities
+    Yaka.isArray = Array.isArray;
+
+    Yaka.isObject = function (value) {
+        return value !== null && typeof value === 'object' && !Array.isArray(value);
+    };
+
+    Yaka.isFunction = function (value) {
+        return typeof value === 'function';
+    };
+
+    Yaka.isString = function (value) {
+        return typeof value === 'string';
+    };
+
+    Yaka.isNumber = function (value) {
+        return typeof value === 'number' && !isNaN(value);
+    };
+
+    Yaka.isBoolean = function (value) {
+        return typeof value === 'boolean';
+    };
+
+    Yaka.isNull = function (value) {
+        return value === null;
+    };
+
+    Yaka.isUndefined = function (value) {
+        return value === undefined;
+    };
+
+    Yaka.isNil = function (value) {
+        return value == null;
+    };
+
+    Yaka.isEmpty = function (value) {
+        if (value == null) return true;
+        if (Array.isArray(value) || typeof value === 'string') return value.length === 0;
+        if (typeof value === 'object') return Object.keys(value).length === 0;
+        return false;
+    };
+
+    Yaka.isDate = function (value) {
+        return value instanceof Date && !isNaN(value);
+    };
+
+    Yaka.isRegExp = function (value) {
+        return value instanceof RegExp;
+    };
+
+    Yaka.isError = function (value) {
+        return value instanceof Error;
+    };
+
+    // Promise/Async Utilities
+    Yaka.sleep = function (ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    };
+
+    Yaka.retry = async function (fn, options = {}) {
+        const { times = 3, delay = 1000, backoff = 2 } = options;
+        let lastError;
+        
+        for (let i = 0; i < times; i++) {
+            try {
+                return await fn();
+            } catch (error) {
+                lastError = error;
+                if (i < times - 1) {
+                    await Yaka.sleep(delay * Math.pow(backoff, i));
+                }
+            }
+        }
+        
+        throw lastError;
+    };
+
+    Yaka.timeout = function (promise, ms, message = 'Timeout') {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error(message)), ms)
+            )
+        ]);
+    };
+
+    Yaka.all = Promise.all.bind(Promise);
+    Yaka.race = Promise.race.bind(Promise);
+
+    Yaka.allSettled = function (promises) {
+        return Promise.all(
+            promises.map(promise =>
+                Promise.resolve(promise)
+                    .then(value => ({ status: 'fulfilled', value }))
+                    .catch(reason => ({ status: 'rejected', reason }))
+            )
+        );
+    };
+
+    // Math Utilities
+    Yaka.clamp = function (value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    };
+
+    Yaka.random = function (min = 0, max = 1, floating = false) {
+        if (floating || min % 1 !== 0 || max % 1 !== 0) {
+            return Math.random() * (max - min) + min;
+        }
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    };
+
+    Yaka.sum = function (array) {
+        return array.reduce((sum, num) => sum + num, 0);
+    };
+
+    Yaka.mean = function (array) {
+        return Yaka.sum(array) / array.length;
+    };
+
+    Yaka.median = function (array) {
+        const sorted = [...array].sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    };
+
+    Yaka.min = function (array) {
+        return Math.min(...array);
+    };
+
+    Yaka.max = function (array) {
+        return Math.max(...array);
+    };
+
+
     // NEW! Cookie helpers
     Yaka.cookie = {
         set: function (name, value, days = 7) {
