@@ -357,10 +357,20 @@ async function buildCustom() {
             console.log(`  ${colors.green}✨ Custom size:${colors.reset}      ${colors.green}${colors.bright}${(result.customSize / 1024).toFixed(2)} KB${colors.reset}`);
             console.log(`  ${colors.magenta}🎯 Size reduction:${colors.reset}   ${colors.magenta}${colors.bright}${result.reduction}%${colors.reset} ${colors.green}↓${colors.reset}`);
             console.log(`  ${colors.blue}📚 Modules included:${colors.reset} ${colors.bright}${result.modulesIncluded}${colors.reset}`);
+            
+            if (result.docPath) {
+                console.log(`  ${colors.yellow}📖 Documentation:${colors.reset}    ${colors.bright}${path.basename(result.docPath)}${colors.reset} ${colors.green}✓${colors.reset}`);
+            }
+            
             console.log();
             showSeparator('═', colors.green);
             console.log();
             console.log(`${colors.green}${colors.bright}🎉 Your custom build is ready to use!${colors.reset}`);
+            
+            if (result.docPath) {
+                console.log(`${colors.yellow}📖 Check ${colors.bright}${path.basename(result.docPath)}${colors.reset}${colors.yellow} for API documentation specific to your build${colors.reset}`);
+            }
+            
             console.log();
             
         } catch (error) {
@@ -434,17 +444,34 @@ async function buildCustom() {
         try {
             const result = buildGenerator.generateFromCategories(yakaPath, selectedCategories, outputPath);
             
+            console.log();
+            showSeparator('═', colors.green);
+            console.log();
             console.log(`${colors.green}${colors.bright}✅ Build completed successfully!${colors.reset}\n`);
-            console.log(`${colors.bright}Build Statistics:${colors.reset}`);
-            console.log(`  Output file:      ${colors.cyan}${result.outputPath}${colors.reset}`);
-            console.log(`  Original size:    ${colors.cyan}${(result.originalSize / 1024).toFixed(2)} KB${colors.reset}`);
-            console.log(`  Custom size:      ${colors.cyan}${(result.customSize / 1024).toFixed(2)} KB${colors.reset}`);
-            console.log(`  Size reduction:   ${colors.green}${result.reduction}%${colors.reset}`);
-            console.log(`  Modules included: ${colors.cyan}${result.modulesIncluded}${colors.reset}`);
+            showSeparator('═', colors.green);
+            console.log();
+            
+            console.log(`${colors.bright}${colors.white}📊 Build Statistics:${colors.reset}`);
+            console.log();
+            console.log(`  ${colors.cyan}📁 Output file:${colors.reset}      ${colors.bright}${path.basename(result.outputPath)}${colors.reset}`);
+            console.log(`  ${colors.cyan}📦 Original size:${colors.reset}    ${colors.yellow}${(result.originalSize / 1024).toFixed(2)} KB${colors.reset}`);
+            console.log(`  ${colors.green}✨ Custom size:${colors.reset}      ${colors.green}${colors.bright}${(result.customSize / 1024).toFixed(2)} KB${colors.reset}`);
+            console.log(`  ${colors.magenta}🎯 Size reduction:${colors.reset}   ${colors.magenta}${colors.bright}${result.reduction}%${colors.reset} ${colors.green}↓${colors.reset}`);
+            console.log(`  ${colors.blue}📚 Modules included:${colors.reset} ${colors.bright}${result.modulesIncluded}${colors.reset}`);
+            
+            if (result.docPath) {
+                console.log(`  ${colors.yellow}📖 Documentation:${colors.reset}    ${colors.bright}${path.basename(result.docPath)}${colors.reset} ${colors.green}✓${colors.reset}`);
+            }
+            
             console.log();
             showSeparator('═', colors.green);
             console.log();
             console.log(`${colors.green}${colors.bright}🎉 Your custom build is ready to use!${colors.reset}`);
+            
+            if (result.docPath) {
+                console.log(`${colors.yellow}📖 Check ${colors.bright}${path.basename(result.docPath)}${colors.reset}${colors.yellow} for API documentation specific to your build${colors.reset}`);
+            }
+            
             console.log();
             
         } catch (error) {

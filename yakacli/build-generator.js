@@ -6,6 +6,7 @@
 const fs = require('fs');
 const path = require('path');
 const featuresMap = require('./features-map');
+const docGenerator = require('./doc-generator');
 
 /**
  * Extract lines from yaka.js file
@@ -127,11 +128,31 @@ function generateBuild(yakaPath, selectedModules, options = {}) {
     const customSize = fs.statSync(outputPath).size;
     const reduction = ((1 - customSize / originalSize) * 100).toFixed(1);
     
-    return {
+    const buildStats = {
         outputPath,
+        fileName: path.basename(outputPath),
         originalSize,
         customSize,
         reduction,
+        moduleCount: moduleList.length
+    };
+    
+    // Generate documentation if enabled (default: true)
+    if (options.generateDocs !== false) {
+        try {
+            const docPath = docGenerator.generateDocumentation(
+                selectedModules,
+                buildStats,
+                outputPath
+            );
+            buildStats.docPath = docPath;
+        } catch (err) {
+            console.warn('Warning: Could not generate documentation:', err.message);
+        }
+    }
+    
+    return {
+        ...buildStats,
         modulesIncluded: moduleList.length
     };
 }

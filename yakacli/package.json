@@ -1,20 +1,39 @@
 {
   "name": "yakacli",
   "version": "1.0.0",
-  "description": "Command-line tool for scaffolding YakaJS projects",
+  "description": "Command-line tool for scaffolding YakaJS projects and generating custom builds",
   "main": "yakacli.js",
   "bin": {
     "yakacli": "./bin/yakacli"
   },
+  "files": [
+    "bin/",
+    "yakacli.js",
+    "build-generator.js",
+    "doc-generator.js",
+    "features-map.js",
+    "templates/",
+    "README.md",
+    "INSTALLATION.md",
+    "CUSTOM-BUILDS.md",
+    "QUICK-REFERENCE.md"
+  ],
   "scripts": {
-    "test": "node yakacli.js analyze"
+    "test": "node yakacli.js analyze",
+    "prepublishOnly": "node yakacli.js analyze"
   },
   "keywords": [
     "yakajs",
     "cli",
     "scaffolding",
     "generator",
-    "templates"
+    "templates",
+    "custom-build",
+    "builder",
+    "frontend",
+    "javascript",
+    "dom",
+    "jquery-alternative"
   ],
   "author": "Yaka-UI-Labs",
   "license": "MIT",
@@ -23,6 +42,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Yaka-UI-Labs/YakaJS"
-  }
+    "url": "https://github.com/Yaka-UI-Labs/YakaJS",
+    "directory": "yakacli"
+  },
+  "bugs": {
+    "url": "https://github.com/Yaka-UI-Labs/YakaJS/issues"
+  },
+  "homepage": "https://github.com/Yaka-UI-Labs/YakaJS/tree/main/yakacli"
 }
