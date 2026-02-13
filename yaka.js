@@ -1141,6 +1141,231 @@
         });
     };
 
+    // NEW! Resizable elements
+    Yaka.prototype.resizable = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_resizable) return;
+            elem._yaka_resizable = true;
+
+            const handles = options.handles || ['se', 'e', 's', 'sw', 'ne', 'nw', 'n', 'w'];
+            const minWidth = options.minWidth || 50;
+            const minHeight = options.minHeight || 50;
+            const maxWidth = options.maxWidth || Infinity;
+            const maxHeight = options.maxHeight || Infinity;
+            const aspectRatio = options.aspectRatio || false;
+
+            // Ensure element has position
+            if (getComputedStyle(elem).position === 'static') {
+                elem.style.position = 'relative';
+            }
+
+            const handleStyles = {
+                'se': { cursor: 'nwse-resize', right: '0', bottom: '0' },
+                'e': { cursor: 'ew-resize', right: '0', top: '50%', transform: 'translateY(-50%)' },
+                's': { cursor: 'ns-resize', bottom: '0', left: '50%', transform: 'translateX(-50%)' },
+                'sw': { cursor: 'nesw-resize', left: '0', bottom: '0' },
+                'ne': { cursor: 'nesw-resize', right: '0', top: '0' },
+                'nw': { cursor: 'nwse-resize', left: '0', top: '0' },
+                'n': { cursor: 'ns-resize', top: '0', left: '50%', transform: 'translateX(-50%)' },
+                'w': { cursor: 'ew-resize', left: '0', top: '50%', transform: 'translateY(-50%)' }
+            };
+
+            const resizeHandles = [];
+
+            handles.forEach(handle => {
+                const handleElem = document.createElement('div');
+                handleElem.className = `yaka-resize-handle yaka-resize-${handle}`;
+                handleElem.style.cssText = `
+                    position: absolute;
+                    width: 8px;
+                    height: 8px;
+                    background: #4285f4;
+                    border: 1px solid white;
+                    box-sizing: border-box;
+                    z-index: 1000;
+                `;
+
+                Object.assign(handleElem.style, handleStyles[handle]);
+                elem.appendChild(handleElem);
+                resizeHandles.push(handleElem);
+
+                let isResizing = false;
+                let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+                handleElem.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = elem.offsetWidth;
+                    startHeight = elem.offsetHeight;
+                    startLeft = elem.offsetLeft;
+                    startTop = elem.offsetTop;
+
+                    if (options.onStart) options.onStart.call(elem, e);
+
+                    const handleMouseMove = (e) => {
+                        if (!isResizing) return;
+
+                        const dx = e.clientX - startX;
+                        const dy = e.clientY - startY;
+                        let newWidth = startWidth;
+                        let newHeight = startHeight;
+                        let newLeft = startLeft;
+                        let newTop = startTop;
+
+                        // Calculate new dimensions based on handle direction
+                        if (handle.includes('e')) newWidth = startWidth + dx;
+                        if (handle.includes('w')) {
+                            newWidth = startWidth - dx;
+                            newLeft = startLeft + dx;
+                        }
+                        if (handle.includes('s')) newHeight = startHeight + dy;
+                        if (handle.includes('n')) {
+                            newHeight = startHeight - dy;
+                            newTop = startTop + dy;
+                        }
+
+                        // Apply constraints
+                        newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+                        newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+
+                        // Maintain aspect ratio if enabled
+                        if (aspectRatio) {
+                            const ratio = startWidth / startHeight;
+                            if (handle.includes('e') || handle.includes('w')) {
+                                newHeight = newWidth / ratio;
+                            } else {
+                                newWidth = newHeight * ratio;
+                            }
+                        }
+
+                        // Apply new dimensions
+                        elem.style.width = newWidth + 'px';
+                        elem.style.height = newHeight + 'px';
+
+                        // Update position for handles that affect left/top
+                        if (handle.includes('w') || handle.includes('n')) {
+                            if (handle.includes('w')) elem.style.left = newLeft + 'px';
+                            if (handle.includes('n')) elem.style.top = newTop + 'px';
+                        }
+
+                        if (options.onResize) options.onResize.call(elem, e, { width: newWidth, height: newHeight });
+                    };
+
+                    const handleMouseUp = (e) => {
+                        if (isResizing) {
+                            isResizing = false;
+                            document.removeEventListener('mousemove', handleMouseMove);
+                            document.removeEventListener('mouseup', handleMouseUp);
+                            if (options.onStop) options.onStop.call(elem, e);
+                        }
+                    };
+
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                });
+            });
+
+            // Store cleanup function
+            elem._yaka_resizable_cleanup = () => {
+                resizeHandles.forEach(handle => handle.remove());
+                delete elem._yaka_resizable;
+                delete elem._yaka_resizable_cleanup;
+            };
+        });
+    };
+
+    // NEW! Droppable zones
+    Yaka.prototype.droppable = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_droppable) return;
+            elem._yaka_droppable = true;
+
+            const accept = options.accept || '*'; // CSS selector or '*' for all
+            const hoverClass = options.hoverClass || 'yaka-drop-hover';
+            const activeClass = options.activeClass || 'yaka-drop-active';
+
+            // Track draggable elements
+            let isDragOver = false;
+
+            const handleDragEnter = (e) => {
+                e.preventDefault();
+                const draggable = e.dataTransfer.effectAllowed;
+                
+                // Check if dragged element matches accept selector
+                if (accept === '*' || (e.target.matches && e.target.matches(accept))) {
+                    isDragOver = true;
+                    elem.classList.add(hoverClass);
+                    if (options.onDragEnter) options.onDragEnter.call(elem, e);
+                }
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (options.onDragOver) options.onDragOver.call(elem, e);
+            };
+
+            const handleDragLeave = (e) => {
+                e.preventDefault();
+                if (e.target === elem) {
+                    isDragOver = false;
+                    elem.classList.remove(hoverClass);
+                    if (options.onDragLeave) options.onDragLeave.call(elem, e);
+                }
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                isDragOver = false;
+                elem.classList.remove(hoverClass);
+                elem.classList.remove(activeClass);
+
+                // Get dragged data
+                const data = e.dataTransfer.getData('text/html') || e.dataTransfer.getData('text/plain');
+                
+                if (options.onDrop) {
+                    options.onDrop.call(elem, e, { data });
+                }
+            };
+
+            // Add event listeners
+            elem.addEventListener('dragenter', handleDragEnter);
+            elem.addEventListener('dragover', handleDragOver);
+            elem.addEventListener('dragleave', handleDragLeave);
+            elem.addEventListener('drop', handleDrop);
+
+            // Add active class when any drag starts
+            const handleGlobalDragStart = () => {
+                elem.classList.add(activeClass);
+            };
+
+            const handleGlobalDragEnd = () => {
+                elem.classList.remove(activeClass);
+                elem.classList.remove(hoverClass);
+            };
+
+            document.addEventListener('dragstart', handleGlobalDragStart);
+            document.addEventListener('dragend', handleGlobalDragEnd);
+
+            // Store cleanup function
+            elem._yaka_droppable_cleanup = () => {
+                elem.removeEventListener('dragenter', handleDragEnter);
+                elem.removeEventListener('dragover', handleDragOver);
+                elem.removeEventListener('dragleave', handleDragLeave);
+                elem.removeEventListener('drop', handleDrop);
+                document.removeEventListener('dragstart', handleGlobalDragStart);
+                document.removeEventListener('dragend', handleGlobalDragEnd);
+                delete elem._yaka_droppable;
+                delete elem._yaka_droppable_cleanup;
+            };
+        });
+    };
+
     // NEW! Touch gestures
     Yaka.prototype.swipe = function (handlers) {
         return this.each((i, elem) => {
@@ -3655,6 +3880,8 @@
                 '_yaka_parallax_cleanup',
                 '_yaka_sticky_cleanup',
                 '_yaka_draggable_cleanup',
+                '_yaka_resizable_cleanup',
+                '_yaka_droppable_cleanup',
                 '_yaka_scroll_cleanup',        // infiniteScroll
                 '_yaka_scrollspy_cleanup',
                 '_yaka_tilt_cleanup',

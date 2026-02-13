@@ -23,7 +23,7 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 - **15+ Smooth Animations**: fadeIn/Out, slideIn/Out (all directions), zoomIn/Out, blurIn/Out, bounce, pulse, shake, swing, flip3D, rotateIn/Out, rubberBand
 - **Modern UI Components**: Dropdown with search, Modal, Tooltip, Popover, Tabs, Accordion, Carousel, Stepper/Wizard, Breadcrumb, Pagination, Badge/Tag
 - **Progress Indicators**: Progress bars, loading spinners, skeleton loaders
-- **Interactive Elements**: Draggable, sortable, swipe gestures, infinite scroll
+- **Interactive Elements**: Draggable, droppable, resizable, sortable, swipe gestures, infinite scroll
 
 ### 🛡️ Smart "Auto-Fix" & Error Handling
 - **Safe-Mode Chaining**: Never crash on empty selectors with `_.safe()`
@@ -946,6 +946,76 @@ _.notify('Warning!', 'warning');
 
 // Error notification
 _.notify('Error occurred', 'error', 5000);
+```
+
+**Drag and Drop:**
+```javascript
+// Make element draggable
+_('#box').draggable({
+    onStart: function(e) {
+        console.log('Started dragging');
+    },
+    onDrag: function(e) {
+        console.log('Dragging...');
+    },
+    onEnd: function(e) {
+        console.log('Stopped dragging');
+    }
+});
+
+// Create drop zones
+_('#drop-zone').droppable({
+    accept: '*',  // Accept all draggable elements (or use CSS selector)
+    hoverClass: 'drag-over',  // Class when dragging over
+    activeClass: 'drop-active',  // Class when any drag is active
+    onDragEnter: function(e) {
+        console.log('Drag entered drop zone');
+    },
+    onDragLeave: function(e) {
+        console.log('Drag left drop zone');
+    },
+    onDrop: function(e, data) {
+        console.log('Item dropped!', data);
+    }
+});
+```
+
+**Resizable Elements:**
+```javascript
+// Make element resizable with all handles
+_('#box').resizable();
+
+// Custom resize handles and constraints
+_('#box').resizable({
+    handles: ['se', 'e', 's'],  // Only southeast, east, south handles
+    minWidth: 100,
+    minHeight: 100,
+    maxWidth: 500,
+    maxHeight: 500,
+    aspectRatio: true,  // Maintain aspect ratio
+    onStart: function(e) {
+        console.log('Started resizing');
+    },
+    onResize: function(e, dimensions) {
+        console.log('Resizing:', dimensions.width, dimensions.height);
+    },
+    onStop: function(e) {
+        console.log('Stopped resizing');
+    }
+});
+```
+
+**Sortable Lists:**
+```javascript
+// Make list items sortable by dragging
+_('#sortable-list').sortable({
+    onChange: function() {
+        console.log('List order changed');
+        // Get new order
+        const newOrder = Array.from(this.children).map(item => item.textContent);
+        console.log('New order:', newOrder);
+    }
+});
 ```
 
 ### Phase 4: Modern Browser Features

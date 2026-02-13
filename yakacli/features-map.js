@@ -121,9 +121,11 @@ module.exports = {
         
         advanced: {
             name: 'Advanced Features',
-            description: 'Drag & drop, sortable, gestures, web workers',
+            description: 'Drag & drop, resizable, droppable, sortable, gestures, web workers',
             modules: [
                 'draggable',
+                'resizable',
+                'droppable',
                 'sortable',
                 'gestures',
                 'web-workers',
@@ -232,9 +234,11 @@ module.exports = {
         'network-status': { start: 1323, end: 1328, category: 'deviceApis' },
         
         // ADVANCED
-        'draggable': { start: 881, end: 931, category: 'advanced' },
-        'sortable': { start: 933, end: 976, category: 'advanced' },
-        'gestures': { start: 978, end: 1007, category: 'advanced' },
+        'draggable': { start: 1048, end: 1098, category: 'advanced' },
+        'sortable': { start: 1100, end: 1142, category: 'advanced' },
+        'resizable': { start: 1145, end: 1279, category: 'advanced' },
+        'droppable': { start: 1281, end: 1368, category: 'advanced' },
+        'gestures': { start: 1370, end: 1399, category: 'advanced' },
         'web-workers': { start: 3337, end: 3380, category: 'advanced' },
         'view-transitions': { start: 3111, end: 3144, category: 'advanced' },
         'indexeddb': { start: 2080, end: 2135, category: 'advanced' },
