@@ -2990,7 +2990,7 @@
     // ==================== PHASE 2: PERFORMANCE & LIFECYCLE ====================
 
     // Enhanced onVisible with more options
-    Yaka.prototype.onVisibleAdvanced = function(callback, options = {}) {
+    Yaka.prototype.observeVisibility = function(callback, options = {}) {
         const threshold = options.threshold || 0.1;
         const rootMargin = options.rootMargin || '0px';
         const once = options.once !== false; // Default true
@@ -3200,14 +3200,38 @@
             };
             
             const handler = (e) => {
+                const oldValue = elem.value;
                 const cursorPos = elem.selectionStart;
-                const oldLength = elem.value.length;
-                elem.value = format(elem.value);
-                const newLength = elem.value.length;
+                const formatted = format(elem.value);
                 
-                // Adjust cursor position
-                const diff = newLength - oldLength;
-                elem.setSelectionRange(cursorPos + diff, cursorPos + diff);
+                if (oldValue === formatted) return; // No change
+                
+                elem.value = formatted;
+                
+                // Improved cursor positioning
+                // Count how many non-digit characters are before cursor in formatted value
+                let adjustedPos = cursorPos;
+                let digitsBeforeCursor = 0;
+                
+                for (let i = 0; i < Math.min(cursorPos, oldValue.length); i++) {
+                    if (/[0-9]/.test(oldValue[i])) {
+                        digitsBeforeCursor++;
+                    }
+                }
+                
+                // Find position in formatted string after same number of digits
+                let digitsSeen = 0;
+                for (let i = 0; i < formatted.length; i++) {
+                    if (/[0-9]/.test(formatted[i])) {
+                        digitsSeen++;
+                        if (digitsSeen === digitsBeforeCursor) {
+                            adjustedPos = i + 1;
+                            break;
+                        }
+                    }
+                }
+                
+                elem.setSelectionRange(adjustedPos, adjustedPos);
             };
             
             elem.addEventListener('input', handler);
@@ -3262,10 +3286,15 @@
     // Keyboard shortcuts manager
     Yaka.hotkeys = {};
     Yaka.hotkey = function(combo, handler, options = {}) {
-        const normalized = combo.toLowerCase().replace(/\s+/g, '');
+        // Normalize combo: map both ctrl and cmd to 'ctrl' for consistency
+        const normalized = combo.toLowerCase()
+            .replace(/\s+/g, '')
+            .replace(/cmd/g, 'ctrl')
+            .replace(/meta/g, 'ctrl');
         
         const hotkeyHandler = (e) => {
             const keys = [];
+            // Map both Ctrl and Meta (Cmd on Mac) to 'ctrl' for consistency
             if (e.ctrlKey || e.metaKey) keys.push('ctrl');
             if (e.altKey) keys.push('alt');
             if (e.shiftKey) keys.push('shift');
@@ -3273,7 +3302,7 @@
             
             const pressed = keys.join('+');
             
-            if (pressed === normalized || pressed.replace('ctrl', 'meta') === normalized) {
+            if (pressed === normalized) {
                 if (options.preventDefault !== false) {
                     e.preventDefault();
                 }
@@ -3481,21 +3510,47 @@
 
     // Theme Engine
     Yaka.theme = {
-        _current: localStorage.getItem('yaka-theme') || 'light',
+        _current: null,
         _listeners: [],
+        _storageAvailable: true,
+        
+        _initCurrent: function() {
+            if (this._current !== null) return;
+            
+            // Try to get from localStorage
+            try {
+                this._current = localStorage.getItem('yaka-theme') || 'light';
+            } catch (e) {
+                // localStorage not available (private browsing, etc.)
+                Yaka._log('warn', 'localStorage not available, theme will not persist across sessions');
+                this._storageAvailable = false;
+                this._current = 'light';
+            }
+        },
         
         get current() {
+            this._initCurrent();
             return this._current;
         },
         
         set: function(theme) {
+            this._initCurrent();
+            
             if (theme !== 'light' && theme !== 'dark') {
                 Yaka._log('error', `Invalid theme: ${theme}. Use 'light' or 'dark'`);
                 return;
             }
             
             this._current = theme;
-            localStorage.setItem('yaka-theme', theme);
+            
+            // Try to save to localStorage
+            if (this._storageAvailable) {
+                try {
+                    localStorage.setItem('yaka-theme', theme);
+                } catch (e) {
+                    Yaka._log('warn', 'Failed to save theme to localStorage:', e.message);
+                }
+            }
             
             // Update CSS variables
             document.documentElement.setAttribute('data-theme', theme);
@@ -3699,11 +3754,36 @@
     };
 
     // Memoization utility for expensive function results
-    Yaka.memoize = function(fn) {
+    Yaka.memoize = function(fn, options = {}) {
         const cache = new Map();
+        const keyFn = options.keyFn || ((args) => {
+            // Simple serialization for primitive values
+            try {
+                // Check if all args are primitives
+                const allPrimitives = args.every(arg => {
+                    const type = typeof arg;
+                    return arg === null || 
+                           type === 'undefined' || 
+                           type === 'boolean' || 
+                           type === 'number' || 
+                           type === 'string' || 
+                           type === 'bigint';
+                });
+                
+                if (allPrimitives) {
+                    return JSON.stringify(args);
+                }
+                
+                // For complex objects, use a simple hash based on length and first element
+                return `complex_${args.length}_${JSON.stringify(args[0])}`;
+            } catch (e) {
+                // If JSON.stringify fails (circular refs, etc), use a fallback
+                return `fallback_${args.length}_${typeof args[0]}`;
+            }
+        });
         
         return function(...args) {
-            const key = JSON.stringify(args);
+            const key = keyFn(args);
             
             if (cache.has(key)) {
                 Yaka._log('info', 'Memoize: Cache hit', { key });
