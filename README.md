@@ -1054,19 +1054,31 @@ Check out these files in the repository for comprehensive examples:
     <script>
         const router = _.createRouter();
 
+        // Helper to create safe HTML content
+        function createContent(title, text) {
+            const container = document.createElement('div');
+            const h1 = document.createElement('h1');
+            h1.textContent = title;
+            const p = document.createElement('p');
+            p.textContent = text;
+            container.appendChild(h1);
+            container.appendChild(p);
+            return container.outerHTML;
+        }
+
         router.addRoute('/home', {
-            component: () => '<h1>Home Page</h1><p>Welcome to YakaJS!</p>'
+            component: () => createContent('Home Page', 'Welcome to YakaJS!')
         });
 
         router.addRoute('/about', {
-            component: () => '<h1>About</h1><p>Built with YakaJS</p>'
+            component: () => createContent('About', 'Built with YakaJS')
         });
 
         router.addRoute('/user/:id', {
-            component: (params) => `
-                <h1>User Profile</h1>
-                <p>User ID: ${params.id}</p>
-            `
+            component: (params) => {
+                // Safe: params.id is escaped via textContent
+                return createContent('User Profile', 'User ID: ' + params.id);
+            }
         });
 
         router.afterEach((to) => {
