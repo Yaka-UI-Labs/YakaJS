@@ -515,29 +515,36 @@
         function testMemoization() {
             const results = document.getElementById('phase5-results');
             
-            // Simple expensive function that benefits from memoization
+            // Realistic expensive function: calculate prime numbers
             let callCount = 0;
-            const expensiveCalc = _.memoize((n) => {
+            const calculatePrimes = _.memoize((max) => {
                 callCount++;
-                let result = 0;
-                for (let i = 0; i < n * 1000000; i++) {
-                    result += Math.sqrt(i);
+                const primes = [];
+                for (let num = 2; num <= max; num++) {
+                    let isPrime = true;
+                    for (let i = 2; i <= Math.sqrt(num); i++) {
+                        if (num % i === 0) {
+                            isPrime = false;
+                            break;
+                        }
+                    }
+                    if (isPrime) primes.push(num);
                 }
-                return result;
+                return primes;
             });
             
             const start1 = performance.now();
-            const result1 = expensiveCalc(10);
+            const result1 = calculatePrimes(10000);
             const time1 = performance.now() - start1;
             
             const start2 = performance.now();
-            const result2 = expensiveCalc(10);
+            const result2 = calculatePrimes(10000);
             const time2 = performance.now() - start2;
             
             results.textContent = '✅ Memoization test:\n\n';
             results.textContent += `First call: ${time1.toFixed(2)}ms (computed)\n`;
             results.textContent += `Second call: ${time2.toFixed(2)}ms (cached)\n`;
-            results.textContent += `Result: ${result1.toFixed(2)}\n\n`;
+            results.textContent += `Found ${result1.length} prime numbers under 10,000\n\n`;
             results.textContent += `Function calls: ${callCount} (should be 1)\n`;
             results.textContent += `Speedup: ${(time1 / time2).toFixed(0)}x faster!`;
         }

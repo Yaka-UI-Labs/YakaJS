@@ -3601,13 +3601,23 @@
         
         init: function() {
             // Apply saved theme on load
-            this.set(this._current);
+            this.set(this.current);
             
             // Listen for system preference changes
             if (window.matchMedia) {
                 const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
                 darkModeQuery.addEventListener('change', (e) => {
-                    if (!localStorage.getItem('yaka-theme')) {
+                    // Check if user has set a preference
+                    let hasUserPreference = false;
+                    if (this._storageAvailable) {
+                        try {
+                            hasUserPreference = localStorage.getItem('yaka-theme') !== null;
+                        } catch (err) {
+                            // Ignore localStorage errors
+                        }
+                    }
+                    
+                    if (!hasUserPreference) {
                         this.set(e.matches ? 'dark' : 'light');
                     }
                 });
@@ -3775,10 +3785,20 @@
                 }
                 
                 // For complex objects, use a simple hash based on length and first element
-                return `complex_${args.length}_${JSON.stringify(args[0])}`;
+                if (args.length === 0) {
+                    return 'complex_0_empty';
+                }
+                const firstType = typeof args[0];
+                try {
+                    const firstValue = args[0] !== undefined ? JSON.stringify(args[0]) : 'undefined';
+                    return `complex_${args.length}_${firstValue}`;
+                } catch (e) {
+                    return `complex_${args.length}_${firstType}`;
+                }
             } catch (e) {
                 // If JSON.stringify fails (circular refs, etc), use a fallback
-                return `fallback_${args.length}_${typeof args[0]}`;
+                const firstType = args.length > 0 ? typeof args[0] : 'empty';
+                return `fallback_${args.length}_${firstType}`;
             }
         });
         
