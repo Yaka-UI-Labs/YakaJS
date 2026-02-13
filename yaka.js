@@ -871,22 +871,33 @@
                 if (options.onStart) options.onStart.call(elem, e);
             });
 
-            document.addEventListener('mousemove', (e) => {
+            const handleMouseMove = (e) => {
                 if (!isDragging) return;
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
                 elem.style.left = (initialX + dx) + 'px';
                 elem.style.top = (initialY + dy) + 'px';
                 if (options.onDrag) options.onDrag.call(elem, e);
-            });
+            };
 
-            document.addEventListener('mouseup', (e) => {
+            const handleMouseUp = (e) => {
                 if (isDragging) {
                     isDragging = false;
                     elem.style.zIndex = '';
                     if (options.onEnd) options.onEnd.call(elem, e);
                 }
-            });
+            };
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            
+            // Store handlers for cleanup
+            elem._yaka_draggable_cleanup = () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                delete elem._yaka_draggable;
+                delete elem._yaka_draggable_cleanup;
+            };
         });
     };
 
@@ -1732,10 +1743,22 @@
     // NEW! Parallax Scrolling
     Yaka.prototype.parallax = function (speed = 0.5) {
         return this.each((i, elem) => {
-            window.addEventListener('scroll', () => {
+            if (elem._yaka_parallax) return;
+            elem._yaka_parallax = true;
+            
+            const handleScroll = () => {
                 const offset = window.pageYOffset;
                 elem.style.transform = `translateY(${offset * speed}px)`;
-            });
+            };
+            
+            window.addEventListener('scroll', handleScroll);
+            
+            // Store handler for cleanup
+            elem._yaka_parallax_cleanup = () => {
+                window.removeEventListener('scroll', handleScroll);
+                delete elem._yaka_parallax;
+                delete elem._yaka_parallax_cleanup;
+            };
         });
     };
 
@@ -1751,6 +1774,16 @@
             });
 
             observer.observe(elem);
+            
+            // Store observer for cleanup
+            elem._yaka_scroll_observer = observer;
+            elem._yaka_scroll_cleanup = () => {
+                if (elem._yaka_scroll_observer) {
+                    elem._yaka_scroll_observer.disconnect();
+                    delete elem._yaka_scroll_observer;
+                    delete elem._yaka_scroll_cleanup;
+                }
+            };
         });
     };
 
@@ -2344,16 +2377,28 @@
     // NEW! Sticky Element
     Yaka.prototype.sticky = function (offset = 0) {
         return this.each((i, elem) => {
+            if (elem._yaka_sticky) return;
+            elem._yaka_sticky = true;
+            
             const originalPosition = elem.offsetTop;
 
-            window.addEventListener('scroll', () => {
+            const handleScroll = () => {
                 if (window.pageYOffset >= originalPosition - offset) {
                     elem.style.position = 'fixed';
                     elem.style.top = offset + 'px';
                 } else {
                     elem.style.position = 'static';
                 }
-            });
+            };
+            
+            window.addEventListener('scroll', handleScroll);
+            
+            // Store handler for cleanup
+            elem._yaka_sticky_cleanup = () => {
+                window.removeEventListener('scroll', handleScroll);
+                delete elem._yaka_sticky;
+                delete elem._yaka_sticky_cleanup;
+            };
         });
     };
 
