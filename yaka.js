@@ -289,7 +289,7 @@
             return this.each((i, elem) => {
                 if (typeof content === 'string') {
                     elem.insertAdjacentHTML('afterend', content);
-                } else if (content.nodeType) {
+                } else if (content.nodeType && elem.parentNode) {
                     elem.parentNode.insertBefore(content, elem.nextSibling);
                 }
             });
@@ -299,7 +299,7 @@
             return this.each((i, elem) => {
                 if (typeof content === 'string') {
                     elem.insertAdjacentHTML('beforebegin', content);
-                } else if (content.nodeType) {
+                } else if (content.nodeType && elem.parentNode) {
                     elem.parentNode.insertBefore(content, elem);
                 }
             });
@@ -630,6 +630,12 @@
         // NEW! Count up animation
         countUp: function (target, duration = 2000) {
             return this.each((i, elem) => {
+                // Validate target is a number
+                if (typeof target !== 'number' || isNaN(target)) {
+                    console.error('countUp target must be a valid number');
+                    return;
+                }
+                
                 const start = parseInt(elem.textContent) || 0;
                 const end = target;
                 const range = end - start;
@@ -651,6 +657,12 @@
         // NEW! Type writer effect
         typeWriter: function (text, speed = 50) {
             return this.each((i, elem) => {
+                // Validate text is provided
+                if (typeof text !== 'string') {
+                    console.error('typeWriter requires a string');
+                    return;
+                }
+                
                 elem.textContent = '';
                 let index = 0;
                 const timer = setInterval(() => {
@@ -667,6 +679,10 @@
         // NEW! Confetti effect
         confetti: function () {
             return this.each((i, elem) => {
+                if (!elem._yaka_confetti_timeouts) {
+                    elem._yaka_confetti_timeouts = [];
+                }
+                
                 const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
                 for (let i = 0; i < 50; i++) {
                     const confetti = document.createElement('div');
@@ -681,7 +697,20 @@
                     `;
                     elem.style.position = 'relative';
                     elem.appendChild(confetti);
-                    setTimeout(() => confetti.remove(), 5000);
+                    
+                    const timeoutId = setTimeout(() => confetti.remove(), 5000);
+                    elem._yaka_confetti_timeouts.push(timeoutId);
+                }
+                
+                // Store cleanup method
+                if (!elem._yaka_confetti_cleanup) {
+                    elem._yaka_confetti_cleanup = () => {
+                        if (elem._yaka_confetti_timeouts) {
+                            elem._yaka_confetti_timeouts.forEach(id => clearTimeout(id));
+                            elem._yaka_confetti_timeouts = [];
+                        }
+                        delete elem._yaka_confetti_cleanup;
+                    };
                 }
             });
         }
@@ -871,22 +900,33 @@
                 if (options.onStart) options.onStart.call(elem, e);
             });
 
-            document.addEventListener('mousemove', (e) => {
+            const handleMouseMove = (e) => {
                 if (!isDragging) return;
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
                 elem.style.left = (initialX + dx) + 'px';
                 elem.style.top = (initialY + dy) + 'px';
                 if (options.onDrag) options.onDrag.call(elem, e);
-            });
+            };
 
-            document.addEventListener('mouseup', (e) => {
+            const handleMouseUp = (e) => {
                 if (isDragging) {
                     isDragging = false;
                     elem.style.zIndex = '';
                     if (options.onEnd) options.onEnd.call(elem, e);
                 }
-            });
+            };
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            
+            // Store handlers for cleanup
+            elem._yaka_draggable_cleanup = () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                delete elem._yaka_draggable;
+                delete elem._yaka_draggable_cleanup;
+            };
         });
     };
 
@@ -912,7 +952,7 @@
                 item.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     const afterElement = getDragAfterElement(container, e.clientY);
-                    if (afterElement == null) {
+                    if (afterElement === null) {
                         container.appendChild(draggedItem);
                     } else {
                         container.insertBefore(draggedItem, afterElement);
@@ -1079,6 +1119,9 @@
     // NEW! Tooltip
     Yaka.prototype.tooltip = function (text, position = 'top') {
         return this.each((i, elem) => {
+            if (elem._yaka_tooltip) return;
+            elem._yaka_tooltip = true;
+            
             const tooltip = document.createElement('div');
             tooltip.textContent = text;
             tooltip.style.cssText = `
@@ -1095,7 +1138,7 @@
                 transition: opacity 0.2s;
             `;
 
-            elem.addEventListener('mouseenter', () => {
+            const handleMouseEnter = () => {
                 document.body.appendChild(tooltip);
                 const rect = elem.getBoundingClientRect();
 
@@ -1108,12 +1151,26 @@
                 }
 
                 tooltip.style.opacity = '1';
-            });
+            };
 
-            elem.addEventListener('mouseleave', () => {
+            const handleMouseLeave = () => {
                 tooltip.style.opacity = '0';
-                setTimeout(() => tooltip.remove(), 200);
-            });
+                setTimeout(() => {
+                    if (tooltip.parentNode) tooltip.remove();
+                }, 200);
+            };
+
+            elem.addEventListener('mouseenter', handleMouseEnter);
+            elem.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Store cleanup method
+            elem._yaka_tooltip_cleanup = () => {
+                elem.removeEventListener('mouseenter', handleMouseEnter);
+                elem.removeEventListener('mouseleave', handleMouseLeave);
+                if (tooltip.parentNode) tooltip.remove();
+                delete elem._yaka_tooltip;
+                delete elem._yaka_tooltip_cleanup;
+            };
         });
     };
 
@@ -1150,14 +1207,16 @@
         if (!content) return this;
 
         const printWindow = window.open('', '', 'width=800,height=600');
-        printWindow.document.write(`
-            <html>
-                <head><title>Print</title></head>
-                <body>${content}</body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                    <head><title>Print</title></head>
+                    <body>${content}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
         return this;
     };
 
@@ -1208,10 +1267,17 @@
                         accuracy: position.coords.accuracy
                     });
                 },
-                errorCallback
+                errorCallback || ((error) => {
+                    console.error('Geolocation error:', error);
+                })
             );
         } else {
-            if (errorCallback) errorCallback('Geolocation not supported');
+            const error = new Error('Geolocation not supported');
+            if (errorCallback) {
+                errorCallback(error);
+            } else {
+                console.error(error);
+            }
         }
     };
 
@@ -1365,40 +1431,64 @@
             onClose: options.onClose || (() => { })
         };
 
-        ws.addEventListener('open', handlers.onOpen);
-        ws.addEventListener('message', (e) => handlers.onMessage(JSON.parse(e.data)));
-        ws.addEventListener('error', handlers.onError);
-        ws.addEventListener('close', handlers.onClose);
+        const wrappedHandlers = {
+            open: (e) => handlers.onOpen(e),
+            message: (e) => handlers.onMessage(JSON.parse(e.data)),
+            error: (e) => handlers.onError(e),
+            close: (e) => handlers.onClose(e)
+        };
+
+        ws.addEventListener('open', wrappedHandlers.open);
+        ws.addEventListener('message', wrappedHandlers.message);
+        ws.addEventListener('error', wrappedHandlers.error);
+        ws.addEventListener('close', wrappedHandlers.close);
 
         return {
             send: (data) => ws.send(JSON.stringify(data)),
             close: () => ws.close(),
-            ws: ws
+            ws: ws,
+            cleanup: () => {
+                ws.removeEventListener('open', wrappedHandlers.open);
+                ws.removeEventListener('message', wrappedHandlers.message);
+                ws.removeEventListener('error', wrappedHandlers.error);
+                ws.removeEventListener('close', wrappedHandlers.close);
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.close();
+                }
+            }
         };
     };
 
     // NEW! WebRTC Video Call
     Yaka.webrtc = async function (options = {}) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: options.video !== false,
-            audio: options.audio !== false
-        });
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: options.video !== false,
+                audio: options.audio !== false
+            });
 
-        return {
-            stream: stream,
-            attachTo: (videoElement) => {
-                videoElement.srcObject = stream;
-            },
-            stop: () => {
-                stream.getTracks().forEach(track => track.stop());
-            }
-        };
+            return {
+                stream: stream,
+                attachTo: (videoElement) => {
+                    videoElement.srcObject = stream;
+                },
+                stop: () => {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            };
+        } catch (error) {
+            console.error('Error accessing media devices:', error);
+            throw error;
+        }
     };
 
     // NEW! Canvas Helper
     Yaka.prototype.canvas = function () {
         const canvas = this.elements[0];
-        if (!canvas || canvas.tagName !== 'CANVAS') return null;
+        if (!canvas || canvas.tagName !== 'CANVAS') {
+            console.warn('canvas() requires a canvas element');
+            return null;
+        }
 
         const ctx = canvas.getContext('2d');
 
@@ -1449,8 +1539,10 @@
         ctx.clearRect(0, 0, width, height);
 
         if (type === 'bar') {
+            if (data.length === 0) return this;
             const barWidth = width / data.length;
             const maxValue = Math.max(...data.map(d => d.value));
+            if (maxValue <= 0) return this;
 
             data.forEach((item, i) => {
                 const barHeight = (item.value / maxValue) * (height - 40);
@@ -1465,8 +1557,10 @@
                 ctx.fillText(item.label, x + barWidth / 2 - 10, height - 5);
             });
         } else if (type === 'line') {
+            if (data.length < 2) return this;
             const stepX = width / (data.length - 1);
             const maxValue = Math.max(...data.map(d => d.value));
+            if (maxValue <= 0) return this;
 
             ctx.strokeStyle = options.color || '#667eea';
             ctx.lineWidth = 2;
@@ -1493,15 +1587,35 @@
     // NEW! Data Table with sorting/filtering
     Yaka.prototype.dataTable = function (data, options = {}) {
         return this.each((i, elem) => {
+            // Validate required options
+            if (!options.columns || !Array.isArray(options.columns)) {
+                console.error('dataTable requires options.columns array');
+                return;
+            }
+            
             let currentData = [...data];
+            let sortHandlers = []; // Track handlers for cleanup
+            
+            // Helper to escape HTML to prevent XSS
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
 
             const render = () => {
+                // Remove old sort handlers before re-rendering
+                sortHandlers.forEach(({ th, handler }) => {
+                    th.removeEventListener('click', handler);
+                });
+                sortHandlers = [];
+                
                 let html = '<table style="width: 100%; border-collapse: collapse;">';
 
                 // Header
                 html += '<thead><tr>';
                 options.columns.forEach(col => {
-                    html += `<th style="padding: 12px; background: #f5f5f5; cursor: pointer; border-bottom: 2px solid #ddd;" data-sort="${col.key}">${col.label}</th>`;
+                    html += `<th style="padding: 12px; background: #f5f5f5; cursor: pointer; border-bottom: 2px solid #ddd;" data-sort="${col.key}">${escapeHtml(col.label)}</th>`;
                 });
                 html += '</tr></thead>';
 
@@ -1510,7 +1624,8 @@
                 currentData.forEach(row => {
                     html += '<tr>';
                     options.columns.forEach(col => {
-                        html += `<td style="padding: 12px; border-bottom: 1px solid #eee;">${row[col.key]}</td>`;
+                        const value = row[col.key] || '';
+                        html += `<td style="padding: 12px; border-bottom: 1px solid #eee;">${escapeHtml(String(value))}</td>`;
                     });
                     html += '</tr>';
                 });
@@ -1518,9 +1633,9 @@
 
                 elem.innerHTML = html;
 
-                // Add sorting
+                // Add sorting listeners and store for cleanup
                 elem.querySelectorAll('th[data-sort]').forEach(th => {
-                    th.addEventListener('click', () => {
+                    const handler = () => {
                         const key = th.dataset.sort;
                         currentData.sort((a, b) => {
                             if (a[key] < b[key]) return -1;
@@ -1528,7 +1643,9 @@
                             return 0;
                         });
                         render();
-                    });
+                    };
+                    th.addEventListener('click', handler);
+                    sortHandlers.push({ th, handler });
                 });
             };
 
@@ -1539,6 +1656,15 @@
     // NEW! Autocomplete
     Yaka.prototype.autocomplete = function (data, options = {}) {
         return this.each((i, input) => {
+            // Validate data array
+            if (!data || !Array.isArray(data)) {
+                console.error('autocomplete requires a data array');
+                return;
+            }
+            
+            if (input._yaka_autocomplete) return;
+            input._yaka_autocomplete = true;
+            
             const dropdown = document.createElement('div');
             dropdown.style.cssText = `
                 position: absolute;
@@ -1555,7 +1681,7 @@
             input.parentNode.style.position = 'relative';
             input.parentNode.appendChild(dropdown);
 
-            input.addEventListener('input', () => {
+            const handleInput = () => {
                 const value = input.value.toLowerCase();
                 if (!value) {
                     dropdown.style.display = 'none';
@@ -1582,48 +1708,91 @@
                 } else {
                     dropdown.style.display = 'none';
                 }
-            });
+            };
 
-            document.addEventListener('click', (e) => {
-                if (e.target !== input) {
+            const handleDocumentClick = (e) => {
+                if (e.target !== input && !dropdown.contains(e.target)) {
                     dropdown.style.display = 'none';
                 }
-            });
+            };
+
+            input.addEventListener('input', handleInput);
+            document.addEventListener('click', handleDocumentClick);
+            
+            // Store cleanup method
+            input._yaka_autocomplete_cleanup = () => {
+                input.removeEventListener('input', handleInput);
+                document.removeEventListener('click', handleDocumentClick);
+                dropdown.remove();
+                delete input._yaka_autocomplete;
+                delete input._yaka_autocomplete_cleanup;
+            };
         });
     };
 
     // NEW! Color Picker
     Yaka.prototype.colorPicker = function (callback) {
         return this.each((i, elem) => {
+            if (elem._yaka_colorpicker) return;
+            elem._yaka_colorpicker = true;
+            
             const input = document.createElement('input');
             input.type = 'color';
             input.style.display = 'none';
             elem.appendChild(input);
 
-            elem.addEventListener('click', () => input.click());
-            input.addEventListener('change', () => {
+            const handleClick = () => input.click();
+            const handleChange = () => {
                 callback.call(elem, input.value);
-            });
+            };
+
+            elem.addEventListener('click', handleClick);
+            input.addEventListener('change', handleChange);
+            
+            // Store cleanup method
+            elem._yaka_colorpicker_cleanup = () => {
+                elem.removeEventListener('click', handleClick);
+                input.removeEventListener('change', handleChange);
+                input.remove();
+                delete elem._yaka_colorpicker;
+                delete elem._yaka_colorpicker_cleanup;
+            };
         });
     };
 
     // NEW! Date Picker (Simple)
     Yaka.prototype.datePicker = function (callback) {
         return this.each((i, elem) => {
+            if (elem._yaka_datepicker) return;
+            elem._yaka_datepicker = true;
+            
             const input = document.createElement('input');
             input.type = 'date';
             input.style.cssText = 'width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;';
             elem.appendChild(input);
 
-            input.addEventListener('change', () => {
+            const handleChange = () => {
                 callback.call(elem, input.value);
-            });
+            };
+
+            input.addEventListener('change', handleChange);
+            
+            // Store cleanup method
+            elem._yaka_datepicker_cleanup = () => {
+                input.removeEventListener('change', handleChange);
+                input.remove();
+                delete elem._yaka_datepicker;
+                delete elem._yaka_datepicker_cleanup;
+            };
         });
     };
 
     // NEW! Range Slider
     Yaka.prototype.slider = function (options = {}) {
         return this.each((i, elem) => {
+            if (elem._yaka_slider) return;
+            elem._yaka_slider = true;
+            
             const slider = document.createElement('input');
             slider.type = 'range';
             slider.min = options.min || 0;
@@ -1638,59 +1807,108 @@
             elem.appendChild(slider);
             elem.appendChild(display);
 
-            slider.addEventListener('input', () => {
+            const handleInput = () => {
                 display.textContent = slider.value;
                 if (options.onChange) options.onChange(parseInt(slider.value));
-            });
+            };
+
+            slider.addEventListener('input', handleInput);
+            
+            // Store cleanup method
+            elem._yaka_slider_cleanup = () => {
+                slider.removeEventListener('input', handleInput);
+                slider.remove();
+                display.remove();
+                delete elem._yaka_slider;
+                delete elem._yaka_slider_cleanup;
+            };
         });
     };
 
     // NEW! Tabs System
     Yaka.prototype.tabs = function () {
         return this.each((i, container) => {
+            if (container._yaka_tabs) return;
+            container._yaka_tabs = true;
+            
             const tabs = container.querySelectorAll('[data-tab]');
             const contents = container.querySelectorAll('[data-tab-content]');
+            const handlers = [];
 
             tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
+                const handleClick = () => {
                     const target = tab.dataset.tab;
 
                     tabs.forEach(t => t.classList.remove('active'));
                     contents.forEach(c => c.style.display = 'none');
 
                     tab.classList.add('active');
-                    container.querySelector(`[data-tab-content="${target}"]`).style.display = 'block';
-                });
+                    const contentElement = container.querySelector(`[data-tab-content="${target}"]`);
+                    if (contentElement) {
+                        contentElement.style.display = 'block';
+                    }
+                };
+                
+                tab.addEventListener('click', handleClick);
+                handlers.push({ tab, handleClick });
             });
 
             if (tabs[0]) tabs[0].click();
+            
+            // Store cleanup method
+            container._yaka_tabs_cleanup = () => {
+                handlers.forEach(({ tab, handleClick }) => {
+                    tab.removeEventListener('click', handleClick);
+                });
+                delete container._yaka_tabs;
+                delete container._yaka_tabs_cleanup;
+            };
         });
     };
 
     // NEW! Accordion
     Yaka.prototype.accordion = function () {
         return this.each((i, container) => {
+            if (container._yaka_accordion) return;
+            container._yaka_accordion = true;
+            
             const headers = container.querySelectorAll('[data-accordion-header]');
+            const handlers = [];
 
             headers.forEach(header => {
                 header.style.cursor = 'pointer';
                 const content = header.nextElementSibling;
                 content.style.display = 'none';
 
-                header.addEventListener('click', () => {
+                const handleClick = () => {
                     const isOpen = content.style.display === 'block';
                     content.style.display = isOpen ? 'none' : 'block';
-                });
+                };
+
+                header.addEventListener('click', handleClick);
+                handlers.push({ header, handleClick });
             });
+            
+            // Store cleanup method
+            container._yaka_accordion_cleanup = () => {
+                handlers.forEach(({ header, handleClick }) => {
+                    header.removeEventListener('click', handleClick);
+                });
+                delete container._yaka_accordion;
+                delete container._yaka_accordion_cleanup;
+            };
         });
     };
 
     // NEW! Carousel/Slider
     Yaka.prototype.carousel = function (options = {}) {
         return this.each((i, container) => {
-            if (container._carousel && container._carousel.intervalId) {
-                clearInterval(container._carousel.intervalId);
+            // Clean up existing carousel if present
+            if (container._yaka_carousel_cleanup) {
+                container._yaka_carousel_cleanup();
             }
+            
+            container._yaka_carousel = true;
 
             const items = container.children;
             let currentIndex = 0;
@@ -1717,16 +1935,38 @@
             }
 
             container._carousel = { next, prev, intervalId };
+            
+            // Store cleanup method
+            container._yaka_carousel_cleanup = () => {
+                if (container._carousel && container._carousel.intervalId) {
+                    clearInterval(container._carousel.intervalId);
+                }
+                delete container._carousel;
+                delete container._yaka_carousel;
+                delete container._yaka_carousel_cleanup;
+            };
         });
     };
 
     // NEW! Parallax Scrolling
     Yaka.prototype.parallax = function (speed = 0.5) {
         return this.each((i, elem) => {
-            window.addEventListener('scroll', () => {
+            if (elem._yaka_parallax) return;
+            elem._yaka_parallax = true;
+            
+            const handleScroll = () => {
                 const offset = window.pageYOffset;
                 elem.style.transform = `translateY(${offset * speed}px)`;
-            });
+            };
+            
+            window.addEventListener('scroll', handleScroll);
+            
+            // Store handler for cleanup
+            elem._yaka_parallax_cleanup = () => {
+                window.removeEventListener('scroll', handleScroll);
+                delete elem._yaka_parallax;
+                delete elem._yaka_parallax_cleanup;
+            };
         });
     };
 
@@ -1742,6 +1982,16 @@
             });
 
             observer.observe(elem);
+            
+            // Store observer for cleanup
+            elem._yaka_scroll_observer = observer;
+            elem._yaka_scroll_cleanup = () => {
+                if (elem._yaka_scroll_observer) {
+                    elem._yaka_scroll_observer.disconnect();
+                    delete elem._yaka_scroll_observer;
+                    delete elem._yaka_scroll_cleanup;
+                }
+            };
         });
     };
 
@@ -2171,23 +2421,28 @@
         },
 
         record: async function () {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const recorder = new MediaRecorder(stream);
-            const chunks = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const recorder = new MediaRecorder(stream);
+                const chunks = [];
 
-            recorder.ondataavailable = (e) => chunks.push(e.data);
+                recorder.ondataavailable = (e) => chunks.push(e.data);
 
-            return {
-                start: () => recorder.start(),
-                stop: () => new Promise(resolve => {
-                    recorder.onstop = () => {
-                        const blob = new Blob(chunks, { type: 'audio/webm' });
-                        resolve(blob);
-                    };
-                    recorder.stop();
-                    stream.getTracks().forEach(track => track.stop());
-                })
-            };
+                return {
+                    start: () => recorder.start(),
+                    stop: () => new Promise(resolve => {
+                        recorder.onstop = () => {
+                            const blob = new Blob(chunks, { type: 'audio/webm' });
+                            resolve(blob);
+                        };
+                        recorder.stop();
+                        stream.getTracks().forEach(track => track.stop());
+                    })
+                };
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                throw error;
+            }
         }
     };
 
@@ -2246,7 +2501,10 @@
 
         decrypt: async function (encrypted, password) {
             const decoded = atob(encrypted);
-            const [text, pass] = decoded.split(':');
+            const parts = decoded.split(':');
+            if (parts.length < 2) return null;
+            const pass = parts.pop();
+            const text = parts.join(':');
             return pass === password ? text : null;
         }
     };
@@ -2326,22 +2584,44 @@
             }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
 
             observer.observe(elem);
+            
+            // Store observer for cleanup
+            elem._yaka_scrollspy_observer = observer;
+            elem._yaka_scrollspy_cleanup = () => {
+                if (elem._yaka_scrollspy_observer) {
+                    elem._yaka_scrollspy_observer.disconnect();
+                    delete elem._yaka_scrollspy_observer;
+                    delete elem._yaka_scrollspy_cleanup;
+                }
+            };
         });
     };
 
     // NEW! Sticky Element
     Yaka.prototype.sticky = function (offset = 0) {
         return this.each((i, elem) => {
+            if (elem._yaka_sticky) return;
+            elem._yaka_sticky = true;
+            
             const originalPosition = elem.offsetTop;
 
-            window.addEventListener('scroll', () => {
+            const handleScroll = () => {
                 if (window.pageYOffset >= originalPosition - offset) {
                     elem.style.position = 'fixed';
                     elem.style.top = offset + 'px';
                 } else {
                     elem.style.position = 'static';
                 }
-            });
+            };
+            
+            window.addEventListener('scroll', handleScroll);
+            
+            // Store handler for cleanup
+            elem._yaka_sticky_cleanup = () => {
+                window.removeEventListener('scroll', handleScroll);
+                delete elem._yaka_sticky;
+                delete elem._yaka_sticky_cleanup;
+            };
         });
     };
 
@@ -2380,9 +2660,12 @@
     // NEW! Tilt Effect (3D)
     Yaka.prototype.tilt = function (options = {}) {
         return this.each((i, elem) => {
+            if (elem._yaka_tilt) return;
+            elem._yaka_tilt = true;
+            
             const maxTilt = options.max || 15;
 
-            elem.addEventListener('mousemove', (e) => {
+            const handleMouseMove = (e) => {
                 const rect = elem.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
@@ -2395,28 +2678,53 @@
                 const tiltY = -percentX * maxTilt;
 
                 elem.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-            });
+            };
 
-            elem.addEventListener('mouseleave', () => {
+            const handleMouseLeave = () => {
                 elem.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
-            });
+            };
+
+            elem.addEventListener('mousemove', handleMouseMove);
+            elem.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Store handlers for cleanup
+            elem._yaka_tilt_cleanup = () => {
+                elem.removeEventListener('mousemove', handleMouseMove);
+                elem.removeEventListener('mouseleave', handleMouseLeave);
+                delete elem._yaka_tilt;
+                delete elem._yaka_tilt_cleanup;
+            };
         });
     };
 
     // NEW! Magnetic Effect
     Yaka.prototype.magnetic = function (strength = 0.3) {
         return this.each((i, elem) => {
-            elem.addEventListener('mousemove', (e) => {
+            if (elem._yaka_magnetic) return;
+            elem._yaka_magnetic = true;
+            
+            const handleMouseMove = (e) => {
                 const rect = elem.getBoundingClientRect();
                 const x = e.clientX - rect.left - rect.width / 2;
                 const y = e.clientY - rect.top - rect.height / 2;
 
                 elem.style.transform = `translate(${x * strength}px, ${y * strength}px)`;
-            });
+            };
 
-            elem.addEventListener('mouseleave', () => {
+            const handleMouseLeave = () => {
                 elem.style.transform = 'translate(0, 0)';
-            });
+            };
+
+            elem.addEventListener('mousemove', handleMouseMove);
+            elem.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Store handlers for cleanup
+            elem._yaka_magnetic_cleanup = () => {
+                elem.removeEventListener('mousemove', handleMouseMove);
+                elem.removeEventListener('mouseleave', handleMouseLeave);
+                delete elem._yaka_magnetic;
+                delete elem._yaka_magnetic_cleanup;
+            };
         });
     };
 
@@ -2548,6 +2856,37 @@
                 `;
                 elem.appendChild(line);
             }
+        });
+    };
+
+    // NEW! Cleanup helper - removes all Yaka event listeners and observers
+    Yaka.prototype.cleanup = function () {
+        return this.each((i, elem) => {
+            // Call all cleanup methods if they exist
+            const cleanupMethods = [
+                '_yaka_parallax_cleanup',
+                '_yaka_sticky_cleanup',
+                '_yaka_draggable_cleanup',
+                '_yaka_scroll_cleanup',        // infiniteScroll
+                '_yaka_scrollspy_cleanup',
+                '_yaka_tilt_cleanup',
+                '_yaka_magnetic_cleanup',
+                '_yaka_tooltip_cleanup',
+                '_yaka_colorpicker_cleanup',
+                '_yaka_datepicker_cleanup',
+                '_yaka_slider_cleanup',
+                '_yaka_tabs_cleanup',
+                '_yaka_accordion_cleanup',
+                '_yaka_carousel_cleanup',
+                '_yaka_confetti_cleanup',
+                '_yaka_autocomplete_cleanup'
+            ];
+            
+            cleanupMethods.forEach(method => {
+                if (typeof elem[method] === 'function') {
+                    elem[method]();
+                }
+            });
         });
     };
 
