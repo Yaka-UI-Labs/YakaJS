@@ -8,6 +8,8 @@
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const buildGenerator = require('./build-generator');
+const featuresMap = buildGenerator.featuresMap;
 
 // CLI Colors for better UX
 const colors = {
@@ -99,6 +101,7 @@ function showHelp() {
     
     console.log(`${colors.bright}COMMANDS:${colors.reset}`);
     console.log(`  ${colors.cyan}create <project-name>${colors.reset}  Create a new YakaJS project`);
+    console.log(`  ${colors.cyan}build${colors.reset}                   Generate custom YakaJS build with selected features`);
     console.log(`  ${colors.cyan}analyze${colors.reset}                 Analyze current codebase`);
     console.log(`  ${colors.cyan}help${colors.reset}                    Show this help message`);
     console.log(`  ${colors.cyan}version${colors.reset}                 Show version number\n`);
@@ -112,6 +115,7 @@ function showHelp() {
     
     console.log(`${colors.bright}EXAMPLES:${colors.reset}`);
     console.log(`  yakacli create my-app`);
+    console.log(`  yakacli build`);
     console.log(`  yakacli analyze`);
     console.log();
 }
@@ -211,6 +215,134 @@ function analyzeCodebase() {
     console.log();
     
     console.log(`${colors.green}✅ Analysis complete!${colors.reset}\n`);
+}
+
+// Build custom YakaJS
+async function buildCustom() {
+    showBanner();
+    console.log(`${colors.bright}${colors.blue}🔧 Custom YakaJS Build Generator${colors.reset}\n`);
+    
+    const yakaPath = path.join(process.cwd(), 'yaka.js');
+    
+    if (!fs.existsSync(yakaPath)) {
+        console.log(`${colors.red}❌ Error: yaka.js not found in current directory${colors.reset}`);
+        console.log(`${colors.yellow}💡 Tip: Run this command from the YakaJS repository root${colors.reset}`);
+        return;
+    }
+    
+    console.log(`${colors.bright}Choose how to build:${colors.reset}\n`);
+    console.log(`  ${colors.cyan}1${colors.reset}. Use a preset (minimal, standard, full, spa, media, etc.)`);
+    console.log(`  ${colors.cyan}2${colors.reset}. Select custom feature categories\n`);
+    
+    const buildChoice = await prompt(`${colors.bright}Select option (1-2): ${colors.reset}`);
+    
+    if (buildChoice === '1') {
+        // Show presets
+        console.log(`\n${colors.bright}Available Presets:${colors.reset}\n`);
+        const presetKeys = Object.keys(featuresMap.presets);
+        presetKeys.forEach((key, index) => {
+            const preset = featuresMap.presets[key];
+            console.log(`  ${colors.cyan}${index + 1}${colors.reset}. ${colors.bright}${preset.name}${colors.reset}`);
+            console.log(`     ${preset.description}\n`);
+        });
+        
+        const presetChoice = await prompt(`${colors.bright}Select preset (1-${presetKeys.length}): ${colors.reset}`);
+        const presetIndex = parseInt(presetChoice) - 1;
+        
+        if (isNaN(presetIndex) || presetIndex < 0 || presetIndex >= presetKeys.length) {
+            console.log(`${colors.red}❌ Invalid selection${colors.reset}`);
+            return;
+        }
+        
+        const presetKey = presetKeys[presetIndex];
+        const preset = featuresMap.presets[presetKey];
+        
+        console.log(`\n${colors.green}✓${colors.reset} Selected: ${colors.bright}${preset.name}${colors.reset}\n`);
+        
+        // Generate build
+        console.log(`${colors.bright}🔨 Generating custom build...${colors.reset}\n`);
+        
+        const outputName = await prompt(`${colors.bright}Output filename (default: custom-yaka.js): ${colors.reset}`);
+        const outputPath = path.join(process.cwd(), outputName || 'custom-yaka.js');
+        
+        try {
+            const result = buildGenerator.generateFromPreset(yakaPath, presetKey, outputPath);
+            
+            console.log(`${colors.green}${colors.bright}✅ Build completed successfully!${colors.reset}\n`);
+            console.log(`${colors.bright}Build Statistics:${colors.reset}`);
+            console.log(`  Output file:      ${colors.cyan}${result.outputPath}${colors.reset}`);
+            console.log(`  Original size:    ${colors.cyan}${(result.originalSize / 1024).toFixed(2)} KB${colors.reset}`);
+            console.log(`  Custom size:      ${colors.cyan}${(result.customSize / 1024).toFixed(2)} KB${colors.reset}`);
+            console.log(`  Size reduction:   ${colors.green}${result.reduction}%${colors.reset}`);
+            console.log(`  Modules included: ${colors.cyan}${result.modulesIncluded}${colors.reset}`);
+            console.log();
+            
+        } catch (error) {
+            console.log(`${colors.red}❌ Error generating build: ${error.message}${colors.reset}`);
+        }
+        
+    } else if (buildChoice === '2') {
+        // Show feature categories
+        console.log(`\n${colors.bright}Select Feature Categories:${colors.reset}\n`);
+        console.log(`${colors.yellow}Note: Core features are always included${colors.reset}\n`);
+        
+        const categoryKeys = Object.keys(featuresMap.categories).filter(key => key !== 'core');
+        categoryKeys.forEach((key, index) => {
+            const category = featuresMap.categories[key];
+            console.log(`  ${colors.cyan}${index + 1}${colors.reset}. ${colors.bright}${category.name}${colors.reset}`);
+            console.log(`     ${category.description}`);
+            console.log(`     Modules: ${colors.cyan}${category.modules.length}${colors.reset}\n`);
+        });
+        
+        console.log(`${colors.bright}Enter category numbers separated by commas (e.g., 1,3,5)${colors.reset}`);
+        console.log(`${colors.bright}Or enter 'all' for everything:${colors.reset}\n`);
+        
+        const categoriesInput = await prompt(`${colors.bright}Your selection: ${colors.reset}`);
+        
+        let selectedCategories = ['core']; // Always include core
+        
+        if (categoriesInput.toLowerCase().trim() === 'all') {
+            selectedCategories = 'all';
+        } else {
+            const indices = categoriesInput.split(',').map(s => parseInt(s.trim()) - 1);
+            indices.forEach(index => {
+                if (index >= 0 && index < categoryKeys.length) {
+                    selectedCategories.push(categoryKeys[index]);
+                }
+            });
+        }
+        
+        if (selectedCategories.length === 1 && selectedCategories[0] === 'core') {
+            console.log(`${colors.yellow}⚠️  Only core features selected. This is a minimal build.${colors.reset}\n`);
+        } else {
+            console.log(`\n${colors.green}✓${colors.reset} Selected ${colors.cyan}${selectedCategories === 'all' ? 'ALL' : selectedCategories.length}${colors.reset} categories\n`);
+        }
+        
+        // Generate build
+        console.log(`${colors.bright}🔨 Generating custom build...${colors.reset}\n`);
+        
+        const outputName = await prompt(`${colors.bright}Output filename (default: custom-yaka.js): ${colors.reset}`);
+        const outputPath = path.join(process.cwd(), outputName || 'custom-yaka.js');
+        
+        try {
+            const result = buildGenerator.generateFromCategories(yakaPath, selectedCategories, outputPath);
+            
+            console.log(`${colors.green}${colors.bright}✅ Build completed successfully!${colors.reset}\n`);
+            console.log(`${colors.bright}Build Statistics:${colors.reset}`);
+            console.log(`  Output file:      ${colors.cyan}${result.outputPath}${colors.reset}`);
+            console.log(`  Original size:    ${colors.cyan}${(result.originalSize / 1024).toFixed(2)} KB${colors.reset}`);
+            console.log(`  Custom size:      ${colors.cyan}${(result.customSize / 1024).toFixed(2)} KB${colors.reset}`);
+            console.log(`  Size reduction:   ${colors.green}${result.reduction}%${colors.reset}`);
+            console.log(`  Modules included: ${colors.cyan}${result.modulesIncluded}${colors.reset}`);
+            console.log();
+            
+        } catch (error) {
+            console.log(`${colors.red}❌ Error generating build: ${error.message}${colors.reset}`);
+        }
+        
+    } else {
+        console.log(`${colors.red}❌ Invalid selection${colors.reset}`);
+    }
 }
 
 // Create project
@@ -317,6 +449,10 @@ async function main() {
             
         case 'create':
             await createProject(args[1]);
+            break;
+            
+        case 'build':
+            await buildCustom();
             break;
             
         case 'analyze':

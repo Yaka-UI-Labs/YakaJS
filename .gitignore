@@ -1,3 +1,7 @@
 node_modules/
 *.log
 .DS_Store
+
+# Custom builds from yakacli
+*-yaka.js
+custom-yaka.js
