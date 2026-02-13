@@ -272,7 +272,7 @@
             return this.each((i, elem) => {
                 elem.style.transition = `transform ${duration}ms`;
                 elem.style.transformStyle = 'preserve-3d';
-                const rotation = axis === 'Y' ? 'rotateY(180deg)' : 'rotateX(180deg)';
+                const rotation = axis.toUpperCase() === 'Y' ? 'rotateY(180deg)' : 'rotateX(180deg)';
                 elem.style.transform = rotation;
                 setTimeout(() => elem.style.transform = '', duration);
             });
