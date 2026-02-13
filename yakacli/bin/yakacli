@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+
+// Bin executable for YakaCLI
+require('../yakacli.js');

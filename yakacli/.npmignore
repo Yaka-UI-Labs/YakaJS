@@ -1,0 +1,38 @@
+# Test builds and temporary files
+*-yaka.js
+*-yaka-README.md
+custom-*.js
+minimal-*.js
+standard-*.js
+media-*.js
+spa-*.js
+interactive-*.js
+developer-*.js
+
+# Test projects
+test-*/
+my-*/
+
+# Development files
+.DS_Store
+*.log
+*.swp
+*.swo
+*~
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# Documentation that's not needed in package
+NPM-PUBLISH.md
+QUICKSTART.md
+
+# Node modules (if any)
+node_modules/
