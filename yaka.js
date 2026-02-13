@@ -630,6 +630,12 @@
         // NEW! Count up animation
         countUp: function (target, duration = 2000) {
             return this.each((i, elem) => {
+                // Validate target is a number
+                if (typeof target !== 'number' || isNaN(target)) {
+                    console.error('countUp target must be a valid number');
+                    return;
+                }
+                
                 const start = parseInt(elem.textContent) || 0;
                 const end = target;
                 const range = end - start;
@@ -651,6 +657,12 @@
         // NEW! Type writer effect
         typeWriter: function (text, speed = 50) {
             return this.each((i, elem) => {
+                // Validate text is provided
+                if (typeof text !== 'string') {
+                    console.error('typeWriter requires a string');
+                    return;
+                }
+                
                 elem.textContent = '';
                 let index = 0;
                 const timer = setInterval(() => {
@@ -1221,10 +1233,17 @@
                         accuracy: position.coords.accuracy
                     });
                 },
-                errorCallback
+                errorCallback || ((error) => {
+                    console.error('Geolocation error:', error);
+                })
             );
         } else {
-            if (errorCallback) errorCallback('Geolocation not supported');
+            const error = new Error('Geolocation not supported');
+            if (errorCallback) {
+                errorCallback(error);
+            } else {
+                console.error(error);
+            }
         }
     };
 
@@ -1510,6 +1529,12 @@
     // NEW! Data Table with sorting/filtering
     Yaka.prototype.dataTable = function (data, options = {}) {
         return this.each((i, elem) => {
+            // Validate required options
+            if (!options.columns || !Array.isArray(options.columns)) {
+                console.error('dataTable requires options.columns array');
+                return;
+            }
+            
             let currentData = [...data];
 
             const render = () => {
@@ -1527,7 +1552,7 @@
                 currentData.forEach(row => {
                     html += '<tr>';
                     options.columns.forEach(col => {
-                        html += `<td style="padding: 12px; border-bottom: 1px solid #eee;">${row[col.key]}</td>`;
+                        html += `<td style="padding: 12px; border-bottom: 1px solid #eee;">${row[col.key] || ''}</td>`;
                     });
                     html += '</tr>';
                 });
@@ -1556,6 +1581,12 @@
     // NEW! Autocomplete
     Yaka.prototype.autocomplete = function (data, options = {}) {
         return this.each((i, input) => {
+            // Validate data array
+            if (!data || !Array.isArray(data)) {
+                console.error('autocomplete requires a data array');
+                return;
+            }
+            
             const dropdown = document.createElement('div');
             dropdown.style.cssText = `
                 position: absolute;
@@ -2213,23 +2244,28 @@
         },
 
         record: async function () {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const recorder = new MediaRecorder(stream);
-            const chunks = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const recorder = new MediaRecorder(stream);
+                const chunks = [];
 
-            recorder.ondataavailable = (e) => chunks.push(e.data);
+                recorder.ondataavailable = (e) => chunks.push(e.data);
 
-            return {
-                start: () => recorder.start(),
-                stop: () => new Promise(resolve => {
-                    recorder.onstop = () => {
-                        const blob = new Blob(chunks, { type: 'audio/webm' });
-                        resolve(blob);
-                    };
-                    recorder.stop();
-                    stream.getTracks().forEach(track => track.stop());
-                })
-            };
+                return {
+                    start: () => recorder.start(),
+                    stop: () => new Promise(resolve => {
+                        recorder.onstop = () => {
+                            const blob = new Blob(chunks, { type: 'audio/webm' });
+                            resolve(blob);
+                        };
+                        recorder.stop();
+                        stream.getTracks().forEach(track => track.stop());
+                    })
+                };
+            } catch (error) {
+                console.error('Error accessing microphone:', error);
+                throw error;
+            }
         }
     };
 
@@ -2371,6 +2407,16 @@
             }, { threshold: [0, 0.25, 0.5, 0.75, 1] });
 
             observer.observe(elem);
+            
+            // Store observer for cleanup
+            elem._yaka_scrollspy_observer = observer;
+            elem._yaka_scrollspy_cleanup = () => {
+                if (elem._yaka_scrollspy_observer) {
+                    elem._yaka_scrollspy_observer.disconnect();
+                    delete elem._yaka_scrollspy_observer;
+                    delete elem._yaka_scrollspy_cleanup;
+                }
+            };
         });
     };
 
@@ -2437,9 +2483,12 @@
     // NEW! Tilt Effect (3D)
     Yaka.prototype.tilt = function (options = {}) {
         return this.each((i, elem) => {
+            if (elem._yaka_tilt) return;
+            elem._yaka_tilt = true;
+            
             const maxTilt = options.max || 15;
 
-            elem.addEventListener('mousemove', (e) => {
+            const handleMouseMove = (e) => {
                 const rect = elem.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
@@ -2452,28 +2501,53 @@
                 const tiltY = -percentX * maxTilt;
 
                 elem.style.transform = `perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-            });
+            };
 
-            elem.addEventListener('mouseleave', () => {
+            const handleMouseLeave = () => {
                 elem.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
-            });
+            };
+
+            elem.addEventListener('mousemove', handleMouseMove);
+            elem.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Store handlers for cleanup
+            elem._yaka_tilt_cleanup = () => {
+                elem.removeEventListener('mousemove', handleMouseMove);
+                elem.removeEventListener('mouseleave', handleMouseLeave);
+                delete elem._yaka_tilt;
+                delete elem._yaka_tilt_cleanup;
+            };
         });
     };
 
     // NEW! Magnetic Effect
     Yaka.prototype.magnetic = function (strength = 0.3) {
         return this.each((i, elem) => {
-            elem.addEventListener('mousemove', (e) => {
+            if (elem._yaka_magnetic) return;
+            elem._yaka_magnetic = true;
+            
+            const handleMouseMove = (e) => {
                 const rect = elem.getBoundingClientRect();
                 const x = e.clientX - rect.left - rect.width / 2;
                 const y = e.clientY - rect.top - rect.height / 2;
 
                 elem.style.transform = `translate(${x * strength}px, ${y * strength}px)`;
-            });
+            };
 
-            elem.addEventListener('mouseleave', () => {
+            const handleMouseLeave = () => {
                 elem.style.transform = 'translate(0, 0)';
-            });
+            };
+
+            elem.addEventListener('mousemove', handleMouseMove);
+            elem.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Store handlers for cleanup
+            elem._yaka_magnetic_cleanup = () => {
+                elem.removeEventListener('mousemove', handleMouseMove);
+                elem.removeEventListener('mouseleave', handleMouseLeave);
+                delete elem._yaka_magnetic;
+                delete elem._yaka_magnetic_cleanup;
+            };
         });
     };
 
