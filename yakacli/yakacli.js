@@ -263,7 +263,8 @@ async function buildCustom() {
         console.log(`${colors.bright}🔨 Generating custom build...${colors.reset}\n`);
         
         const outputName = await prompt(`${colors.bright}Output filename (default: custom-yaka.js): ${colors.reset}`);
-        const outputPath = path.join(process.cwd(), outputName || 'custom-yaka.js');
+        const sanitizedName = (outputName || 'custom-yaka.js').replace(/[^a-zA-Z0-9._-]/g, '_');
+        const outputPath = path.join(process.cwd(), sanitizedName);
         
         try {
             const result = buildGenerator.generateFromPreset(yakaPath, presetKey, outputPath);
@@ -322,7 +323,8 @@ async function buildCustom() {
         console.log(`${colors.bright}🔨 Generating custom build...${colors.reset}\n`);
         
         const outputName = await prompt(`${colors.bright}Output filename (default: custom-yaka.js): ${colors.reset}`);
-        const outputPath = path.join(process.cwd(), outputName || 'custom-yaka.js');
+        const sanitizedName = (outputName || 'custom-yaka.js').replace(/[^a-zA-Z0-9._-]/g, '_');
+        const outputPath = path.join(process.cwd(), sanitizedName);
         
         try {
             const result = buildGenerator.generateFromCategories(yakaPath, selectedCategories, outputPath);

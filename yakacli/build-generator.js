@@ -48,7 +48,12 @@ function getModulesForCategories(categories) {
  * Generate custom build
  */
 function generateBuild(yakaPath, selectedModules, options = {}) {
-    const outputPath = options.output || 'custom-yaka.js';
+    // Sanitize output path to prevent directory traversal
+    let outputPath = options.output || 'custom-yaka.js';
+    const basename = path.basename(outputPath);
+    const sanitizedName = basename.replace(/[^a-zA-Z0-9._-]/g, '_');
+    outputPath = path.join(path.dirname(yakaPath), sanitizedName);
+    
     const includeComments = options.comments !== false;
     
     // Read the full yaka.js file
