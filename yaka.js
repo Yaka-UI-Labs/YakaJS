@@ -259,6 +259,172 @@
             });
         },
 
+        // NEW! Bounce animation
+        bounce: function (times = 3) {
+            return this.each((i, elem) => {
+                elem.style.animation = `bounce 0.5s ${times}`;
+                setTimeout(() => elem.style.animation = '', 500 * times);
+            });
+        },
+
+        // NEW! Flip 3D animation
+        flip: function (axis = 'Y', duration = 600) {
+            return this.each((i, elem) => {
+                elem.style.transition = `transform ${duration}ms`;
+                elem.style.transformStyle = 'preserve-3d';
+                const rotation = axis === 'Y' ? 'rotateY(180deg)' : 'rotateX(180deg)';
+                elem.style.transform = rotation;
+                setTimeout(() => elem.style.transform = '', duration);
+            });
+        },
+
+        // NEW! Zoom in animation
+        zoomIn: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.transform = 'scale(0)';
+                elem.style.opacity = '0';
+                elem.style.display = '';
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                setTimeout(() => {
+                    elem.style.transform = 'scale(1)';
+                    elem.style.opacity = '1';
+                }, 10);
+            });
+        },
+
+        // NEW! Zoom out animation
+        zoomOut: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                elem.style.transform = 'scale(0)';
+                elem.style.opacity = '0';
+                setTimeout(() => elem.style.display = 'none', duration);
+            });
+        },
+
+        // NEW! Swing animation
+        swing: function () {
+            return this.each((i, elem) => {
+                elem.style.animation = 'swing 0.8s';
+                elem.style.transformOrigin = 'top center';
+                setTimeout(() => elem.style.animation = '', 800);
+            });
+        },
+
+        // NEW! Rotate in animation
+        rotateIn: function (duration = 600) {
+            return this.each((i, elem) => {
+                elem.style.transform = 'rotate(-360deg) scale(0)';
+                elem.style.opacity = '0';
+                elem.style.display = '';
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                setTimeout(() => {
+                    elem.style.transform = 'rotate(0deg) scale(1)';
+                    elem.style.opacity = '1';
+                }, 10);
+            });
+        },
+
+        // NEW! Rotate out animation
+        rotateOut: function (duration = 600) {
+            return this.each((i, elem) => {
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                elem.style.transform = 'rotate(360deg) scale(0)';
+                elem.style.opacity = '0';
+                setTimeout(() => elem.style.display = 'none', duration);
+            });
+        },
+
+        // NEW! Blur transition animation
+        blurIn: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.filter = 'blur(20px)';
+                elem.style.opacity = '0';
+                elem.style.display = '';
+                elem.style.transition = `filter ${duration}ms, opacity ${duration}ms`;
+                setTimeout(() => {
+                    elem.style.filter = 'blur(0px)';
+                    elem.style.opacity = '1';
+                }, 10);
+            });
+        },
+
+        // NEW! Blur out animation
+        blurOut: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.transition = `filter ${duration}ms, opacity ${duration}ms`;
+                elem.style.filter = 'blur(20px)';
+                elem.style.opacity = '0';
+                setTimeout(() => elem.style.display = 'none', duration);
+            });
+        },
+
+        // NEW! Slide in from directions
+        slideInLeft: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.transform = 'translateX(-100%)';
+                elem.style.opacity = '0';
+                elem.style.display = '';
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                setTimeout(() => {
+                    elem.style.transform = 'translateX(0)';
+                    elem.style.opacity = '1';
+                }, 10);
+            });
+        },
+
+        slideInRight: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.transform = 'translateX(100%)';
+                elem.style.opacity = '0';
+                elem.style.display = '';
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                setTimeout(() => {
+                    elem.style.transform = 'translateX(0)';
+                    elem.style.opacity = '1';
+                }, 10);
+            });
+        },
+
+        slideInUp: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.transform = 'translateY(100%)';
+                elem.style.opacity = '0';
+                elem.style.display = '';
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                setTimeout(() => {
+                    elem.style.transform = 'translateY(0)';
+                    elem.style.opacity = '1';
+                }, 10);
+            });
+        },
+
+        slideOutLeft: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                elem.style.transform = 'translateX(-100%)';
+                elem.style.opacity = '0';
+                setTimeout(() => elem.style.display = 'none', duration);
+            });
+        },
+
+        slideOutRight: function (duration = 400) {
+            return this.each((i, elem) => {
+                elem.style.transition = `transform ${duration}ms, opacity ${duration}ms`;
+                elem.style.transform = 'translateX(100%)';
+                elem.style.opacity = '0';
+                setTimeout(() => elem.style.display = 'none', duration);
+            });
+        },
+
+        // NEW! Rubber band animation
+        rubberBand: function () {
+            return this.each((i, elem) => {
+                elem.style.animation = 'rubberBand 0.8s';
+                setTimeout(() => elem.style.animation = '', 800);
+            });
+        },
+
         // ==================== DOM MANIPULATION ====================
 
         append: function (content) {
@@ -1945,6 +2111,628 @@
                 delete container._yaka_carousel;
                 delete container._yaka_carousel_cleanup;
             };
+        });
+    };
+
+    // NEW! Dropdown/Select Menu with Search
+    Yaka.prototype.dropdown = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_dropdown) return;
+            elem._yaka_dropdown = true;
+            
+            const items = options.items || [];
+            const multiSelect = options.multiSelect || false;
+            const searchable = options.searchable !== false;
+            const placeholder = options.placeholder || 'Select...';
+            
+            elem.style.position = 'relative';
+            
+            const dropdown = document.createElement('div');
+            dropdown.style.cssText = `
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                padding: 8px 12px;
+                cursor: pointer;
+                background: white;
+                user-select: none;
+            `;
+            dropdown.textContent = placeholder;
+            
+            const menu = document.createElement('div');
+            menu.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                margin-top: 4px;
+                max-height: 300px;
+                overflow-y: auto;
+                z-index: 1000;
+                display: none;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            `;
+            
+            const searchInput = document.createElement('input');
+            if (searchable) {
+                searchInput.style.cssText = `
+                    width: 100%;
+                    padding: 8px;
+                    border: none;
+                    border-bottom: 1px solid #ddd;
+                    box-sizing: border-box;
+                    outline: none;
+                `;
+                searchInput.placeholder = 'Search...';
+                menu.appendChild(searchInput);
+            }
+            
+            const itemsList = document.createElement('div');
+            menu.appendChild(itemsList);
+            
+            const selected = new Set();
+            
+            const renderItems = (filter = '') => {
+                itemsList.innerHTML = '';
+                const filtered = items.filter(item => 
+                    item.toLowerCase().includes(filter.toLowerCase())
+                );
+                
+                filtered.forEach(item => {
+                    const itemElem = document.createElement('div');
+                    itemElem.textContent = item;
+                    itemElem.style.cssText = `
+                        padding: 8px 12px;
+                        cursor: pointer;
+                        ${selected.has(item) ? 'background: #e3f2fd;' : ''}
+                    `;
+                    
+                    itemElem.addEventListener('mouseenter', () => {
+                        itemElem.style.background = '#f5f5f5';
+                    });
+                    
+                    itemElem.addEventListener('mouseleave', () => {
+                        itemElem.style.background = selected.has(item) ? '#e3f2fd' : 'white';
+                    });
+                    
+                    itemElem.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (multiSelect) {
+                            if (selected.has(item)) {
+                                selected.delete(item);
+                            } else {
+                                selected.add(item);
+                            }
+                            dropdown.textContent = selected.size ? Array.from(selected).join(', ') : placeholder;
+                            renderItems(searchInput.value);
+                        } else {
+                            selected.clear();
+                            selected.add(item);
+                            dropdown.textContent = item;
+                            menu.style.display = 'none';
+                        }
+                        
+                        if (options.onChange) {
+                            options.onChange(multiSelect ? Array.from(selected) : item);
+                        }
+                    });
+                    
+                    itemsList.appendChild(itemElem);
+                });
+            };
+            
+            dropdown.addEventListener('click', () => {
+                menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+                if (searchable && menu.style.display === 'block') {
+                    searchInput.focus();
+                }
+                renderItems();
+            });
+            
+            if (searchable) {
+                searchInput.addEventListener('input', (e) => {
+                    renderItems(e.target.value);
+                });
+            }
+            
+            document.addEventListener('click', (e) => {
+                if (!elem.contains(e.target)) {
+                    menu.style.display = 'none';
+                }
+            });
+            
+            elem.appendChild(dropdown);
+            elem.appendChild(menu);
+            
+            elem._yaka_dropdown_cleanup = () => {
+                dropdown.remove();
+                menu.remove();
+                delete elem._yaka_dropdown;
+                delete elem._yaka_dropdown_cleanup;
+            };
+        });
+    };
+
+    // NEW! Breadcrumb Navigation
+    Yaka.prototype.breadcrumb = function (items = [], options = {}) {
+        return this.each((i, elem) => {
+            const separator = options.separator || '>';
+            
+            elem.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+            `;
+            
+            items.forEach((item, index) => {
+                const link = document.createElement(item.href ? 'a' : 'span');
+                link.textContent = item.label || item;
+                link.style.cssText = `
+                    ${item.href ? 'color: #2196F3; text-decoration: none; cursor: pointer;' : 'color: #666;'}
+                `;
+                
+                if (item.href) {
+                    link.href = item.href;
+                    link.addEventListener('mouseenter', () => {
+                        link.style.textDecoration = 'underline';
+                    });
+                    link.addEventListener('mouseleave', () => {
+                        link.style.textDecoration = 'none';
+                    });
+                }
+                
+                elem.appendChild(link);
+                
+                if (index < items.length - 1) {
+                    const sep = document.createElement('span');
+                    sep.textContent = separator;
+                    sep.style.color = '#999';
+                    elem.appendChild(sep);
+                }
+            });
+        });
+    };
+
+    // NEW! Pagination Component
+    Yaka.prototype.pagination = function (options = {}) {
+        return this.each((i, elem) => {
+            const currentPage = options.currentPage || 1;
+            const totalPages = options.totalPages || 10;
+            const maxVisible = options.maxVisible || 7;
+            const onChange = options.onChange || (() => {});
+            
+            elem.style.cssText = `
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                flex-wrap: wrap;
+            `;
+            
+            const createButton = (text, page, disabled = false) => {
+                const btn = document.createElement('button');
+                btn.textContent = text;
+                btn.disabled = disabled;
+                btn.style.cssText = `
+                    padding: 8px 12px;
+                    border: 1px solid ${page === currentPage ? '#2196F3' : '#ddd'};
+                    background: ${page === currentPage ? '#2196F3' : 'white'};
+                    color: ${page === currentPage ? 'white' : '#333'};
+                    cursor: ${disabled ? 'not-allowed' : 'pointer'};
+                    border-radius: 4px;
+                    opacity: ${disabled ? '0.5' : '1'};
+                `;
+                
+                if (!disabled) {
+                    btn.addEventListener('click', () => onChange(page));
+                    btn.addEventListener('mouseenter', () => {
+                        if (page !== currentPage) btn.style.background = '#f5f5f5';
+                    });
+                    btn.addEventListener('mouseleave', () => {
+                        if (page !== currentPage) btn.style.background = 'white';
+                    });
+                }
+                
+                return btn;
+            };
+            
+            // Previous button
+            elem.appendChild(createButton('«', currentPage - 1, currentPage === 1));
+            
+            // Page numbers
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+            
+            if (startPage > 1) {
+                elem.appendChild(createButton('1', 1));
+                if (startPage > 2) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.style.padding = '8px';
+                    elem.appendChild(dots);
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                elem.appendChild(createButton(i.toString(), i));
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const dots = document.createElement('span');
+                    dots.textContent = '...';
+                    dots.style.padding = '8px';
+                    elem.appendChild(dots);
+                }
+                elem.appendChild(createButton(totalPages.toString(), totalPages));
+            }
+            
+            // Next button
+            elem.appendChild(createButton('»', currentPage + 1, currentPage === totalPages));
+        });
+    };
+
+    // NEW! Badge/Tag Component
+    Yaka.prototype.badge = function (text, options = {}) {
+        return this.each((i, elem) => {
+            const variant = options.variant || 'primary';
+            const dismissible = options.dismissible || false;
+            const icon = options.icon || '';
+            
+            const colors = {
+                primary: { bg: '#2196F3', color: 'white' },
+                success: { bg: '#4CAF50', color: 'white' },
+                warning: { bg: '#FF9800', color: 'white' },
+                danger: { bg: '#F44336', color: 'white' },
+                info: { bg: '#00BCD4', color: 'white' },
+                secondary: { bg: '#9E9E9E', color: 'white' }
+            };
+            
+            const style = colors[variant] || colors.primary;
+            
+            const badge = document.createElement('span');
+            badge.style.cssText = `
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 4px 12px;
+                background: ${style.bg};
+                color: ${style.color};
+                border-radius: 16px;
+                font-size: 0.875em;
+                font-weight: 500;
+            `;
+            
+            if (icon) {
+                const iconElem = document.createElement('span');
+                iconElem.textContent = icon;
+                badge.appendChild(iconElem);
+            }
+            
+            const textElem = document.createElement('span');
+            textElem.textContent = text;
+            badge.appendChild(textElem);
+            
+            if (dismissible) {
+                const closeBtn = document.createElement('span');
+                closeBtn.textContent = '×';
+                closeBtn.style.cssText = `
+                    cursor: pointer;
+                    font-size: 1.2em;
+                    margin-left: 4px;
+                `;
+                closeBtn.addEventListener('click', () => {
+                    badge.style.animation = 'fadeOut 0.3s';
+                    setTimeout(() => badge.remove(), 300);
+                    if (options.onDismiss) options.onDismiss();
+                });
+                badge.appendChild(closeBtn);
+            }
+            
+            elem.appendChild(badge);
+        });
+    };
+
+    // NEW! Popover Component
+    Yaka.prototype.popover = function (content, options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_popover) return;
+            elem._yaka_popover = true;
+            
+            const position = options.position || 'top';
+            const trigger = options.trigger || 'click';
+            const width = options.width || 'auto';
+            
+            const popover = document.createElement('div');
+            popover.innerHTML = content;
+            popover.style.cssText = `
+                position: absolute;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                width: ${width};
+                display: none;
+            `;
+            
+            // Arrow
+            const arrow = document.createElement('div');
+            arrow.style.cssText = `
+                position: absolute;
+                width: 0;
+                height: 0;
+                border: 8px solid transparent;
+            `;
+            popover.appendChild(arrow);
+            
+            const show = () => {
+                document.body.appendChild(popover);
+                popover.style.display = 'block';
+                
+                const rect = elem.getBoundingClientRect();
+                const popRect = popover.getBoundingClientRect();
+                
+                let top, left;
+                
+                switch (position) {
+                    case 'top':
+                        top = rect.top - popRect.height - 12;
+                        left = rect.left + rect.width / 2 - popRect.width / 2;
+                        arrow.style.cssText += `
+                            bottom: -16px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            border-top-color: white;
+                        `;
+                        break;
+                    case 'bottom':
+                        top = rect.bottom + 12;
+                        left = rect.left + rect.width / 2 - popRect.width / 2;
+                        arrow.style.cssText += `
+                            top: -16px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            border-bottom-color: white;
+                        `;
+                        break;
+                    case 'left':
+                        top = rect.top + rect.height / 2 - popRect.height / 2;
+                        left = rect.left - popRect.width - 12;
+                        arrow.style.cssText += `
+                            right: -16px;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            border-left-color: white;
+                        `;
+                        break;
+                    case 'right':
+                        top = rect.top + rect.height / 2 - popRect.height / 2;
+                        left = rect.right + 12;
+                        arrow.style.cssText += `
+                            left: -16px;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            border-right-color: white;
+                        `;
+                        break;
+                }
+                
+                popover.style.top = top + window.scrollY + 'px';
+                popover.style.left = left + window.scrollX + 'px';
+            };
+            
+            const hide = () => {
+                popover.style.display = 'none';
+                if (popover.parentNode) popover.remove();
+            };
+            
+            if (trigger === 'click') {
+                elem.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (popover.style.display === 'none') {
+                        show();
+                    } else {
+                        hide();
+                    }
+                });
+                
+                document.addEventListener('click', (e) => {
+                    if (!popover.contains(e.target)) {
+                        hide();
+                    }
+                });
+            } else if (trigger === 'hover') {
+                elem.addEventListener('mouseenter', show);
+                elem.addEventListener('mouseleave', hide);
+                popover.addEventListener('mouseenter', show);
+                popover.addEventListener('mouseleave', hide);
+            }
+            
+            elem._yaka_popover_cleanup = () => {
+                hide();
+                delete elem._yaka_popover;
+                delete elem._yaka_popover_cleanup;
+            };
+        });
+    };
+
+    // NEW! Stepper/Wizard Component
+    Yaka.prototype.stepper = function (options = {}) {
+        return this.each((i, elem) => {
+            const steps = options.steps || [];
+            let currentStep = 0;
+            
+            elem.style.cssText = `
+                display: flex;
+                flex-direction: column;
+                gap: 20px;
+            `;
+            
+            // Steps indicator
+            const stepsContainer = document.createElement('div');
+            stepsContainer.style.cssText = `
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 20px;
+            `;
+            
+            const stepElements = [];
+            
+            steps.forEach((step, index) => {
+                const stepWrapper = document.createElement('div');
+                stepWrapper.style.cssText = `
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    flex: 1;
+                    position: relative;
+                `;
+                
+                const stepCircle = document.createElement('div');
+                stepCircle.textContent = (index + 1).toString();
+                stepCircle.style.cssText = `
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background: ${index === currentStep ? '#2196F3' : index < currentStep ? '#4CAF50' : '#ddd'};
+                    color: white;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: bold;
+                    z-index: 1;
+                `;
+                
+                const stepLabel = document.createElement('div');
+                stepLabel.textContent = step.label || `Step ${index + 1}`;
+                stepLabel.style.cssText = `
+                    margin-top: 8px;
+                    font-size: 0.875em;
+                    color: ${index === currentStep ? '#2196F3' : '#666'};
+                `;
+                
+                stepWrapper.appendChild(stepCircle);
+                stepWrapper.appendChild(stepLabel);
+                
+                if (index < steps.length - 1) {
+                    const line = document.createElement('div');
+                    line.style.cssText = `
+                        position: absolute;
+                        top: 18px;
+                        left: 50%;
+                        width: 100%;
+                        height: 2px;
+                        background: ${index < currentStep ? '#4CAF50' : '#ddd'};
+                        z-index: 0;
+                    `;
+                    stepWrapper.appendChild(line);
+                }
+                
+                stepElements.push({ circle: stepCircle, label: stepLabel });
+                stepsContainer.appendChild(stepWrapper);
+            });
+            
+            // Content area
+            const contentArea = document.createElement('div');
+            contentArea.style.cssText = `
+                min-height: 200px;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            `;
+            
+            // Navigation buttons
+            const navButtons = document.createElement('div');
+            navButtons.style.cssText = `
+                display: flex;
+                justify-content: space-between;
+                margin-top: 20px;
+            `;
+            
+            const prevBtn = document.createElement('button');
+            prevBtn.textContent = 'Previous';
+            prevBtn.style.cssText = `
+                padding: 10px 20px;
+                background: #9E9E9E;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            `;
+            prevBtn.disabled = true;
+            
+            const nextBtn = document.createElement('button');
+            nextBtn.textContent = 'Next';
+            nextBtn.style.cssText = `
+                padding: 10px 20px;
+                background: #2196F3;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            `;
+            
+            const updateStep = () => {
+                // Update circles and labels
+                stepElements.forEach((el, index) => {
+                    el.circle.style.background = 
+                        index === currentStep ? '#2196F3' : 
+                        index < currentStep ? '#4CAF50' : '#ddd';
+                    el.label.style.color = index === currentStep ? '#2196F3' : '#666';
+                });
+                
+                // Update content
+                if (steps[currentStep] && steps[currentStep].content) {
+                    contentArea.innerHTML = steps[currentStep].content;
+                }
+                
+                // Update buttons
+                prevBtn.disabled = currentStep === 0;
+                prevBtn.style.opacity = currentStep === 0 ? '0.5' : '1';
+                prevBtn.style.cursor = currentStep === 0 ? 'not-allowed' : 'pointer';
+                
+                nextBtn.textContent = currentStep === steps.length - 1 ? 'Finish' : 'Next';
+                
+                if (options.onStepChange) {
+                    options.onStepChange(currentStep);
+                }
+            };
+            
+            prevBtn.addEventListener('click', () => {
+                if (currentStep > 0) {
+                    currentStep--;
+                    updateStep();
+                }
+            });
+            
+            nextBtn.addEventListener('click', () => {
+                if (currentStep < steps.length - 1) {
+                    currentStep++;
+                    updateStep();
+                } else {
+                    if (options.onFinish) {
+                        options.onFinish();
+                    }
+                }
+            });
+            
+            navButtons.appendChild(prevBtn);
+            navButtons.appendChild(nextBtn);
+            
+            elem.appendChild(stepsContainer);
+            elem.appendChild(contentArea);
+            elem.appendChild(navButtons);
+            
+            updateStep();
         });
     };
 
@@ -4998,6 +5786,27 @@
         @keyframes skeleton-loading {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-30px); }
+            60% { transform: translateY(-15px); }
+        }
+        @keyframes swing {
+            20% { transform: rotate(15deg); }
+            40% { transform: rotate(-10deg); }
+            60% { transform: rotate(5deg); }
+            80% { transform: rotate(-5deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @keyframes rubberBand {
+            0% { transform: scale(1); }
+            30% { transform: scaleX(1.25) scaleY(0.75); }
+            40% { transform: scaleX(0.75) scaleY(1.25); }
+            50% { transform: scaleX(1.15) scaleY(0.85); }
+            65% { transform: scaleX(0.95) scaleY(1.05); }
+            75% { transform: scaleX(1.05) scaleY(0.95); }
+            100% { transform: scale(1); }
         }
         
         /* Validation styles */
