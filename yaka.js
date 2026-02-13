@@ -10,11 +10,17 @@
 (function (window) {
     'use strict';
 
+    // WeakMap to store event wrappers for proper cleanup
+    const eventWrappers = new WeakMap();
+
     // Main @ constructor
     function Yaka(selector, context) {
         if (!(this instanceof Yaka)) {
             return new Yaka(selector, context);
         }
+
+        // Initialize elements array to prevent crashes
+        this.elements = [];
 
         // Handle function (DOM ready)
         if (typeof selector === 'function') {
@@ -59,6 +65,7 @@
 
     // Prototype methods
     Yaka.prototype = {
+        constructor: Yaka, // Preserve constructor reference
         // ==================== BASIC METHODS ====================
 
         each: function (callback) {
@@ -134,7 +141,7 @@
 
         // ==================== CLASSES ====================
 
-        add: function (className, duration) {
+        addClass: function (className, duration) {
             // jQuery UI compatible: addClass with animation
             if (duration) {
                 return this.each((i, elem) => {
@@ -148,6 +155,12 @@
                     
                     // Add the class
                     classes.forEach(cls => elem.classList.add(cls));
+                    
+                    // Force reflow - reading offsetHeight triggers layout recalculation
+                    // This ensures the browser applies the new class styles before we read them
+                    // Note: Forcing reflow has performance implications. Avoid calling
+                    // addClass with duration in loops or high-frequency scenarios
+                    void elem.offsetHeight;
                     
                     // Get new computed styles
                     const after = getComputedStyle(elem);
@@ -171,8 +184,11 @@
             });
         },
 
-        remove: function (className, duration) {
+        removeClass: function (className, duration) {
             if (!className) {
+                // When called with no arguments, this is now a deprecated behavior
+                // Use detach() instead
+                console.warn('removeClass() with no arguments is deprecated. Use detach() to remove element from DOM.');
                 return this.each((i, elem) => elem.remove());
             }
             
@@ -189,6 +205,12 @@
                     
                     // Remove the class
                     classes.forEach(cls => elem.classList.remove(cls));
+                    
+                    // Force reflow - reading offsetHeight triggers layout recalculation
+                    // This ensures the browser applies the removed class styles before we read them
+                    // Note: Forcing reflow has performance implications. Avoid calling
+                    // removeClass with duration in loops or high-frequency scenarios
+                    void elem.offsetHeight;
                     
                     // Get new computed styles
                     const after = getComputedStyle(elem);
@@ -213,16 +235,16 @@
             });
         },
 
-        toggle: function (className, duration) {
+        toggleClass: function (className, duration) {
             // jQuery UI compatible: toggleClass with animation
             if (duration) {
                 return this.each((index, elem) => {
                     const hasClass = elem.classList.contains(className);
                     const yakaElem = new Yaka(elem);
                     if (hasClass) {
-                        yakaElem.remove(className, duration);
+                        yakaElem.removeClass(className, duration);
                     } else {
-                        yakaElem.add(className, duration);
+                        yakaElem.addClass(className, duration);
                     }
                 });
             }
@@ -232,8 +254,13 @@
             });
         },
 
-        has: function (className) {
+        hasClass: function (className) {
             return this.elements[0]?.classList.contains(className) || false;
+        },
+
+        // New separate method for removing elements from DOM
+        detach: function () {
+            return this.each((i, elem) => elem.remove());
         },
 
         // ==================== STYLES ====================
@@ -732,20 +759,59 @@
 
             return this.each((i, elem) => {
                 if (selector) {
-                    elem.addEventListener(event, e => {
+                    // Create wrapper function
+                    const wrapper = function(e) {
                         const target = e.target.closest(selector);
                         if (target && elem.contains(target)) {
                             handler.call(target, e);
                         }
-                    });
+                    };
+                    
+                    // Store wrapper in nested WeakMap structure for proper cleanup
+                    // Structure: handler -> element -> event:selector -> wrapper
+                    if (!eventWrappers.has(handler)) {
+                        eventWrappers.set(handler, new WeakMap());
+                    }
+                    const elementMap = eventWrappers.get(handler);
+                    if (!elementMap.has(elem)) {
+                        elementMap.set(elem, new Map());
+                    }
+                    const eventMap = elementMap.get(elem);
+                    const key = `${event}:${selector}`;
+                    eventMap.set(key, wrapper);
+                    
+                    elem.addEventListener(event, wrapper);
                 } else {
                     elem.addEventListener(event, handler);
                 }
             });
         },
 
-        off: function (event, handler) {
-            return this.each((i, elem) => elem.removeEventListener(event, handler));
+        off: function (event, selector, handler) {
+            // Support both 2 and 3 argument forms for backward compatibility
+            if (typeof selector === 'function') {
+                handler = selector;
+                selector = null;
+            }
+            
+            return this.each((i, elem) => {
+                if (selector && eventWrappers.has(handler)) {
+                    // Remove delegated event listener
+                    const elementMap = eventWrappers.get(handler);
+                    if (elementMap.has(elem)) {
+                        const eventMap = elementMap.get(elem);
+                        const key = `${event}:${selector}`;
+                        const wrapper = eventMap.get(key);
+                        if (wrapper) {
+                            elem.removeEventListener(event, wrapper);
+                            eventMap.delete(key);
+                        }
+                    }
+                } else {
+                    // Remove direct event listener
+                    elem.removeEventListener(event, handler);
+                }
+            });
         },
 
         // NEW! One-time event
@@ -868,7 +934,9 @@
         // NEW! Copy to clipboard
         copy: function () {
             const text = this.text();
-            navigator.clipboard.writeText(text);
+            // Handle promise internally to maintain chaining API
+            navigator.clipboard.writeText(text)
+                .catch(err => console.warn('Yaka copy: clipboard write failed', err));
             return this;
         },
 
@@ -888,22 +956,31 @@
         // NEW! Auto-save form
         autoSave: function (key, delay = 1000) {
             return this.debounce('input', function () {
-                const data = new Yaka(this).serialize();
-                localStorage.setItem(key, JSON.stringify(data));
+                try {
+                    const data = new Yaka(this).serialize();
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (e) {
+                    console.warn('Yaka autoSave: localStorage unavailable', e);
+                }
             }, delay);
         },
 
         // NEW! Restore form data
         restore: function (key) {
-            const data = JSON.parse(localStorage.getItem(key) || '{}');
-            return this.each((i, elem) => {
-                if (elem.tagName === 'FORM') {
-                    Object.keys(data).forEach(name => {
-                        const input = elem.querySelector(`[name="${name}"]`);
-                        if (input) input.value = data[name];
-                    });
-                }
-            });
+            try {
+                const data = JSON.parse(localStorage.getItem(key) || '{}');
+                return this.each((i, elem) => {
+                    if (elem.tagName === 'FORM') {
+                        Object.keys(data).forEach(name => {
+                            const input = elem.querySelector(`[name="${name}"]`);
+                            if (input) input.value = data[name];
+                        });
+                    }
+                });
+            } catch (e) {
+                console.warn('Yaka restore: localStorage unavailable', e);
+                return this;
+            }
         },
 
         // NEW! Validate form
@@ -920,18 +997,34 @@
 
                 const rule = rules[name];
                 const value = input.value;
+                const fieldErrors = [];
 
+                // Check all rules independently
+                // Support both old 'message' and new specific message properties for backward compatibility
                 if (rule.required && !value) {
-                    errors[name] = rule.message || 'This field is required';
-                    valid = false;
-                } else if (rule.pattern && !rule.pattern.test(value)) {
-                    errors[name] = rule.message || 'Invalid format';
-                    valid = false;
-                } else if (rule.min && value.length < rule.min) {
-                    errors[name] = rule.message || `Minimum ${rule.min} characters`;
-                    valid = false;
-                } else if (rule.max && value.length > rule.max) {
-                    errors[name] = rule.message || `Maximum ${rule.max} characters`;
+                    fieldErrors.push(rule.requiredMessage || rule.message || 'This field is required');
+                }
+                if (value && rule.pattern && !rule.pattern.test(value)) {
+                    fieldErrors.push(rule.patternMessage || rule.message || 'Invalid format');
+                }
+                if (value && rule.min && value.length < rule.min) {
+                    fieldErrors.push(rule.minMessage || rule.message || `Minimum ${rule.min} characters`);
+                }
+                if (value && rule.max && value.length > rule.max) {
+                    fieldErrors.push(rule.maxMessage || rule.message || `Maximum ${rule.max} characters`);
+                }
+
+                if (fieldErrors.length > 0) {
+                    // Backward compatibility: Return format depends on usage pattern
+                    // - Old API (single 'message' property): returns string
+                    // - New API (specific message properties): returns array
+                    // This ensures existing code continues to work while new code can collect multiple errors
+                    if (fieldErrors.length === 1 && rule.message && 
+                        !rule.requiredMessage && !rule.patternMessage && !rule.minMessage && !rule.maxMessage) {
+                        errors[name] = fieldErrors[0]; // Single string for old API
+                    } else {
+                        errors[name] = fieldErrors; // Array for new API
+                    }
                     valid = false;
                 }
             });
@@ -960,20 +1053,19 @@
                 }
                 
                 const start = parseInt(elem.textContent) || 0;
-                const end = target;
-                const range = end - start;
-                const increment = range / (duration / 16);
-                let current = start;
+                const range = target - start;
+                const startTime = performance.now();
 
-                const timer = setInterval(() => {
-                    current += increment;
-                    if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-                        elem.textContent = Math.round(end);
-                        clearInterval(timer);
-                    } else {
-                        elem.textContent = Math.round(current);
+                const tick = (now) => {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    elem.textContent = Math.round(start + range * progress);
+                    if (progress < 1) {
+                        requestAnimationFrame(tick);
                     }
-                }, 16);
+                };
+
+                requestAnimationFrame(tick);
             });
         },
 
@@ -8036,7 +8128,35 @@
     `;
     document.head.appendChild(style);
 
+    // Backward compatibility aliases for old method names
+    // These provide compatibility but log deprecation warnings
+    Yaka.prototype.add = function(className, duration) {
+        console.warn('add() is deprecated. Use addClass() instead.');
+        return this.addClass(className, duration);
+    };
+    
+    Yaka.prototype.remove = function(className, duration) {
+        if (!className) {
+            console.warn('remove() with no arguments is deprecated. Use detach() to remove element from DOM.');
+            return this.detach();
+        }
+        console.warn('remove() is deprecated. Use removeClass() to remove CSS classes.');
+        return this.removeClass(className, duration);
+    };
+    
+    Yaka.prototype.toggle = function(className, duration) {
+        console.warn('toggle() is deprecated. Use toggleClass() instead.');
+        return this.toggleClass(className, duration);
+    };
+    
+    Yaka.prototype.has = function(className) {
+        console.warn('has() is deprecated. Use hasClass() instead.');
+        return this.hasClass(className);
+    };
+
     // Export to window
-    window._ = Yaka;
+    window.Yaka = Yaka;
+    // Only take _ if it's not already claimed (e.g., by lodash)
+    window._ = window._ || Yaka;
 
 })(window);
