@@ -158,6 +158,8 @@
                     
                     // Force reflow - reading offsetHeight triggers layout recalculation
                     // This ensures the browser applies the new class styles before we read them
+                    // Note: Forcing reflow has performance implications. Avoid calling
+                    // addClass with duration in loops or high-frequency scenarios
                     void elem.offsetHeight;
                     
                     // Get new computed styles
@@ -206,6 +208,8 @@
                     
                     // Force reflow - reading offsetHeight triggers layout recalculation
                     // This ensures the browser applies the removed class styles before we read them
+                    // Note: Forcing reflow has performance implications. Avoid calling
+                    // removeClass with duration in loops or high-frequency scenarios
                     void elem.offsetHeight;
                     
                     // Get new computed styles
@@ -763,13 +767,18 @@
                         }
                     };
                     
-                    // Store wrapper in WeakMap for proper cleanup
+                    // Store wrapper in nested WeakMap structure for proper cleanup
+                    // Structure: handler -> element -> event:selector -> wrapper
                     if (!eventWrappers.has(handler)) {
-                        eventWrappers.set(handler, new Map());
+                        eventWrappers.set(handler, new WeakMap());
                     }
-                    const handlerMap = eventWrappers.get(handler);
-                    const key = `${event}:${selector}:${elem}`;
-                    handlerMap.set(key, wrapper);
+                    const elementMap = eventWrappers.get(handler);
+                    if (!elementMap.has(elem)) {
+                        elementMap.set(elem, new Map());
+                    }
+                    const eventMap = elementMap.get(elem);
+                    const key = `${event}:${selector}`;
+                    eventMap.set(key, wrapper);
                     
                     elem.addEventListener(event, wrapper);
                 } else {
@@ -788,12 +797,15 @@
             return this.each((i, elem) => {
                 if (selector && eventWrappers.has(handler)) {
                     // Remove delegated event listener
-                    const handlerMap = eventWrappers.get(handler);
-                    const key = `${event}:${selector}:${elem}`;
-                    const wrapper = handlerMap.get(key);
-                    if (wrapper) {
-                        elem.removeEventListener(event, wrapper);
-                        handlerMap.delete(key);
+                    const elementMap = eventWrappers.get(handler);
+                    if (elementMap.has(elem)) {
+                        const eventMap = elementMap.get(elem);
+                        const key = `${event}:${selector}`;
+                        const wrapper = eventMap.get(key);
+                        if (wrapper) {
+                            elem.removeEventListener(event, wrapper);
+                            eventMap.delete(key);
+                        }
                     }
                 } else {
                     // Remove direct event listener
@@ -922,8 +934,10 @@
         // NEW! Copy to clipboard
         copy: function () {
             const text = this.text();
-            return navigator.clipboard.writeText(text)
+            // Handle promise internally to maintain chaining API
+            navigator.clipboard.writeText(text)
                 .catch(err => console.warn('Yaka copy: clipboard write failed', err));
+            return this;
         },
 
         // NEW! Serialize form data
@@ -1001,7 +1015,14 @@
                 }
 
                 if (fieldErrors.length > 0) {
-                    errors[name] = fieldErrors;
+                    // For backward compatibility: if only one error and rule.message was used,
+                    // return a string. Otherwise return array.
+                    if (fieldErrors.length === 1 && rule.message && 
+                        !rule.requiredMessage && !rule.patternMessage && !rule.minMessage && !rule.maxMessage) {
+                        errors[name] = fieldErrors[0]; // Single string for old API
+                    } else {
+                        errors[name] = fieldErrors; // Array for new API
+                    }
                     valid = false;
                 }
             });
