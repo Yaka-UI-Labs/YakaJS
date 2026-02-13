@@ -1,16 +1,16 @@
 # YakaJS 🚀
 
-[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Size](https://img.shields.io/badge/size-91%20KB%20minified-success.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
-[![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/min.yaka.js)
+[![Size](https://img.shields.io/badge/size-132%20KB%20minified-success.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
+[![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js)
 
 > Next-Gen JavaScript Library - More powerful than jQuery, simpler to write
 
 YakaJS is a modern, lightweight JavaScript library that combines the simplicity of jQuery with cutting-edge browser features. It's designed to be error-free, performant, and developer-friendly.
 
 **⚡ Quick Stats:**
-- 📦 **91 KB minified** (208 KB full source)
+- 📦 **132 KB minified** (300 KB full source)
 - 🚀 **56% smaller** than unminified version
 - 🗺️ **Source maps included** for debugging
 - 🔒 **Zero dependencies**
@@ -92,10 +92,10 @@ YakaJS offers **four optimized build versions** to match your performance needs.
 
 | Version | File | Size | Compression | Use Case |
 |---------|------|------|-------------|----------|
-| **Development** | `yaka.js` | 298 KB | Original | Development with comments & formatting |
-| **Standard** | `min.yaka.js` | 131 KB | 56.2% | Production with source maps for debugging |
-| **Ultra** | `ultra.min.yaka.js` | 130 KB | 56.5% | Production with aggressive optimization |
-| **Hyper** 🔥 | `hyper.min.yaka.js` | **127 KB** | **57.4%** | **Maximum compression for fastest load times** |
+| **Development** | `src/yaka.js` | 300 KB | Original | Development with comments & formatting |
+| **Standard** | `dist/min.yaka.js` | 132 KB | 56.0% | Production with source maps for debugging |
+| **Ultra** | `dist/ultra.min.yaka.js` | 132 KB | 56.0% | Production with aggressive optimization |
+| **Hyper** 🔥 | `dist/hyper.min.yaka.js` | **128 KB** | **57.3%** | **Maximum compression for fastest load times** |
 
 ### Build Commands
 
@@ -135,18 +135,18 @@ npm run build:hyper
 ### Visual Size Comparison
 
 ```
-Original (298 KB)   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0%
-Standard (131 KB)   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░  43.8%
-Ultra (130 KB)      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░  43.5%
-Hyper (127 KB) 🔥   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░░  42.6%
+Original (300 KB)   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0%
+Standard (132 KB)   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░  44.0%
+Ultra (132 KB)      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░  44.0%
+Hyper (128 KB) 🔥   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░  42.7%
 ```
 
 ### Which Version Should I Use?
 
-- **💻 Development**: Use `yaka.js` for readable code with all comments
-- **🐛 Production + Debugging**: Use `min.yaka.js` with source maps
-- **⚡ Production**: Use `ultra.min.yaka.js` for great compression
-- **🚀 Maximum Performance**: Use `hyper.min.yaka.js` for smallest bundle and fastest load times
+- **💻 Development**: Use `src/yaka.js` for readable code with all comments
+- **🐛 Production + Debugging**: Use `dist/min.yaka.js` with source maps
+- **⚡ Production**: Use `dist/ultra.min.yaka.js` for great compression
+- **🚀 Maximum Performance**: Use `dist/hyper.min.yaka.js` for smallest bundle and fastest load times
 
 > **Note:** All builds are thoroughly tested and maintain 100% API compatibility. The hyper build uses cutting-edge compression that works in all modern browsers (ES2020+).
 
@@ -163,28 +163,28 @@ All minified versions preserve:
 
 ### Option 1: CDN (Recommended for Production)
 
-**Minified Version** (91 KB - Recommended):
+**Minified Version** (132 KB - Recommended):
 ```html
 <!-- Production: Minified + Source Maps -->
-<script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/min.yaka.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
 ```
 
-**Full Version** (208 KB - For Development):
+**Full Version** (300 KB - For Development):
 ```html
 <!-- Development: Full source with comments -->
-<script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/yaka.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/src/yaka.js"></script>
 ```
 
 **Specific Version:**
 ```html
-<!-- Lock to a specific version (replace v2.2.0 with desired version) -->
-<script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@v2.2.0/min.yaka.js"></script>
+<!-- Lock to a specific version (replace v1.0.0 with desired version) -->
+<script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@v1.0.0/dist/min.yaka.js"></script>
 ```
 
 **Alternative CDNs:**
 ```html
 <!-- unpkg -->
-<script src="https://unpkg.com/yakajs@latest/min.yaka.js"></script>
+<script src="https://unpkg.com/yakajs@latest/dist/min.yaka.js"></script>
 ```
 
 > ⚠️ **Note:** GitHub Raw URLs are not suitable for production use due to lack of CDN caching and reliability. Use jsDelivr or unpkg for production deployments.
@@ -192,12 +192,12 @@ All minified versions preserve:
 ### Option 2: Download and Host Locally
 
 1. **Download the files:**
-   - [min.yaka.js](https://github.com/Yaka-UI-Labs/YakaJS/raw/main/min.yaka.js) (Production)
-   - [yaka.js](https://github.com/Yaka-UI-Labs/YakaJS/raw/main/yaka.js) (Development)
+   - [dist/min.yaka.js](https://github.com/Yaka-UI-Labs/YakaJS/raw/main/dist/min.yaka.js) (Production)
+   - [src/yaka.js](https://github.com/Yaka-UI-Labs/YakaJS/raw/main/src/yaka.js) (Development)
 
 2. **Include in your HTML:**
 ```html
-<script src="path/to/min.yaka.js"></script>
+<script src="path/to/dist/min.yaka.js"></script>
 ```
 
 ### Option 3: Build from Source
@@ -213,18 +213,18 @@ npm install
 # Build minified version
 npm run build
 
-# Output: min.yaka.js and min.yaka.js.map
+# Output: dist/min.yaka.js and dist/min.yaka.js.map
 ```
 
 ### 📊 Version Comparison
 
-| Version | Size | Lines | Use Case | Debugging |
-|---------|------|-------|----------|-----------|
-| **min.yaka.js** | 91 KB | 9 | ✅ Production | With source maps |
-| **yaka.js** | 208 KB | 5,827 | ✅ Development | Direct |
-| **Reduction** | **-56%** | **-99.8%** | - | - |
+| Version | Size | Use Case | Debugging |
+|---------|------|----------|-----------|
+| **dist/min.yaka.js** | 132 KB | ✅ Production | With source maps |
+| **src/yaka.js** | 300 KB | ✅ Development | Direct |
+| **Reduction** | **-56%** | - | - |
 
-> 💡 **Tip:** Always use `min.yaka.js` in production for faster load times. The minified version includes a source map reference for debugging.
+> 💡 **Tip:** Always use `dist/min.yaka.js` in production for faster load times. The minified version includes a source map reference for debugging.
 
 ## 🚀 Quick Start
 
@@ -242,7 +242,7 @@ npm run build
     <button id="btn">Click Me</button>
     
     <!-- Include YakaJS from CDN -->
-    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/min.yaka.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
     
     <script>
         // YakaJS is ready to use via the _ global variable
@@ -330,17 +330,17 @@ _.theme.toggle(); // Toggle between dark and light
 
 ### 🐛 Debugging with Source Maps
 
-When using the minified version (`min.yaka.js`), browser DevTools automatically load the source map for easy debugging:
+When using the minified version (`dist/min.yaka.js`), browser DevTools automatically load the source map for easy debugging:
 
 **How to Debug:**
 1. **Open DevTools** (F12 or Ctrl+Shift+I / Cmd+Option+I)
 2. **Go to Sources tab**
-3. **Find `min.yaka.js`** in the file tree
+3. **Find `dist/min.yaka.js`** in the file tree
 4. **Original source appears** with readable code, comments, and correct line numbers
 5. **Set breakpoints** just like in development
 6. **View original variable names** in the debugger
 
-> 💡 **Note:** The source map (`min.yaka.js.map`) is automatically referenced in `min.yaka.js`. Make sure both files are served from the same directory for debugging to work properly.
+> 💡 **Note:** The source map (`dist/min.yaka.js.map`) is automatically referenced in `dist/min.yaka.js`. Make sure both files are served from the same directory for debugging to work properly.
 
 **Benefits of Source Maps:**
 - ✅ Debug minified code as if it were the original
@@ -1645,12 +1645,12 @@ Advanced features (AI, Bluetooth, View Transitions) require newer browsers and m
 - For offline use, download and host locally
 
 **Q: Which version should I use?**
-- **Production:** `min.yaka.js` (91 KB, faster loading)
-- **Development:** `yaka.js` (208 KB, readable source)
+- **Production:** `dist/min.yaka.js` (132 KB, faster loading)
+- **Development:** `src/yaka.js` (300 KB, readable source)
 - **Both versions** have identical functionality
 
 **Q: Source maps not working?**
-- Ensure `min.yaka.js.map` is in the same directory as `min.yaka.js`
+- Ensure `dist/min.yaka.js.map` is in the same directory as `dist/min.yaka.js`
 - Check that your server serves `.map` files with correct MIME type
 - Open browser DevTools to trigger source map loading
 - Verify the file is accessible (check Network tab)
@@ -1680,7 +1680,7 @@ _.debug = true;
 ```
 
 **Q: Performance issues?**
-- Use the minified version (`min.yaka.js`) in production
+- Use the minified version (`dist/min.yaka.js`) in production
 - Enable HTTP caching for repeated requests
 - Use `_.memoize()` for expensive function calls
 - Monitor performance with `_.performance` API
@@ -1705,7 +1705,7 @@ console.log(`Found ${leaks.length} potential leaks`);
 **Q: How to use with a module bundler?**
 ```javascript
 // If using webpack, rollup, etc.
-import _ from './yaka.js';
+import _ from './src/yaka.js';
 
 // Or with npm (when published)
 // import _ from 'yakajs';
@@ -1731,7 +1731,7 @@ function MyComponent() {
 ```javascript
 // YakaJS loads all features by default
 // To reduce bundle size, you'll need to build from source
-// and comment out unwanted features in yaka.js
+// and comment out unwanted features in src/yaka.js
 ```
 
 **Q: TypeScript support?**
@@ -1784,7 +1784,7 @@ Check out these files in the repository for comprehensive examples:
 <html>
 <head>
     <title>YakaJS Todo App</title>
-    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/min.yaka.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
 </head>
 <body>
     <div id="app">
@@ -1873,7 +1873,7 @@ Check out these files in the repository for comprehensive examples:
 <html>
 <head>
     <title>YakaJS SPA</title>
-    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/min.yaka.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
 </head>
 <body>
     <nav>
@@ -1947,7 +1947,7 @@ MIT License - see LICENSE file for details
 - ✅ **Updated Documentation**: Comprehensive examples for all new features
 
 ### Build & Distribution
-- ✅ **Minified version** (`min.yaka.js`) - 58% smaller, production-ready
+- ✅ **Minified version** (`dist/min.yaka.js`) - 56% smaller, production-ready
 - ✅ **Source maps** for debugging minified code
 - ✅ **CDN support** via jsDelivr and unpkg
 - ✅ **Copyright preservation** in minified version
@@ -1972,77 +1972,15 @@ MIT License - see LICENSE file for details
 - ✅ Security utilities (XSS, CSRF protection)
 - ✅ And much more!
 
-## 🛠️ YakaCLI - Project Scaffolding Tool
-
-**NEW!** YakaCLI is now available with **Custom Build Generator**!
-
-### Quick Start
-
-```bash
-# Scaffold a new project
-node yakacli/yakacli.js create my-project
-
-# Generate custom build (NEW!)
-node yakacli/yakacli.js build
-```
-
-### Features
-
-✅ **4 Project Templates** - Basic, SPA, Dashboard, PWA  
-✅ **Custom Builds** - Generate YakaJS with only features you need  
-✅ **Codebase Analysis** - Detailed statistics and feature detection  
-✅ **Zero Configuration** - Works out of the box
-
-### Custom Builds - Pick Your Features! 🎯
-
-Not everyone needs everything. Generate custom builds that are **50-90% smaller**:
-
-**Example: Media-Rich Build (36 KB)**
-```bash
-yakacli build
-# Select "Media Rich" preset
-# ✅ Includes: Webcam, Audio, Video, Screen Recording
-# ❌ Excludes: AI, Bluetooth, Advanced Effects
-```
-
-**Example: Minimal Build (18 KB)**
-```bash
-yakacli build  
-# Select "Minimal" preset
-# ✅ Includes: DOM, Events, HTTP, Storage
-# ❌ Excludes: Webcam, Media, AI, Effects
-```
-
-**Available Presets:**
-- 📦 **Minimal** (18 KB) - Core features only
-- 🎨 **Standard** (41 KB) - Core + UI components
-- 📱 **SPA** (73 KB) - Single-page app framework
-- 📹 **Media Rich** (36 KB) - Webcam, audio, video
-- ✨ **Interactive** (67 KB) - Rich effects & animations
-- 🔧 **Developer** (52 KB) - Debug & dev tools
-- 🌟 **Full** (176 KB) - Everything included
-
-**Or select custom categories:**
-- Animations
-- UI Components
-- Forms & Validation
-- Routing & State
-- Visual Effects
-- Media & WebRTC 📹
-- Device APIs
-- AI & ML
-- And more!
-
-[📖 Read Custom Builds Documentation](yakacli/CUSTOM-BUILDS.md)
-
-### Standard Features
-
 ## 🔥 Coming Soon
 
 - Server-side rendering support
 - React/Vue integration
 - TypeScript definitions
 - Component library
+- Project scaffolding tool (YakaCLI)
+- Custom build generator
+- More plugins and extensions
 - More plugins and extensions
 
 ---
