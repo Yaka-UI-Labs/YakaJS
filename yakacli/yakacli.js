@@ -223,7 +223,7 @@ function analyzeCodebase() {
     console.log(`${colors.bright}Feature Detection:${colors.reset}`);
     Object.entries(features).forEach(([name, pattern]) => {
         const matches = content.match(pattern) || [];
-        const status = matches.length > 0 ? `[${colors.green}+${colors.reset}]` : `[ ]`;
+        const status = matches.length > 0 ? `[${colors.green}+${colors.reset}]` : `[${colors.dim}-${colors.reset}]`;
         const count = matches.length > 0 ? `(${matches.length} references)` : '';
         console.log(`  ${status} ${name.padEnd(25)} ${colors.dim}${count}${colors.reset}`);
     });
