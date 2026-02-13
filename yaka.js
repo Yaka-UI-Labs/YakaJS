@@ -1015,8 +1015,10 @@
                 }
 
                 if (fieldErrors.length > 0) {
-                    // For backward compatibility: if only one error and rule.message was used,
-                    // return a string. Otherwise return array.
+                    // Backward compatibility: Return format depends on usage pattern
+                    // - Old API (single 'message' property): returns string
+                    // - New API (specific message properties): returns array
+                    // This ensures existing code continues to work while new code can collect multiple errors
                     if (fieldErrors.length === 1 && rule.message && 
                         !rule.requiredMessage && !rule.patternMessage && !rule.minMessage && !rule.maxMessage) {
                         errors[name] = fieldErrors[0]; // Single string for old API
