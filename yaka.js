@@ -4143,15 +4143,17 @@
         addRoute(path, config) {
             const { component, handler, children, beforeEnter, name, redirect } = config;
             
-            // Convert path to regex pattern
+            // Convert path to regex pattern (path is developer-defined route pattern, not user input)
+            // Extract parameter names and build regex
             const paramNames = [];
             const pattern = path
-                .replace(/\//g, '\\/')
-                .replace(/:(\w+)/g, (_, name) => {
+                .replace(/[.+?^${}()|[\]\\]/g, '\\$&')  // Escape regex special chars except / * :
+                .replace(/:(\w+)/g, (match, name) => {
                     paramNames.push(name);
-                    return '([^\\/]+)';
+                    return '([^\\/]+)';  // Match param value (not /)
                 })
-                .replace(/\*/g, '.*');
+                .replace(/\*/g, '.*')  // Wildcard becomes .* in regex
+                .replace(/\//g, '\\/');  // Escape forward slashes for regex
 
             this.routes.push({
                 path,
@@ -4552,9 +4554,10 @@
                 '>': '&gt;',
                 '"': '&quot;',
                 "'": '&#x27;',
-                '/': '&#x2F;'
+                '/': '&#x2F;',
+                '\\': '&#x5C;'
             };
-            return String(text).replace(/[&<>"'/]/g, (char) => map[char]);
+            return String(text).replace(/[&<>"'/\\]/g, (char) => map[char]);
         },
 
         // CSRF token management
