@@ -21,9 +21,12 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 
 ### 🎨 Rich UI Components & Animations
 - **15+ Smooth Animations**: fadeIn/Out, slideIn/Out (all directions), zoomIn/Out, blurIn/Out, bounce, pulse, shake, swing, flip3D, rotateIn/Out, rubberBand
-- **Modern UI Components**: Dropdown with search, Modal, Tooltip, Popover, Tabs, Accordion, Carousel, Stepper/Wizard, Breadcrumb, Pagination, Badge/Tag
+- **Modern UI Components**: Dropdown with search, Modal, Tooltip, Popover, Tabs, Accordion, Carousel, Stepper/Wizard, Breadcrumb, Pagination, Badge/Tag, Button Widget, Checkboxradio, Controlgroup, Menu, Enhanced SelectBox
 - **Progress Indicators**: Progress bars, loading spinners, skeleton loaders
-- **Interactive Elements**: Draggable, sortable, swipe gestures, infinite scroll
+- **Interactive Elements**: Draggable, droppable, resizable, selectable, sortable, swipe gestures, infinite scroll, fullpage scrolling
+- **Enhanced Animations**: Color animation, addClass/removeClass/toggleClass with duration, position utility
+- **Notifications & Alerts**: Toast notifications (Toastr-style), SweetAlert dialogs, notification system
+- **Advanced Pickers**: DatePicker, TimePicker (12/24hr), ColorPicker
 
 ### 🛡️ Smart "Auto-Fix" & Error Handling
 - **Safe-Mode Chaining**: Never crash on empty selectors with `_.safe()`
@@ -946,6 +949,468 @@ _.notify('Warning!', 'warning');
 
 // Error notification
 _.notify('Error occurred', 'error', 5000);
+```
+
+**Drag and Drop:**
+```javascript
+// Make element draggable
+_('#box').draggable({
+    onStart: function(e) {
+        console.log('Started dragging');
+    },
+    onDrag: function(e) {
+        console.log('Dragging...');
+    },
+    onEnd: function(e) {
+        console.log('Stopped dragging');
+    }
+});
+
+// Create drop zones
+_('#drop-zone').droppable({
+    accept: '*',  // Accept all draggable elements (or use CSS selector)
+    hoverClass: 'drag-over',  // Class when dragging over
+    activeClass: 'drop-active',  // Class when any drag is active
+    onDragEnter: function(e) {
+        console.log('Drag entered drop zone');
+    },
+    onDragLeave: function(e) {
+        console.log('Drag left drop zone');
+    },
+    onDrop: function(e, data) {
+        console.log('Item dropped!', data);
+    }
+});
+```
+
+**Resizable Elements:**
+```javascript
+// Make element resizable with all handles
+_('#box').resizable();
+
+// Custom resize handles and constraints
+_('#box').resizable({
+    handles: ['se', 'e', 's'],  // Only southeast, east, south handles
+    minWidth: 100,
+    minHeight: 100,
+    maxWidth: 500,
+    maxHeight: 500,
+    aspectRatio: true,  // Maintain aspect ratio
+    onStart: function(e) {
+        console.log('Started resizing');
+    },
+    onResize: function(e, dimensions) {
+        console.log('Resizing:', dimensions.width, dimensions.height);
+    },
+    onStop: function(e) {
+        console.log('Stopped resizing');
+    }
+});
+```
+
+**Sortable Lists:**
+```javascript
+// Make list items sortable by dragging
+_('#sortable-list').sortable({
+    onChange: function() {
+        console.log('List order changed');
+        // Get new order
+        const newOrder = Array.from(this.children).map(item => item.textContent);
+        console.log('New order:', newOrder);
+    }
+});
+```
+
+**Selectable Elements:**
+```javascript
+// Make elements selectable with marquee
+_('#selectable-container').selectable({
+    filter: '.item',  // Which elements can be selected
+    tolerance: 'touch',  // 'touch' or 'fit'
+    onSelect: function() {
+        console.log('Item selected:', this);
+    },
+    onStop: function(event, selected) {
+        console.log('Selection complete:', selected.length, 'items selected');
+    }
+});
+```
+
+**Button Widget:**
+```javascript
+// Enhanced button with icon
+_('button').button({
+    icon: '🚀',
+    iconPosition: 'left'
+});
+
+// Button with enable/disable
+const btn = _('#myButton').button();
+btn.elements[0]._yaka_button_api.disable();
+btn.elements[0]._yaka_button_api.enable();
+```
+
+**Checkboxradio:**
+```javascript
+// Style checkbox
+_('input[type="checkbox"]').checkboxradio({
+    label: 'Accept terms'
+});
+
+// Style radio buttons
+_('input[type="radio"][name="choice"]').checkboxradio();
+```
+
+**Controlgroup:**
+```javascript
+// Group buttons horizontally
+_('#button-group').controlgroup();
+
+// Group buttons vertically
+_('#vertical-group').controlgroup({
+    direction: 'vertical'
+});
+```
+
+**Menu Widget:**
+```javascript
+// Create menu with keyboard navigation
+_('#menu').menu({
+    onSelect: function(text, index) {
+        console.log('Selected:', text);
+    }
+});
+```
+
+**Position Utility:**
+```javascript
+// Position dropdown below button
+_('#dropdown').position({
+    my: 'left top',
+    at: 'left bottom',
+    of: '#myButton',
+    collision: 'flip'
+});
+
+// Center dialog in window
+_('#dialog').position({
+    my: 'center',
+    at: 'center',
+    of: window
+});
+```
+
+**Enhanced Class Animations:**
+```javascript
+// Add class with animation
+_('#element').add('highlight', 300);
+
+// Remove class with animation
+_('#element').remove('active', 500);
+
+// Toggle class with animation
+_('#element').toggle('expanded', 400);
+```
+
+**Color Animation:**
+```javascript
+// Animate background color
+_('#box').animate({
+    backgroundColor: '#ff5722',
+    color: '#ffffff'
+}, 1000);
+
+// Animate border color
+_('#panel').animate({
+    borderColor: 'rgb(33, 150, 243)',
+    width: '300px'
+}, 500);
+```
+
+**Toast Notifications (Toastr):**
+```javascript
+// Success toast
+_.toast('Operation successful!', {
+    type: 'success',
+    position: 'top-right',
+    duration: 5000,
+    progressBar: true
+});
+
+// Error toast with callback
+_.toast('An error occurred', {
+    type: 'error',
+    position: 'bottom-center',
+    onClick: () => console.log('Toast clicked'),
+    closeButton: true
+});
+
+// Info toast (no auto-dismiss)
+_.toast('Important information', {
+    type: 'info',
+    duration: 0  // Won't auto-dismiss
+});
+```
+
+**SweetAlert Dialogs:**
+```javascript
+// Simple alert
+_.alert({
+    title: 'Success!',
+    text: 'Your operation was completed',
+    type: 'success'
+});
+
+// Confirmation dialog
+_.alert({
+    title: 'Are you sure?',
+    text: 'This action cannot be undone',
+    type: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it!'
+}).then(result => {
+    if (result.isConfirmed) {
+        console.log('Confirmed!');
+    }
+});
+
+// Input prompt
+_.alert({
+    title: 'Enter your name',
+    input: 'text',
+    inputPlaceholder: 'Your name here...',
+    showCancelButton: true
+}).then(result => {
+    if (result.isConfirmed) {
+        console.log('Name:', result.value);
+    }
+});
+```
+
+**Enhanced SelectBox (Select2):**
+```javascript
+// Basic enhanced select
+_('select').selectbox({
+    searchable: true,
+    placeholder: 'Choose an option...'
+});
+
+// Multiple selection
+_('#tags').selectbox({
+    multiple: true,
+    searchable: true,
+    width: '100%',
+    onChange: (value) => console.log('Selected:', value)
+});
+
+// With custom data
+_('#custom-select').selectbox({
+    data: [
+        { value: '1', text: 'Option 1' },
+        { value: '2', text: 'Option 2' },
+        { value: '3', text: 'Option 3' }
+    ],
+    searchable: true
+});
+```
+
+**TimePicker:**
+```javascript
+// 24-hour format
+_('#time-input').timepicker({
+    format24: true,
+    minuteInterval: 15,
+    onChange: (time) => console.log('Selected time:', time)
+});
+
+// 12-hour format with AM/PM
+_('#time-12hr').timepicker({
+    format24: false,
+    minuteInterval: 5,
+    minTime: '09:00',
+    maxTime: '17:00'
+});
+```
+
+**FullPage Scrolling:**
+```javascript
+// Full-screen snap scrolling
+_('#fullpage-container').fullpage({
+    navigation: true,  // Show navigation dots
+    scrollingSpeed: 700,
+    easing: 'ease-in-out'
+});
+
+// Each child becomes a full-screen section with snap scrolling
+// Use arrow keys to navigate between sections
+```
+
+### Phase 3B: Utility Functions (Lodash-like)
+
+#### Deep Object Utilities
+```javascript
+// Deep clone with circular reference handling
+const clone = _.deepClone({ a: { b: { c: 1 } } });
+
+// Deep merge objects
+const merged = _.merge({ a: 1 }, { b: 2 }, { c: 3 });
+
+// Deep equality comparison
+_.isEqual({ a: 1 }, { a: 1 }); // true
+
+// Safe nested property access
+_.get(obj, 'user.address.city', 'Unknown');
+
+// Safe nested property setting
+_.set(obj, 'user.address.city', 'NYC');
+
+// Pick properties
+_.pick(user, ['name', 'email']);
+
+// Omit properties
+_.omit(user, ['password', 'salt']);
+```
+
+#### Array & Collection Methods
+```javascript
+// Chunk array into groups
+_.chunk([1, 2, 3, 4, 5], 2); // [[1, 2], [3, 4], [5]]
+
+// Flatten nested arrays
+_.flatten([[1, 2], [3, [4, 5]]], 1); // [1, 2, 3, [4, 5]]
+_.flattenDeep([[1, [2, [3]]]]); // [1, 2, 3]
+
+// Remove duplicates
+_.uniq([1, 2, 2, 3, 1]); // [1, 2, 3]
+_.uniqBy(users, 'id'); // Remove duplicates by ID
+
+// Generate range
+_.range(5); // [0, 1, 2, 3, 4]
+_.range(1, 5); // [1, 2, 3, 4]
+_.range(0, 10, 2); // [0, 2, 4, 6, 8]
+
+// Shuffle array
+_.shuffle([1, 2, 3, 4, 5]);
+
+// Random sample
+_.sample([1, 2, 3, 4, 5]); // Random single item
+_.sample([1, 2, 3, 4, 5], 3); // Random 3 items
+
+// Group by property
+_.groupBy(users, 'role');
+// { admin: [...], user: [...] }
+
+// Sort by property
+_.sortBy(users, 'age');
+_.sortBy(users, user => user.name.toLowerCase());
+
+// Partition by condition
+_.partition([1, 2, 3, 4], n => n % 2 === 0);
+// [[2, 4], [1, 3]]
+
+// Set operations
+_.intersection([1, 2, 3], [2, 3, 4]); // [2, 3]
+_.union([1, 2], [2, 3], [3, 4]); // [1, 2, 3, 4]
+_.difference([1, 2, 3], [2, 4]); // [1, 3]
+```
+
+#### String Utilities
+```javascript
+// Case conversions
+_.camelCase('hello-world'); // 'helloWorld'
+_.kebabCase('helloWorld'); // 'hello-world'
+_.snakeCase('helloWorld'); // 'hello_world'
+
+// Capitalization
+_.capitalize('hello'); // 'Hello'
+_.capitalizeWords('hello world'); // 'Hello World'
+
+// Truncate with ellipsis
+_.truncate('Long text here...', 10); // 'Long te...'
+
+// Create URL slug
+_.slugify('Hello World 2024!'); // 'hello-world-2024'
+
+// HTML escaping
+_.escape('<script>alert("xss")</script>');
+_.unescape('&lt;div&gt;');
+```
+
+#### Date & Time Utilities
+```javascript
+// Format dates
+_.formatDate(new Date(), 'YYYY-MM-DD'); // '2024-02-13'
+_.formatDate(new Date(), 'HH:mm:ss'); // '14:30:45'
+
+// Relative time
+_.fromNow(new Date('2024-02-10')); // '3 days ago'
+
+// Date difference
+_.diffDates('2024-01-01', '2024-02-01', 'days'); // 31
+
+// Date arithmetic
+_.addDays(new Date(), 7); // Add 7 days
+_.addHours(new Date(), 2); // Add 2 hours
+_.addMinutes(new Date(), 30); // Add 30 minutes
+```
+
+#### Type Checking
+```javascript
+// Comprehensive type checking
+_.isArray([1, 2, 3]); // true
+_.isObject({ a: 1 }); // true
+_.isFunction(() => {}); // true
+_.isString('hello'); // true
+_.isNumber(123); // true
+_.isBoolean(true); // true
+_.isNull(null); // true
+_.isUndefined(undefined); // true
+_.isNil(null); // true (null or undefined)
+_.isEmpty([]); // true
+_.isEmpty({}); // true
+_.isDate(new Date()); // true
+_.isRegExp(/test/); // true
+_.isError(new Error()); // true
+```
+
+#### Promise/Async Utilities
+```javascript
+// Async sleep/delay
+await _.sleep(1000); // Wait 1 second
+
+// Retry with exponential backoff
+await _.retry(async () => {
+    const response = await fetch('/api/data');
+    return response.json();
+}, { times: 3, delay: 1000, backoff: 2 });
+
+// Promise timeout
+await _.timeout(fetchData(), 5000, 'Request timed out');
+
+// Promise utilities
+await _.all([promise1, promise2, promise3]);
+await _.race([promise1, promise2]);
+await _.allSettled([promise1, promise2]); 
+// Returns: [{ status: 'fulfilled', value: ... }, { status: 'rejected', reason: ... }]
+```
+
+#### Math Utilities
+```javascript
+// Clamp value between min and max
+_.clamp(50, 0, 100); // 50
+_.clamp(-5, 0, 100); // 0
+_.clamp(150, 0, 100); // 100
+
+// Random numbers
+_.random(1, 10); // Random integer 1-10
+_.random(0, 1, true); // Random float 0-1
+
+// Array math
+_.sum([1, 2, 3, 4, 5]); // 15
+_.mean([1, 2, 3, 4, 5]); // 3
+_.median([1, 2, 3, 4, 5]); // 3
+_.min([3, 1, 4, 1, 5]); // 1
+_.max([3, 1, 4, 1, 5]); // 5
 ```
 
 ### Phase 4: Modern Browser Features

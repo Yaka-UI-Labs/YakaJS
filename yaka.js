@@ -134,23 +134,100 @@
 
         // ==================== CLASSES ====================
 
-        add: function (className) {
+        add: function (className, duration) {
+            // jQuery UI compatible: addClass with animation
+            if (duration) {
+                return this.each((i, elem) => {
+                    const classes = className.split(' ');
+                    // Get current computed styles before adding class
+                    const before = {};
+                    const computed = getComputedStyle(elem);
+                    ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
+                        before[prop] = computed[prop];
+                    });
+                    
+                    // Add the class
+                    classes.forEach(cls => elem.classList.add(cls));
+                    
+                    // Get new computed styles
+                    const after = getComputedStyle(elem);
+                    const transitions = [];
+                    
+                    // Find what changed and animate it
+                    Object.keys(before).forEach(prop => {
+                        if (before[prop] !== after[prop]) {
+                            transitions.push(`${prop} ${duration}ms ease`);
+                        }
+                    });
+                    
+                    if (transitions.length > 0) {
+                        elem.style.transition = transitions.join(', ');
+                        setTimeout(() => elem.style.transition = '', duration);
+                    }
+                });
+            }
             return this.each((i, elem) => {
                 className.split(' ').forEach(cls => elem.classList.add(cls));
             });
         },
 
-        remove: function (className) {
+        remove: function (className, duration) {
             if (!className) {
                 return this.each((i, elem) => elem.remove());
             }
+            
+            // jQuery UI compatible: removeClass with animation
+            if (duration) {
+                return this.each((i, elem) => {
+                    const classes = className.split(' ');
+                    // Get current computed styles before removing class
+                    const before = {};
+                    const computed = getComputedStyle(elem);
+                    ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
+                        before[prop] = computed[prop];
+                    });
+                    
+                    // Remove the class
+                    classes.forEach(cls => elem.classList.remove(cls));
+                    
+                    // Get new computed styles
+                    const after = getComputedStyle(elem);
+                    const transitions = [];
+                    
+                    // Find what changed and animate it
+                    Object.keys(before).forEach(prop => {
+                        if (before[prop] !== after[prop]) {
+                            transitions.push(`${prop} ${duration}ms ease`);
+                        }
+                    });
+                    
+                    if (transitions.length > 0) {
+                        elem.style.transition = transitions.join(', ');
+                        setTimeout(() => elem.style.transition = '', duration);
+                    }
+                });
+            }
+            
             return this.each((i, elem) => {
                 className.split(' ').forEach(cls => elem.classList.remove(cls));
             });
         },
 
-        toggle: function (className) {
-            return this.each((i, elem) => {
+        toggle: function (className, duration) {
+            // jQuery UI compatible: toggleClass with animation
+            if (duration) {
+                return this.each((index, elem) => {
+                    const hasClass = elem.classList.contains(className);
+                    const yakaElem = new Yaka(elem);
+                    if (hasClass) {
+                        yakaElem.remove(className, duration);
+                    } else {
+                        yakaElem.add(className, duration);
+                    }
+                });
+            }
+            
+            return this.each((index, elem) => {
                 className.split(' ').forEach(cls => elem.classList.toggle(cls));
             });
         },
@@ -225,13 +302,93 @@
             });
         },
 
-        // NEW! Animate any CSS property
+        // NEW! Animate any CSS property (with color support)
         animate: function (props, duration = 400, easing = 'ease') {
             return this.each((i, elem) => {
-                const transitions = Object.keys(props).map(key => `${key} ${duration}ms ${easing}`).join(', ');
-                elem.style.transition = transitions;
-                Object.assign(elem.style, props);
-                setTimeout(() => elem.style.transition = '', duration);
+                // Helper to parse color
+                const parseColor = (color) => {
+                    if (!color) return null;
+                    if (color.startsWith('#')) {
+                        const hex = color.substring(1);
+                        if (hex.length === 3) {
+                            return {
+                                r: parseInt(hex[0] + hex[0], 16),
+                                g: parseInt(hex[1] + hex[1], 16),
+                                b: parseInt(hex[2] + hex[2], 16)
+                            };
+                        }
+                        return {
+                            r: parseInt(hex.substring(0, 2), 16),
+                            g: parseInt(hex.substring(2, 4), 16),
+                            b: parseInt(hex.substring(4, 6), 16)
+                        };
+                    }
+                    if (color.startsWith('rgb')) {
+                        const match = color.match(/\d+/g);
+                        return { r: +match[0], g: +match[1], b: +match[2] };
+                    }
+                    return null;
+                };
+
+                // Check for color properties
+                const colorProps = ['color', 'backgroundColor', 'borderColor'];
+                const hasColorAnimation = Object.keys(props).some(key => colorProps.includes(key));
+                
+                if (hasColorAnimation) {
+                    // Animate colors using keyframes
+                    const startColors = {};
+                    const endColors = {};
+                    
+                    Object.keys(props).forEach(key => {
+                        if (colorProps.includes(key)) {
+                            const currentColor = getComputedStyle(elem)[key];
+                            startColors[key] = parseColor(currentColor);
+                            endColors[key] = parseColor(props[key]);
+                        }
+                    });
+                    
+                    const startTime = Date.now();
+                    const animateColors = () => {
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        Object.keys(startColors).forEach(key => {
+                            if (startColors[key] && endColors[key]) {
+                                const r = Math.round(startColors[key].r + (endColors[key].r - startColors[key].r) * progress);
+                                const g = Math.round(startColors[key].g + (endColors[key].g - startColors[key].g) * progress);
+                                const b = Math.round(startColors[key].b + (endColors[key].b - startColors[key].b) * progress);
+                                elem.style[key] = `rgb(${r}, ${g}, ${b})`;
+                            }
+                        });
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(animateColors);
+                        }
+                    };
+                    
+                    animateColors();
+                    
+                    // Animate non-color properties normally
+                    const nonColorProps = {};
+                    Object.keys(props).forEach(key => {
+                        if (!colorProps.includes(key)) {
+                            nonColorProps[key] = props[key];
+                        }
+                    });
+                    
+                    if (Object.keys(nonColorProps).length > 0) {
+                        const transitions = Object.keys(nonColorProps).map(key => `${key} ${duration}ms ${easing}`).join(', ');
+                        elem.style.transition = transitions;
+                        Object.assign(elem.style, nonColorProps);
+                        setTimeout(() => elem.style.transition = '', duration);
+                    }
+                } else {
+                    // No color animation, proceed normally
+                    const transitions = Object.keys(props).map(key => `${key} ${duration}ms ${easing}`).join(', ');
+                    elem.style.transition = transitions;
+                    Object.assign(elem.style, props);
+                    setTimeout(() => elem.style.transition = '', duration);
+                }
             });
         },
 
@@ -1005,6 +1162,528 @@
         return result;
     };
 
+    // ==================== UTILITY FUNCTIONS ====================
+
+    // Deep Object Utilities
+    Yaka.deepClone = function (obj, hash = new WeakMap()) {
+        // Handle primitives and null
+        if (obj === null || typeof obj !== 'object') return obj;
+        
+        // Handle circular references
+        if (hash.has(obj)) return hash.get(obj);
+        
+        // Handle Date
+        if (obj instanceof Date) return new Date(obj);
+        
+        // Handle RegExp
+        if (obj instanceof RegExp) return new RegExp(obj);
+        
+        // Handle Arrays
+        if (Array.isArray(obj)) {
+            const arrCopy = [];
+            hash.set(obj, arrCopy);
+            obj.forEach((item, index) => {
+                arrCopy[index] = Yaka.deepClone(item, hash);
+            });
+            return arrCopy;
+        }
+        
+        // Handle Objects
+        const objCopy = Object.create(Object.getPrototypeOf(obj));
+        hash.set(obj, objCopy);
+        Object.keys(obj).forEach(key => {
+            objCopy[key] = Yaka.deepClone(obj[key], hash);
+        });
+        return objCopy;
+    };
+
+    Yaka.merge = function (...sources) {
+        const result = {};
+        
+        sources.forEach(source => {
+            if (!source || typeof source !== 'object') return;
+            
+            Object.keys(source).forEach(key => {
+                const sourceValue = source[key];
+                const resultValue = result[key];
+                
+                if (Array.isArray(sourceValue)) {
+                    result[key] = Yaka.deepClone(sourceValue);
+                } else if (sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)) {
+                    if (resultValue && typeof resultValue === 'object') {
+                        result[key] = Yaka.merge(resultValue, sourceValue);
+                    } else {
+                        result[key] = Yaka.deepClone(sourceValue);
+                    }
+                } else {
+                    result[key] = sourceValue;
+                }
+            });
+        });
+        
+        return result;
+    };
+
+    Yaka.isEqual = function (a, b) {
+        if (a === b) return true;
+        if (a == null || b == null) return false;
+        if (typeof a !== typeof b) return false;
+        
+        if (a instanceof Date && b instanceof Date) {
+            return a.getTime() === b.getTime();
+        }
+        
+        if (Array.isArray(a) && Array.isArray(b)) {
+            if (a.length !== b.length) return false;
+            return a.every((item, index) => Yaka.isEqual(item, b[index]));
+        }
+        
+        if (typeof a === 'object' && typeof b === 'object') {
+            const keysA = Object.keys(a);
+            const keysB = Object.keys(b);
+            if (keysA.length !== keysB.length) return false;
+            return keysA.every(key => Yaka.isEqual(a[key], b[key]));
+        }
+        
+        return false;
+    };
+
+    Yaka.get = function (obj, path, defaultValue) {
+        if (!obj || typeof path !== 'string') return defaultValue;
+        
+        const keys = path.split('.');
+        let result = obj;
+        
+        for (const key of keys) {
+            if (result == null) return defaultValue;
+            result = result[key];
+        }
+        
+        return result !== undefined ? result : defaultValue;
+    };
+
+    Yaka.set = function (obj, path, value) {
+        if (!obj || typeof path !== 'string') return obj;
+        
+        const keys = path.split('.');
+        const lastKey = keys.pop();
+        let target = obj;
+        
+        for (const key of keys) {
+            if (!(key in target) || typeof target[key] !== 'object') {
+                target[key] = {};
+            }
+            target = target[key];
+        }
+        
+        target[lastKey] = value;
+        return obj;
+    };
+
+    Yaka.pick = function (obj, keys) {
+        const result = {};
+        keys.forEach(key => {
+            if (key in obj) result[key] = obj[key];
+        });
+        return result;
+    };
+
+    Yaka.omit = function (obj, keys) {
+        const result = { ...obj };
+        keys.forEach(key => delete result[key]);
+        return result;
+    };
+
+    // Array & Collection Methods
+    Yaka.chunk = function (array, size = 1) {
+        const chunks = [];
+        for (let i = 0; i < array.length; i += size) {
+            chunks.push(array.slice(i, i + size));
+        }
+        return chunks;
+    };
+
+    Yaka.flatten = function (array, depth = 1) {
+        if (depth === 0) return array.slice();
+        
+        return array.reduce((acc, item) => {
+            if (Array.isArray(item)) {
+                acc.push(...Yaka.flatten(item, depth - 1));
+            } else {
+                acc.push(item);
+            }
+            return acc;
+        }, []);
+    };
+
+    Yaka.flattenDeep = function (array) {
+        return Yaka.flatten(array, Infinity);
+    };
+
+    Yaka.uniq = function (array) {
+        return [...new Set(array)];
+    };
+
+    Yaka.uniqBy = function (array, iteratee) {
+        const seen = new Set();
+        return array.filter(item => {
+            const key = typeof iteratee === 'function' ? iteratee(item) : item[iteratee];
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    };
+
+    Yaka.range = function (start, end, step = 1) {
+        if (end === undefined) {
+            end = start;
+            start = 0;
+        }
+        
+        const result = [];
+        if (step > 0) {
+            for (let i = start; i < end; i += step) {
+                result.push(i);
+            }
+        } else {
+            for (let i = start; i > end; i += step) {
+                result.push(i);
+            }
+        }
+        return result;
+    };
+
+    Yaka.shuffle = function (array) {
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    };
+
+    Yaka.sample = function (array, n = 1) {
+        if (n === 1) {
+            return array[Math.floor(Math.random() * array.length)];
+        }
+        const shuffled = Yaka.shuffle(array);
+        return shuffled.slice(0, Math.min(n, shuffled.length));
+    };
+
+    Yaka.groupBy = function (array, iteratee) {
+        return array.reduce((result, item) => {
+            const key = typeof iteratee === 'function' ? iteratee(item) : item[iteratee];
+            if (!result[key]) result[key] = [];
+            result[key].push(item);
+            return result;
+        }, {});
+    };
+
+    Yaka.sortBy = function (array, iteratee) {
+        return [...array].sort((a, b) => {
+            const aVal = typeof iteratee === 'function' ? iteratee(a) : a[iteratee];
+            const bVal = typeof iteratee === 'function' ? iteratee(b) : b[iteratee];
+            if (aVal < bVal) return -1;
+            if (aVal > bVal) return 1;
+            return 0;
+        });
+    };
+
+    Yaka.partition = function (array, predicate) {
+        const truthy = [];
+        const falsy = [];
+        array.forEach((item, index) => {
+            if (predicate(item, index, array)) {
+                truthy.push(item);
+            } else {
+                falsy.push(item);
+            }
+        });
+        return [truthy, falsy];
+    };
+
+    Yaka.intersection = function (...arrays) {
+        if (arrays.length === 0) return [];
+        const [first, ...rest] = arrays;
+        return first.filter(item => rest.every(arr => arr.includes(item)));
+    };
+
+    Yaka.union = function (...arrays) {
+        return Yaka.uniq(arrays.flat());
+    };
+
+    Yaka.difference = function (array, ...others) {
+        const othersFlat = others.flat();
+        return array.filter(item => !othersFlat.includes(item));
+    };
+
+    // String Utilities
+    Yaka.camelCase = function (str) {
+        return str
+            .toLowerCase()
+            .replace(/[^a-zA-Z0-9]+(.)/g, (_, chr) => chr.toUpperCase());
+    };
+
+    Yaka.kebabCase = function (str) {
+        return str
+            .replace(/([a-z])([A-Z])/g, '$1-$2')
+            .replace(/[\s_]+/g, '-')
+            .toLowerCase();
+    };
+
+    Yaka.snakeCase = function (str) {
+        return str
+            .replace(/([a-z])([A-Z])/g, '$1_$2')
+            .replace(/[\s-]+/g, '_')
+            .toLowerCase();
+    };
+
+    Yaka.capitalize = function (str) {
+        return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    };
+
+    Yaka.capitalizeWords = function (str) {
+        return str.replace(/\b\w/g, char => char.toUpperCase());
+    };
+
+    Yaka.truncate = function (str, length = 50, ending = '...') {
+        if (str.length <= length) return str;
+        return str.substring(0, length - ending.length) + ending;
+    };
+
+    Yaka.slugify = function (str) {
+        return str
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '')
+            .replace(/[\s_-]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    };
+
+    Yaka.escape = function (str) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '/': '&#x2F;'
+        };
+        return str.replace(/[&<>"'/]/g, char => map[char]);
+    };
+
+    Yaka.unescape = function (str) {
+        const map = {
+            '&amp;': '&',
+            '&lt;': '<',
+            '&gt;': '>',
+            '&quot;': '"',
+            '&#x27;': "'",
+            '&#x2F;': '/'
+        };
+        return str.replace(/&(?:amp|lt|gt|quot|#x27|#x2F);/g, entity => map[entity]);
+    };
+
+    // Date & Time Utilities
+    Yaka.formatDate = function (date, format = 'YYYY-MM-DD') {
+        const d = new Date(date);
+        const map = {
+            YYYY: d.getFullYear(),
+            MM: String(d.getMonth() + 1).padStart(2, '0'),
+            DD: String(d.getDate()).padStart(2, '0'),
+            HH: String(d.getHours()).padStart(2, '0'),
+            mm: String(d.getMinutes()).padStart(2, '0'),
+            ss: String(d.getSeconds()).padStart(2, '0')
+        };
+        
+        return format.replace(/YYYY|MM|DD|HH|mm|ss/g, match => map[match]);
+    };
+
+    Yaka.fromNow = function (date) {
+        const now = Date.now();
+        const diff = now - new Date(date).getTime();
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        const months = Math.floor(days / 30);
+        const years = Math.floor(days / 365);
+        
+        if (seconds < 60) return 'just now';
+        if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
+        if (months < 12) return `${months} month${months > 1 ? 's' : ''} ago`;
+        return `${years} year${years > 1 ? 's' : ''} ago`;
+    };
+
+    Yaka.diffDates = function (date1, date2, unit = 'days') {
+        const diff = new Date(date2) - new Date(date1);
+        const units = {
+            milliseconds: 1,
+            seconds: 1000,
+            minutes: 1000 * 60,
+            hours: 1000 * 60 * 60,
+            days: 1000 * 60 * 60 * 24,
+            weeks: 1000 * 60 * 60 * 24 * 7,
+            months: 1000 * 60 * 60 * 24 * 30,
+            years: 1000 * 60 * 60 * 24 * 365
+        };
+        return Math.floor(diff / (units[unit] || units.days));
+    };
+
+    Yaka.addDays = function (date, days) {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    };
+
+    Yaka.addHours = function (date, hours) {
+        const result = new Date(date);
+        result.setHours(result.getHours() + hours);
+        return result;
+    };
+
+    Yaka.addMinutes = function (date, minutes) {
+        const result = new Date(date);
+        result.setMinutes(result.getMinutes() + minutes);
+        return result;
+    };
+
+    // Type Checking Utilities
+    Yaka.isArray = Array.isArray;
+
+    Yaka.isObject = function (value) {
+        return value !== null && typeof value === 'object' && !Array.isArray(value);
+    };
+
+    Yaka.isFunction = function (value) {
+        return typeof value === 'function';
+    };
+
+    Yaka.isString = function (value) {
+        return typeof value === 'string';
+    };
+
+    Yaka.isNumber = function (value) {
+        return typeof value === 'number' && !isNaN(value);
+    };
+
+    Yaka.isBoolean = function (value) {
+        return typeof value === 'boolean';
+    };
+
+    Yaka.isNull = function (value) {
+        return value === null;
+    };
+
+    Yaka.isUndefined = function (value) {
+        return value === undefined;
+    };
+
+    Yaka.isNil = function (value) {
+        return value == null;
+    };
+
+    Yaka.isEmpty = function (value) {
+        if (value == null) return true;
+        if (Array.isArray(value) || typeof value === 'string') return value.length === 0;
+        if (typeof value === 'object') return Object.keys(value).length === 0;
+        return false;
+    };
+
+    Yaka.isDate = function (value) {
+        return value instanceof Date && !isNaN(value);
+    };
+
+    Yaka.isRegExp = function (value) {
+        return value instanceof RegExp;
+    };
+
+    Yaka.isError = function (value) {
+        return value instanceof Error;
+    };
+
+    // Promise/Async Utilities
+    Yaka.sleep = function (ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    };
+
+    Yaka.retry = async function (fn, options = {}) {
+        const { times = 3, delay = 1000, backoff = 2 } = options;
+        let lastError;
+        
+        for (let i = 0; i < times; i++) {
+            try {
+                return await fn();
+            } catch (error) {
+                lastError = error;
+                if (i < times - 1) {
+                    await Yaka.sleep(delay * Math.pow(backoff, i));
+                }
+            }
+        }
+        
+        throw lastError;
+    };
+
+    Yaka.timeout = function (promise, ms, message = 'Timeout') {
+        return Promise.race([
+            promise,
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error(message)), ms)
+            )
+        ]);
+    };
+
+    Yaka.all = Promise.all.bind(Promise);
+    Yaka.race = Promise.race.bind(Promise);
+
+    Yaka.allSettled = function (promises) {
+        return Promise.all(
+            promises.map(promise =>
+                Promise.resolve(promise)
+                    .then(value => ({ status: 'fulfilled', value }))
+                    .catch(reason => ({ status: 'rejected', reason }))
+            )
+        );
+    };
+
+    // Math Utilities
+    Yaka.clamp = function (value, min, max) {
+        return Math.min(Math.max(value, min), max);
+    };
+
+    Yaka.random = function (min = 0, max = 1, floating = false) {
+        if (floating || min % 1 !== 0 || max % 1 !== 0) {
+            return Math.random() * (max - min) + min;
+        }
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    };
+
+    Yaka.sum = function (array) {
+        return array.reduce((sum, num) => sum + num, 0);
+    };
+
+    Yaka.mean = function (array) {
+        return Yaka.sum(array) / array.length;
+    };
+
+    Yaka.median = function (array) {
+        const sorted = [...array].sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+    };
+
+    Yaka.min = function (array) {
+        return Math.min(...array);
+    };
+
+    Yaka.max = function (array) {
+        return Math.max(...array);
+    };
+
+
     // NEW! Cookie helpers
     Yaka.cookie = {
         set: function (name, value, days = 7) {
@@ -1141,6 +1820,376 @@
         });
     };
 
+    // NEW! Resizable elements
+    Yaka.prototype.resizable = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_resizable) return;
+            elem._yaka_resizable = true;
+
+            const handles = options.handles || ['se', 'e', 's', 'sw', 'ne', 'nw', 'n', 'w'];
+            const minWidth = options.minWidth || 50;
+            const minHeight = options.minHeight || 50;
+            const maxWidth = options.maxWidth || Infinity;
+            const maxHeight = options.maxHeight || Infinity;
+            const aspectRatio = options.aspectRatio || false;
+
+            // Ensure element has position
+            if (getComputedStyle(elem).position === 'static') {
+                elem.style.position = 'relative';
+            }
+
+            const handleStyles = {
+                'se': { cursor: 'nwse-resize', right: '0', bottom: '0' },
+                'e': { cursor: 'ew-resize', right: '0', top: '50%', transform: 'translateY(-50%)' },
+                's': { cursor: 'ns-resize', bottom: '0', left: '50%', transform: 'translateX(-50%)' },
+                'sw': { cursor: 'nesw-resize', left: '0', bottom: '0' },
+                'ne': { cursor: 'nesw-resize', right: '0', top: '0' },
+                'nw': { cursor: 'nwse-resize', left: '0', top: '0' },
+                'n': { cursor: 'ns-resize', top: '0', left: '50%', transform: 'translateX(-50%)' },
+                'w': { cursor: 'ew-resize', left: '0', top: '50%', transform: 'translateY(-50%)' }
+            };
+
+            const resizeHandles = [];
+
+            handles.forEach(handle => {
+                const handleElem = document.createElement('div');
+                handleElem.className = `yaka-resize-handle yaka-resize-${handle}`;
+                handleElem.style.cssText = `
+                    position: absolute;
+                    width: 8px;
+                    height: 8px;
+                    background: #4285f4;
+                    border: 1px solid white;
+                    box-sizing: border-box;
+                    z-index: 1000;
+                `;
+
+                Object.assign(handleElem.style, handleStyles[handle]);
+                elem.appendChild(handleElem);
+                resizeHandles.push(handleElem);
+
+                let isResizing = false;
+                let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+                handleElem.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isResizing = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                    startWidth = elem.offsetWidth;
+                    startHeight = elem.offsetHeight;
+                    startLeft = elem.offsetLeft;
+                    startTop = elem.offsetTop;
+
+                    if (options.onStart) options.onStart.call(elem, e);
+
+                    const handleMouseMove = (e) => {
+                        if (!isResizing) return;
+
+                        const dx = e.clientX - startX;
+                        const dy = e.clientY - startY;
+                        let newWidth = startWidth;
+                        let newHeight = startHeight;
+                        let newLeft = startLeft;
+                        let newTop = startTop;
+
+                        // Calculate new dimensions based on handle direction
+                        if (handle.includes('e')) newWidth = startWidth + dx;
+                        if (handle.includes('w')) {
+                            newWidth = startWidth - dx;
+                            newLeft = startLeft + dx;
+                        }
+                        if (handle.includes('s')) newHeight = startHeight + dy;
+                        if (handle.includes('n')) {
+                            newHeight = startHeight - dy;
+                            newTop = startTop + dy;
+                        }
+
+                        // Apply constraints
+                        newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+                        newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+
+                        // Maintain aspect ratio if enabled
+                        if (aspectRatio) {
+                            const ratio = startWidth / startHeight;
+                            if (handle.includes('e') || handle.includes('w')) {
+                                newHeight = newWidth / ratio;
+                            } else {
+                                newWidth = newHeight * ratio;
+                            }
+                        }
+
+                        // Apply new dimensions
+                        elem.style.width = newWidth + 'px';
+                        elem.style.height = newHeight + 'px';
+
+                        // Update position for handles that affect left/top
+                        if (handle.includes('w') || handle.includes('n')) {
+                            if (handle.includes('w')) elem.style.left = newLeft + 'px';
+                            if (handle.includes('n')) elem.style.top = newTop + 'px';
+                        }
+
+                        if (options.onResize) options.onResize.call(elem, e, { width: newWidth, height: newHeight });
+                    };
+
+                    const handleMouseUp = (e) => {
+                        if (isResizing) {
+                            isResizing = false;
+                            document.removeEventListener('mousemove', handleMouseMove);
+                            document.removeEventListener('mouseup', handleMouseUp);
+                            if (options.onStop) options.onStop.call(elem, e);
+                        }
+                    };
+
+                    document.addEventListener('mousemove', handleMouseMove);
+                    document.addEventListener('mouseup', handleMouseUp);
+                });
+            });
+
+            // Store cleanup function
+            elem._yaka_resizable_cleanup = () => {
+                resizeHandles.forEach(handle => handle.remove());
+                delete elem._yaka_resizable;
+                delete elem._yaka_resizable_cleanup;
+            };
+        });
+    };
+
+    // NEW! Droppable zones
+    Yaka.prototype.droppable = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_droppable) return;
+            elem._yaka_droppable = true;
+
+            const accept = options.accept || '*'; // CSS selector or '*' for all
+            const hoverClass = options.hoverClass || 'yaka-drop-hover';
+            const activeClass = options.activeClass || 'yaka-drop-active';
+
+            // Track draggable elements
+            let isDragOver = false;
+
+            const handleDragEnter = (e) => {
+                e.preventDefault();
+                const draggable = e.dataTransfer.effectAllowed;
+                
+                // Check if dragged element matches accept selector
+                if (accept === '*' || (e.target.matches && e.target.matches(accept))) {
+                    isDragOver = true;
+                    elem.classList.add(hoverClass);
+                    if (options.onDragEnter) options.onDragEnter.call(elem, e);
+                }
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                if (options.onDragOver) options.onDragOver.call(elem, e);
+            };
+
+            const handleDragLeave = (e) => {
+                e.preventDefault();
+                if (e.target === elem) {
+                    isDragOver = false;
+                    elem.classList.remove(hoverClass);
+                    if (options.onDragLeave) options.onDragLeave.call(elem, e);
+                }
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                isDragOver = false;
+                elem.classList.remove(hoverClass);
+                elem.classList.remove(activeClass);
+
+                // Get dragged data
+                const data = e.dataTransfer.getData('text/html') || e.dataTransfer.getData('text/plain');
+                
+                if (options.onDrop) {
+                    options.onDrop.call(elem, e, { data });
+                }
+            };
+
+            // Add event listeners
+            elem.addEventListener('dragenter', handleDragEnter);
+            elem.addEventListener('dragover', handleDragOver);
+            elem.addEventListener('dragleave', handleDragLeave);
+            elem.addEventListener('drop', handleDrop);
+
+            // Add active class when any drag starts
+            const handleGlobalDragStart = () => {
+                elem.classList.add(activeClass);
+            };
+
+            const handleGlobalDragEnd = () => {
+                elem.classList.remove(activeClass);
+                elem.classList.remove(hoverClass);
+            };
+
+            document.addEventListener('dragstart', handleGlobalDragStart);
+            document.addEventListener('dragend', handleGlobalDragEnd);
+
+            // Store cleanup function
+            elem._yaka_droppable_cleanup = () => {
+                elem.removeEventListener('dragenter', handleDragEnter);
+                elem.removeEventListener('dragover', handleDragOver);
+                elem.removeEventListener('dragleave', handleDragLeave);
+                elem.removeEventListener('drop', handleDrop);
+                document.removeEventListener('dragstart', handleGlobalDragStart);
+                document.removeEventListener('dragend', handleGlobalDragEnd);
+                delete elem._yaka_droppable;
+                delete elem._yaka_droppable_cleanup;
+            };
+        });
+    };
+
+    // NEW! Selectable - Multi-element selection
+    Yaka.prototype.selectable = function (options = {}) {
+        return this.each((i, container) => {
+            if (container._yaka_selectable) return;
+            container._yaka_selectable = true;
+
+            const filter = options.filter || '*';
+            const cancel = options.cancel || 'input,textarea,button,select,option';
+            const tolerance = options.tolerance || 'touch'; // 'touch' or 'fit'
+            
+            let isSelecting = false;
+            let startX, startY;
+            let marquee = null;
+            let selectedItems = new Set();
+
+            // Create marquee element
+            const createMarquee = () => {
+                if (marquee && marquee.parentNode) return; // Prevent multiple marquees
+                marquee = document.createElement('div');
+                marquee.style.cssText = `
+                    position: fixed;
+                    border: 1px dashed #4285f4;
+                    background: rgba(66, 133, 244, 0.1);
+                    z-index: 9999;
+                    pointer-events: none;
+                `;
+                document.body.appendChild(marquee);
+            };
+
+            // Update marquee position
+            const updateMarquee = (currentX, currentY) => {
+                const left = Math.min(startX, currentX);
+                const top = Math.min(startY, currentY);
+                const width = Math.abs(currentX - startX);
+                const height = Math.abs(currentY - startY);
+
+                marquee.style.left = left + 'px';
+                marquee.style.top = top + 'px';
+                marquee.style.width = width + 'px';
+                marquee.style.height = height + 'px';
+            };
+
+            // Check if element intersects with marquee
+            const intersects = (elem, marqueeRect) => {
+                const elemRect = elem.getBoundingClientRect();
+                
+                if (tolerance === 'fit') {
+                    // Element must be completely within marquee
+                    return elemRect.left >= marqueeRect.left &&
+                           elemRect.right <= marqueeRect.right &&
+                           elemRect.top >= marqueeRect.top &&
+                           elemRect.bottom <= marqueeRect.bottom;
+                } else {
+                    // Element must touch marquee
+                    return !(elemRect.right < marqueeRect.left ||
+                            elemRect.left > marqueeRect.right ||
+                            elemRect.bottom < marqueeRect.top ||
+                            elemRect.top > marqueeRect.bottom);
+                }
+            };
+
+            // Select/deselect items
+            const updateSelection = () => {
+                const marqueeRect = marquee.getBoundingClientRect();
+                const items = container.querySelectorAll(filter);
+
+                items.forEach(item => {
+                    // Skip cancel elements
+                    if (item.matches(cancel)) return;
+
+                    if (intersects(item, marqueeRect)) {
+                        if (!selectedItems.has(item)) {
+                            selectedItems.add(item);
+                            item.classList.add('ui-selected');
+                            if (options.onSelect) options.onSelect.call(item);
+                        }
+                    } else {
+                        if (selectedItems.has(item)) {
+                            selectedItems.delete(item);
+                            item.classList.remove('ui-selected');
+                            if (options.onUnselect) options.onUnselect.call(item);
+                        }
+                    }
+                });
+            };
+
+            const handleMouseDown = (e) => {
+                // Check if clicking on a cancel element
+                if (e.target.matches(cancel)) return;
+
+                // Clear previous selection if not holding ctrl/cmd
+                if (!e.ctrlKey && !e.metaKey) {
+                    selectedItems.forEach(item => {
+                        item.classList.remove('ui-selected');
+                    });
+                    selectedItems.clear();
+                }
+
+                isSelecting = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                createMarquee();
+                updateMarquee(e.clientX, e.clientY);
+
+                if (options.onStart) options.onStart.call(container, e);
+            };
+
+            const handleMouseMove = (e) => {
+                if (!isSelecting) return;
+                
+                updateMarquee(e.clientX, e.clientY);
+                updateSelection();
+            };
+
+            const handleMouseUp = (e) => {
+                if (!isSelecting) return;
+
+                isSelecting = false;
+                if (marquee && marquee.parentNode) {
+                    marquee.remove();
+                }
+                marquee = null;
+
+                if (options.onStop) {
+                    options.onStop.call(container, e, Array.from(selectedItems));
+                }
+            };
+
+            container.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+
+            // Store cleanup function
+            container._yaka_selectable_cleanup = () => {
+                container.removeEventListener('mousedown', handleMouseDown);
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                if (marquee && marquee.parentNode) marquee.remove();
+                selectedItems.forEach(item => item.classList.remove('ui-selected'));
+                delete container._yaka_selectable;
+                delete container._yaka_selectable_cleanup;
+            };
+        });
+    };
+
     // NEW! Touch gestures
     Yaka.prototype.swipe = function (handlers) {
         return this.each((i, elem) => {
@@ -1233,6 +2282,272 @@
             setTimeout(() => notification.remove(), 300);
         }, duration);
     };
+
+    // NEW! Toast Notifications (Toastr-style)
+    Yaka.toast = function (message, options = {}) {
+        const type = options.type || 'info';
+        const position = options.position || 'top-right';
+        const duration = options.duration || 5000;
+        const progressBar = options.progressBar !== false;
+        const closeButton = options.closeButton !== false;
+        
+        const colors = {
+            success: { bg: '#51A351', icon: '✓' },
+            error: { bg: '#BD362F', icon: '✕' },
+            warning: { bg: '#F89406', icon: '⚠' },
+            info: { bg: '#2F96B4', icon: 'ℹ' }
+        };
+
+        const theme = colors[type] || colors.info;
+        
+        // Position mapping
+        const positions = {
+            'top-right': 'top: 20px; right: 20px;',
+            'top-left': 'top: 20px; left: 20px;',
+            'top-center': 'top: 20px; left: 50%; transform: translateX(-50%);',
+            'bottom-right': 'bottom: 20px; right: 20px;',
+            'bottom-left': 'bottom: 20px; left: 20px;',
+            'bottom-center': 'bottom: 20px; left: 50%; transform: translateX(-50%);'
+        };
+
+        const toast = document.createElement('div');
+        toast.className = 'yaka-toast';
+        toast.style.cssText = `
+            position: fixed;
+            ${positions[position] || positions['top-right']}
+            background: ${theme.bg};
+            color: white;
+            padding: 16px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10001;
+            min-width: 250px;
+            max-width: 350px;
+            font-family: system-ui, -apple-system, sans-serif;
+            animation: toastSlideIn 0.3s ease;
+            cursor: pointer;
+        `;
+
+        const content = document.createElement('div');
+        content.style.cssText = 'display: flex; align-items: center; gap: 12px;';
+        
+        const icon = document.createElement('span');
+        icon.textContent = theme.icon;
+        icon.style.cssText = 'font-size: 20px; font-weight: bold;';
+        
+        const text = document.createElement('span');
+        text.textContent = message;
+        text.style.cssText = 'flex: 1;';
+        
+        content.appendChild(icon);
+        content.appendChild(text);
+        
+        if (closeButton) {
+            const closeBtn = document.createElement('span');
+            closeBtn.innerHTML = '×';
+            closeBtn.style.cssText = 'font-size: 24px; margin-left: 10px; cursor: pointer; opacity: 0.8;';
+            closeBtn.onclick = () => removeToast();
+            content.appendChild(closeBtn);
+        }
+        
+        toast.appendChild(content);
+        
+        if (progressBar) {
+            const progress = document.createElement('div');
+            progress.style.cssText = `
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                height: 4px;
+                background: rgba(255,255,255,0.7);
+                width: 100%;
+                animation: toastProgress ${duration}ms linear;
+            `;
+            toast.appendChild(progress);
+        }
+        
+        document.body.appendChild(toast);
+        
+        const removeToast = () => {
+            toast.style.animation = 'toastSlideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        };
+        
+        toast.onclick = () => {
+            if (options.onClick) options.onClick();
+            removeToast();
+        };
+        
+        if (duration > 0) {
+            setTimeout(removeToast, duration);
+        }
+        
+        return { close: removeToast };
+    };
+
+    // NEW! SweetAlert-style Alert Boxes
+    Yaka.alert = function (options = {}) {
+        const title = options.title || '';
+        const text = options.text || '';
+        const type = options.type || 'info';
+        const confirmButtonText = options.confirmButtonText || 'OK';
+        const cancelButtonText = options.cancelButtonText || 'Cancel';
+        const showCancelButton = options.showCancelButton || false;
+        const input = options.input || null;
+        
+        const icons = {
+            success: { icon: '✓', color: '#4CAF50' },
+            error: { icon: '✕', color: '#F44336' },
+            warning: { icon: '⚠', color: '#FF9800' },
+            info: { icon: 'ℹ', color: '#2196F3' },
+            question: { icon: '?', color: '#9C27B0' }
+        };
+        
+        const theme = icons[type] || icons.info;
+        
+        return new Promise((resolve, reject) => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.6);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10002;
+                animation: fadeIn 0.2s ease;
+            `;
+            
+            const alertBox = document.createElement('div');
+            alertBox.style.cssText = `
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                max-width: 500px;
+                min-width: 300px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                animation: scaleIn 0.3s ease;
+                text-align: center;
+            `;
+            
+            // Icon
+            if (theme) {
+                const iconElem = document.createElement('div');
+                iconElem.style.cssText = `
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    border: 4px solid ${theme.color};
+                    margin: 0 auto 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 48px;
+                    color: ${theme.color};
+                    animation: iconPulse 0.5s ease;
+                `;
+                iconElem.textContent = theme.icon;
+                alertBox.appendChild(iconElem);
+            }
+            
+            // Title
+            if (title) {
+                const titleElem = document.createElement('h2');
+                titleElem.textContent = title;
+                titleElem.style.cssText = 'margin: 0 0 15px 0; color: #333; font-size: 24px;';
+                alertBox.appendChild(titleElem);
+            }
+            
+            // Text
+            if (text) {
+                const textElem = document.createElement('p');
+                textElem.textContent = text;
+                textElem.style.cssText = 'margin: 0 0 25px 0; color: #666; font-size: 16px; line-height: 1.5;';
+                alertBox.appendChild(textElem);
+            }
+            
+            // Input field
+            let inputElem = null;
+            if (input) {
+                inputElem = document.createElement('input');
+                inputElem.type = input === 'password' ? 'password' : 'text';
+                inputElem.placeholder = options.inputPlaceholder || '';
+                inputElem.value = options.inputValue || '';
+                inputElem.style.cssText = `
+                    width: 100%;
+                    padding: 10px;
+                    border: 2px solid #ddd;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    margin-bottom: 20px;
+                    box-sizing: border-box;
+                `;
+                alertBox.appendChild(inputElem);
+            }
+            
+            // Buttons
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.cssText = 'display: flex; gap: 10px; justify-content: center;';
+            
+            if (showCancelButton) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = cancelButtonText;
+                cancelBtn.style.cssText = `
+                    padding: 12px 30px;
+                    border: 2px solid #ddd;
+                    background: white;
+                    color: #666;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                `;
+                cancelBtn.onmouseover = () => cancelBtn.style.background = '#f5f5f5';
+                cancelBtn.onmouseout = () => cancelBtn.style.background = 'white';
+                cancelBtn.onclick = () => {
+                    overlay.remove();
+                    resolve({ isConfirmed: false, isDismissed: true });
+                };
+                buttonContainer.appendChild(cancelBtn);
+            }
+            
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = confirmButtonText;
+            confirmBtn.style.cssText = `
+                padding: 12px 30px;
+                border: none;
+                background: ${theme.color};
+                color: white;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                transition: all 0.2s;
+            `;
+            confirmBtn.onmouseover = () => confirmBtn.style.opacity = '0.9';
+            confirmBtn.onmouseout = () => confirmBtn.style.opacity = '1';
+            confirmBtn.onclick = () => {
+                const value = inputElem ? inputElem.value : null;
+                overlay.remove();
+                resolve({ isConfirmed: true, value });
+            };
+            buttonContainer.appendChild(confirmBtn);
+            
+            alertBox.appendChild(buttonContainer);
+            overlay.appendChild(alertBox);
+            document.body.appendChild(overlay);
+            
+            // Focus input if exists
+            if (inputElem) {
+                setTimeout(() => inputElem.focus(), 100);
+            }
+        });
+    };
+
 
     // NEW! Modal dialog
     Yaka.modal = function (content, options = {}) {
@@ -1336,6 +2651,775 @@
                 if (tooltip.parentNode) tooltip.remove();
                 delete elem._yaka_tooltip;
                 delete elem._yaka_tooltip_cleanup;
+            };
+        });
+    };
+
+    // NEW! Button Widget - Enhanced button with states and icons
+    Yaka.prototype.button = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_button) return;
+            elem._yaka_button = true;
+
+            const label = options.label || elem.textContent || elem.value;
+            const icon = options.icon || null;
+            const iconPosition = options.iconPosition || 'left';
+            const disabled = options.disabled || false;
+
+            // Add button classes
+            elem.classList.add('ui-button', 'ui-widget');
+            
+            // Handle different element types
+            const buttonTypes = ['button', 'submit', 'reset'];
+            if (elem.tagName === 'INPUT' && buttonTypes.includes(elem.type)) {
+                elem.value = label;
+            } else if (elem.tagName === 'A') {
+                elem.setAttribute('role', 'button');
+                elem.style.cssText += `
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 16px;
+                    background: #4285f4;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    border: none;
+                    font-size: 14px;
+                    transition: all 0.2s ease;
+                `;
+            } else {
+                elem.style.cssText += `
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 16px;
+                    background: #4285f4;
+                    color: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    border: none;
+                    font-size: 14px;
+                    transition: all 0.2s ease;
+                `;
+            }
+
+            // Add icon if specified
+            if (icon) {
+                const iconElem = document.createElement('span');
+                iconElem.className = 'ui-button-icon';
+                iconElem.innerHTML = icon;
+                iconElem.style.display = 'inline-flex';
+                
+                if (iconPosition === 'left') {
+                    elem.insertBefore(iconElem, elem.firstChild);
+                } else {
+                    elem.appendChild(iconElem);
+                }
+            }
+
+            // Add hover effects
+            const handleMouseEnter = () => {
+                if (!elem.disabled && !elem.classList.contains('ui-state-disabled')) {
+                    elem.style.background = '#357ae8';
+                }
+            };
+
+            const handleMouseLeave = () => {
+                if (!elem.disabled && !elem.classList.contains('ui-state-disabled')) {
+                    elem.style.background = '#4285f4';
+                }
+            };
+
+            elem.addEventListener('mouseenter', handleMouseEnter);
+            elem.addEventListener('mouseleave', handleMouseLeave);
+
+            // Handle disabled state
+            if (disabled) {
+                elem.classList.add('ui-state-disabled');
+                elem.disabled = true;
+                elem.style.opacity = '0.6';
+                elem.style.cursor = 'not-allowed';
+            }
+
+            // Store methods
+            elem._yaka_button_api = {
+                enable: () => {
+                    elem.classList.remove('ui-state-disabled');
+                    elem.disabled = false;
+                    elem.style.opacity = '1';
+                    elem.style.cursor = 'pointer';
+                },
+                disable: () => {
+                    elem.classList.add('ui-state-disabled');
+                    elem.disabled = true;
+                    elem.style.opacity = '0.6';
+                    elem.style.cursor = 'not-allowed';
+                }
+            };
+
+            elem._yaka_button_cleanup = () => {
+                elem.removeEventListener('mouseenter', handleMouseEnter);
+                elem.removeEventListener('mouseleave', handleMouseLeave);
+                elem.classList.remove('ui-button', 'ui-widget', 'ui-state-disabled');
+                delete elem._yaka_button;
+                delete elem._yaka_button_api;
+                delete elem._yaka_button_cleanup;
+            };
+        });
+    };
+
+    // NEW! Checkboxradio - Themed checkbox and radio buttons
+    Yaka.prototype.checkboxradio = function (options = {}) {
+        return this.each((i, input) => {
+            if (input._yaka_checkboxradio) return;
+            if (input.type !== 'checkbox' && input.type !== 'radio') return;
+            
+            input._yaka_checkboxradio = true;
+
+            // Create wrapper
+            const wrapper = document.createElement('label');
+            wrapper.className = 'ui-checkboxradio-label';
+            wrapper.style.cssText = `
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                user-select: none;
+            `;
+
+            // Create visual element
+            const visual = document.createElement('span');
+            visual.className = 'ui-checkboxradio-icon';
+            visual.style.cssText = `
+                display: inline-block;
+                width: 18px;
+                height: 18px;
+                border: 2px solid #4285f4;
+                ${input.type === 'checkbox' ? 'border-radius: 3px;' : 'border-radius: 50%;'}
+                background: white;
+                position: relative;
+                transition: all 0.2s ease;
+            `;
+
+            // Insert wrapper
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+            wrapper.appendChild(visual);
+            
+            // Add label text if exists
+            const labelText = options.label || input.getAttribute('data-label');
+            if (labelText) {
+                const textSpan = document.createElement('span');
+                textSpan.textContent = labelText;
+                wrapper.appendChild(textSpan);
+            }
+
+            // Hide original input
+            input.style.cssText = `
+                position: absolute;
+                opacity: 0;
+                pointer-events: none;
+            `;
+
+            const updateVisual = () => {
+                if (input.checked) {
+                    visual.style.background = '#4285f4';
+                    if (input.type === 'checkbox') {
+                        visual.innerHTML = '<span style="color: white; font-size: 14px; line-height: 14px;">✓</span>';
+                    } else {
+                        visual.innerHTML = '<span style="position: absolute; top: 3px; left: 3px; width: 8px; height: 8px; border-radius: 50%; background: white;"></span>';
+                    }
+                } else {
+                    visual.style.background = 'white';
+                    visual.innerHTML = '';
+                }
+            };
+
+            input.addEventListener('change', updateVisual);
+            updateVisual();
+
+            input._yaka_checkboxradio_cleanup = () => {
+                input.removeEventListener('change', updateVisual);
+                if (wrapper.parentNode) {
+                    wrapper.parentNode.insertBefore(input, wrapper);
+                    wrapper.remove();
+                }
+                input.style.cssText = '';
+                delete input._yaka_checkboxradio;
+                delete input._yaka_checkboxradio_cleanup;
+            };
+        });
+    };
+
+    // NEW! Controlgroup - Group form controls
+    Yaka.prototype.controlgroup = function (options = {}) {
+        return this.each((i, container) => {
+            if (container._yaka_controlgroup) return;
+            container._yaka_controlgroup = true;
+
+            const direction = options.direction || 'horizontal';
+            
+            container.classList.add('ui-controlgroup');
+            container.style.cssText = `
+                display: inline-flex;
+                ${direction === 'horizontal' ? 'flex-direction: row;' : 'flex-direction: column;'}
+                gap: 0;
+            `;
+
+            // Style child controls
+            const controls = Array.from(container.children);
+            controls.forEach((control, idx) => {
+                control.classList.add('ui-controlgroup-item');
+                
+                // Remove border radius from middle items
+                if (direction === 'horizontal') {
+                    if (idx > 0) {
+                        control.style.borderTopLeftRadius = '0';
+                        control.style.borderBottomLeftRadius = '0';
+                        control.style.marginLeft = '-1px';
+                    }
+                    if (idx < controls.length - 1) {
+                        control.style.borderTopRightRadius = '0';
+                        control.style.borderBottomRightRadius = '0';
+                    }
+                } else {
+                    if (idx > 0) {
+                        control.style.borderTopLeftRadius = '0';
+                        control.style.borderTopRightRadius = '0';
+                        control.style.marginTop = '-1px';
+                    }
+                    if (idx < controls.length - 1) {
+                        control.style.borderBottomLeftRadius = '0';
+                        control.style.borderBottomRightRadius = '0';
+                    }
+                }
+            });
+
+            container._yaka_controlgroup_cleanup = () => {
+                container.classList.remove('ui-controlgroup');
+                controls.forEach(control => {
+                    control.classList.remove('ui-controlgroup-item');
+                });
+                delete container._yaka_controlgroup;
+                delete container._yaka_controlgroup_cleanup;
+            };
+        });
+    };
+
+    // NEW! Menu Widget - Hierarchical menu
+    Yaka.prototype.menu = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_menu) return;
+            elem._yaka_menu = true;
+
+            elem.classList.add('ui-menu', 'ui-widget');
+            elem.setAttribute('role', 'menu');
+            elem.style.cssText = `
+                list-style: none;
+                padding: 8px 0;
+                margin: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                min-width: 150px;
+            `;
+
+            const items = elem.querySelectorAll('li');
+            items.forEach((item, index) => {
+                item.classList.add('ui-menu-item');
+                item.setAttribute('role', 'menuitem');
+                item.setAttribute('tabindex', index === 0 ? '0' : '-1');
+                item.style.cssText = `
+                    padding: 10px 16px;
+                    cursor: pointer;
+                    transition: background 0.2s ease;
+                `;
+
+                const handleMouseEnter = () => {
+                    item.style.background = '#f5f5f5';
+                };
+
+                const handleMouseLeave = () => {
+                    item.style.background = 'white';
+                };
+
+                const handleClick = () => {
+                    if (options.onSelect) {
+                        options.onSelect.call(item, item.textContent, index);
+                    }
+                };
+
+                item.addEventListener('mouseenter', handleMouseEnter);
+                item.addEventListener('mouseleave', handleMouseLeave);
+                item.addEventListener('click', handleClick);
+
+                // Store cleanup for this item
+                if (!item._yaka_menu_item_cleanup) {
+                    item._yaka_menu_item_cleanup = () => {
+                        item.removeEventListener('mouseenter', handleMouseEnter);
+                        item.removeEventListener('mouseleave', handleMouseLeave);
+                        item.removeEventListener('click', handleClick);
+                    };
+                }
+            });
+
+            // Keyboard navigation
+            const handleKeyDown = (e) => {
+                const currentItem = document.activeElement;
+                const allItems = Array.from(items);
+                const currentIndex = allItems.indexOf(currentItem);
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const nextIndex = (currentIndex + 1) % allItems.length;
+                    allItems[nextIndex].focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prevIndex = (currentIndex - 1 + allItems.length) % allItems.length;
+                    allItems[prevIndex].focus();
+                } else if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    currentItem.click();
+                }
+            };
+
+            elem.addEventListener('keydown', handleKeyDown);
+
+            elem._yaka_menu_cleanup = () => {
+                elem.removeEventListener('keydown', handleKeyDown);
+                items.forEach(item => {
+                    if (item._yaka_menu_item_cleanup) {
+                        item._yaka_menu_item_cleanup();
+                        delete item._yaka_menu_item_cleanup;
+                    }
+                });
+                elem.classList.remove('ui-menu', 'ui-widget');
+                delete elem._yaka_menu;
+                delete elem._yaka_menu_cleanup;
+            };
+        });
+    };
+
+    // NEW! Enhanced Select Box (Select2-style)
+    Yaka.prototype.selectbox = function (options = {}) {
+        return this.each((i, select) => {
+            if (select._yaka_selectbox) return;
+            if (select.tagName !== 'SELECT') return;
+            select._yaka_selectbox = true;
+
+            const multiple = select.multiple || options.multiple || false;
+            const searchable = options.searchable !== false;
+            const placeholder = options.placeholder || 'Select...';
+            const data = options.data || null;
+
+            // Hide original select
+            select.style.display = 'none';
+
+            // Create selectbox container
+            const container = document.createElement('div');
+            container.className = 'yaka-selectbox';
+            container.style.cssText = `
+                position: relative;
+                display: inline-block;
+                width: ${options.width || '100%'};
+            `;
+
+            // Create display element
+            const display = document.createElement('div');
+            display.className = 'yaka-selectbox-display';
+            display.style.cssText = `
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                padding: 10px 35px 10px 12px;
+                cursor: pointer;
+                background: white;
+                position: relative;
+                transition: border-color 0.2s;
+            `;
+
+            // Arrow icon
+            const arrow = document.createElement('span');
+            arrow.innerHTML = '▼';
+            arrow.style.cssText = `
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 12px;
+                color: #666;
+                transition: transform 0.2s;
+            `;
+            display.appendChild(arrow);
+
+            const displayText = document.createElement('span');
+            displayText.textContent = placeholder;
+            displayText.style.color = '#999';
+            display.insertBefore(displayText, arrow);
+
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'yaka-selectbox-dropdown';
+            dropdown.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                margin-top: 4px;
+                background: white;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                max-height: 250px;
+                overflow-y: auto;
+                z-index: 1000;
+                display: none;
+            `;
+
+            // Search box
+            if (searchable) {
+                const search = document.createElement('input');
+                search.type = 'text';
+                search.placeholder = 'Search...';
+                search.style.cssText = `
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: none;
+                    border-bottom: 2px solid #f0f0f0;
+                    outline: none;
+                    box-sizing: border-box;
+                `;
+                dropdown.appendChild(search);
+
+                search.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase();
+                    const items = dropdown.querySelectorAll('.yaka-selectbox-item');
+                    items.forEach(item => {
+                        const text = item.textContent.toLowerCase();
+                        item.style.display = text.includes(query) ? 'block' : 'none';
+                    });
+                });
+            }
+
+            // Create options list
+            const optionsList = document.createElement('div');
+            dropdown.appendChild(optionsList);
+
+            const updateOptions = () => {
+                optionsList.innerHTML = '';
+                const options = data || Array.from(select.options);
+
+                options.forEach((opt, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'yaka-selectbox-item';
+                    item.textContent = opt.text || opt.label || opt;
+                    item.setAttribute('data-value', opt.value || opt);
+                    item.style.cssText = `
+                        padding: 10px 12px;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    `;
+
+                    item.addEventListener('mouseenter', () => {
+                        item.style.background = '#f5f5f5';
+                    });
+
+                    item.addEventListener('mouseleave', () => {
+                        item.style.background = 'white';
+                    });
+
+                    item.addEventListener('click', () => {
+                        if (multiple) {
+                            select.options[idx].selected = !select.options[idx].selected;
+                            updateDisplay();
+                        } else {
+                            select.selectedIndex = idx;
+                            displayText.textContent = item.textContent;
+                            displayText.style.color = '#333';
+                            dropdown.style.display = 'none';
+                            arrow.style.transform = 'translateY(-50%)';
+                        }
+                        if (options.onChange) options.onChange(select.value);
+                    });
+
+                    optionsList.appendChild(item);
+                });
+            };
+
+            const updateDisplay = () => {
+                if (multiple) {
+                    const selected = Array.from(select.options).filter(o => o.selected);
+                    displayText.textContent = selected.length > 0
+                        ? selected.map(o => o.text).join(', ')
+                        : placeholder;
+                    displayText.style.color = selected.length > 0 ? '#333' : '#999';
+                }
+            };
+
+            // Toggle dropdown
+            display.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = dropdown.style.display === 'block';
+                dropdown.style.display = isOpen ? 'none' : 'block';
+                arrow.style.transform = isOpen ? 'translateY(-50%)' : 'translateY(-50%) rotate(180deg)';
+                display.style.borderColor = isOpen ? '#ddd' : '#4285f4';
+            });
+
+            // Close on outside click
+            document.addEventListener('click', () => {
+                dropdown.style.display = 'none';
+                arrow.style.transform = 'translateY(-50%)';
+                display.style.borderColor = '#ddd';
+            });
+
+            container.appendChild(display);
+            container.appendChild(dropdown);
+            select.parentNode.insertBefore(container, select);
+
+            updateOptions();
+
+            select._yaka_selectbox_cleanup = () => {
+                if (container.parentNode) {
+                    container.remove();
+                }
+                select.style.display = '';
+                delete select._yaka_selectbox;
+                delete select._yaka_selectbox_cleanup;
+            };
+        });
+    };
+
+    // NEW! Time Picker (Pickadate enhancement)
+    Yaka.prototype.timepicker = function (options = {}) {
+        return this.each((i, input) => {
+            if (input._yaka_timepicker) return;
+            input._yaka_timepicker = true;
+
+            const format24 = options.format24 || false;
+            const minuteInterval = options.minuteInterval || 1;
+            const minTime = options.minTime || '00:00';
+            const maxTime = options.maxTime || '23:59';
+
+            input.setAttribute('readonly', 'true');
+            input.style.cursor = 'pointer';
+
+            const picker = document.createElement('div');
+            picker.className = 'yaka-timepicker';
+            picker.style.cssText = `
+                position: absolute;
+                background: white;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                padding: 15px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                display: none;
+            `;
+
+            const container = document.createElement('div');
+            container.style.cssText = 'display: flex; gap: 10px;';
+
+            // Hour selector
+            const hourSelect = document.createElement('select');
+            hourSelect.style.cssText = 'padding: 8px; border-radius: 4px; border: 2px solid #ddd; font-size: 16px;';
+            const maxHour = format24 ? 23 : 12;
+            for (let h = 0; h <= maxHour; h++) {
+                const opt = document.createElement('option');
+                opt.value = h;
+                opt.textContent = h.toString().padStart(2, '0');
+                hourSelect.appendChild(opt);
+            }
+
+            // Minute selector
+            const minuteSelect = document.createElement('select');
+            minuteSelect.style.cssText = 'padding: 8px; border-radius: 4px; border: 2px solid #ddd; font-size: 16px;';
+            for (let m = 0; m < 60; m += minuteInterval) {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m.toString().padStart(2, '0');
+                minuteSelect.appendChild(opt);
+            }
+
+            container.appendChild(hourSelect);
+            container.appendChild(minuteSelect);
+
+            // AM/PM selector
+            let ampmSelect = null;
+            if (!format24) {
+                ampmSelect = document.createElement('select');
+                ampmSelect.style.cssText = 'padding: 8px; border-radius: 4px; border: 2px solid #ddd; font-size: 16px;';
+                ['AM', 'PM'].forEach(period => {
+                    const opt = document.createElement('option');
+                    opt.value = period;
+                    opt.textContent = period;
+                    ampmSelect.appendChild(opt);
+                });
+                container.appendChild(ampmSelect);
+            }
+
+            picker.appendChild(container);
+
+            // OK button
+            const okBtn = document.createElement('button');
+            okBtn.textContent = 'OK';
+            okBtn.style.cssText = `
+                margin-top: 10px;
+                width: 100%;
+                padding: 8px;
+                background: #4285f4;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+            `;
+            okBtn.onclick = () => {
+                let hour = parseInt(hourSelect.value);
+                const minute = parseInt(minuteSelect.value);
+
+                if (!format24 && ampmSelect) {
+                    if (ampmSelect.value === 'PM' && hour < 12) hour += 12;
+                    if (ampmSelect.value === 'AM' && hour === 12) hour = 0;
+                }
+
+                input.value = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                picker.style.display = 'none';
+                if (options.onChange) options.onChange(input.value);
+            };
+            picker.appendChild(okBtn);
+
+            document.body.appendChild(picker);
+
+            input.addEventListener('click', () => {
+                const rect = input.getBoundingClientRect();
+                picker.style.left = rect.left + 'px';
+                picker.style.top = rect.bottom + 4 + 'px';
+                picker.style.display = 'block';
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!picker.contains(e.target) && e.target !== input) {
+                    picker.style.display = 'none';
+                }
+            });
+
+            input._yaka_timepicker_cleanup = () => {
+                if (picker.parentNode) picker.remove();
+                input.removeAttribute('readonly');
+                delete input._yaka_timepicker;
+                delete input._yaka_timepicker_cleanup;
+            };
+        });
+    };
+
+    // NEW! FullPage Scrolling (fullPage.js-style)
+    Yaka.prototype.fullpage = function (options = {}) {
+        return this.each((i, container) => {
+            if (container._yaka_fullpage) return;
+            container._yaka_fullpage = true;
+
+            const sections = Array.from(container.children);
+            const navigation = options.navigation !== false;
+            const scrollingSpeed = options.scrollingSpeed || 700;
+            const easing = options.easing || 'ease-in-out';
+            
+            let currentSection = 0;
+            let isScrolling = false;
+
+            // Setup sections
+            sections.forEach((section, idx) => {
+                section.style.cssText = `
+                    height: 100vh;
+                    width: 100%;
+                    scroll-snap-align: start;
+                    transition: opacity ${scrollingSpeed}ms ${easing};
+                `;
+            });
+
+            container.style.cssText = `
+                height: 100vh;
+                overflow-y: scroll;
+                scroll-snap-type: y mandatory;
+                scroll-behavior: smooth;
+            `;
+
+            // Create navigation dots
+            if (navigation) {
+                const nav = document.createElement('div');
+                nav.style.cssText = `
+                    position: fixed;
+                    right: 20px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    z-index: 100;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                `;
+
+                sections.forEach((section, idx) => {
+                    const dot = document.createElement('div');
+                    dot.style.cssText = `
+                        width: 12px;
+                        height: 12px;
+                        border-radius: 50%;
+                        border: 2px solid #333;
+                        background: ${idx === 0 ? '#333' : 'white'};
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    `;
+                    dot.onclick = () => scrollToSection(idx);
+                    nav.appendChild(dot);
+                });
+
+                document.body.appendChild(nav);
+
+                container._yaka_fullpage_nav = nav;
+            }
+
+            const scrollToSection = (index) => {
+                if (isScrolling || index < 0 || index >= sections.length) return;
+                
+                isScrolling = true;
+                currentSection = index;
+                sections[index].scrollIntoView({ behavior: 'smooth' });
+
+                // Update navigation
+                if (navigation && container._yaka_fullpage_nav) {
+                    const dots = container._yaka_fullpage_nav.children;
+                    Array.from(dots).forEach((dot, i) => {
+                        dot.style.background = i === index ? '#333' : 'white';
+                    });
+                }
+
+                setTimeout(() => {
+                    isScrolling = false;
+                }, scrollingSpeed);
+            };
+
+            // Keyboard navigation
+            const handleKeydown = (e) => {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    scrollToSection(currentSection + 1);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    scrollToSection(currentSection - 1);
+                }
+            };
+
+            document.addEventListener('keydown', handleKeydown);
+
+            container._yaka_fullpage_cleanup = () => {
+                document.removeEventListener('keydown', handleKeydown);
+                if (container._yaka_fullpage_nav && container._yaka_fullpage_nav.parentNode) {
+                    container._yaka_fullpage_nav.remove();
+                }
+                delete container._yaka_fullpage;
+                delete container._yaka_fullpage_nav;
+                delete container._yaka_fullpage_cleanup;
             };
         });
     };
@@ -3126,6 +5210,110 @@
         return timeline;
     };
 
+    // NEW! Position - jQuery UI position utility
+    Yaka.prototype.position = function (options = {}) {
+        return this.each((i, elem) => {
+            const of = options.of || window;
+            const my = options.my || 'center';
+            const at = options.at || 'center';
+            const collision = options.collision || 'flip';
+            const offset = options.offset || { x: 0, y: 0 };
+
+            // Parse position strings like "left top", "center", "right bottom"
+            const parsePosition = (pos) => {
+                const parts = pos.split(' ');
+                const x = parts[0] || 'center';
+                const y = parts[1] || 'center';
+                return { x, y };
+            };
+
+            const myPos = parsePosition(my);
+            const atPos = parsePosition(at);
+
+            // Get target element or window
+            const target = of === window ? of : (of.nodeType ? of : document.querySelector(of));
+            if (!target) return;
+
+            // Get dimensions
+            const elemRect = elem.getBoundingClientRect();
+            let targetRect;
+
+            if (target === window) {
+                targetRect = {
+                    left: 0,
+                    top: 0,
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                };
+            } else {
+                targetRect = target.getBoundingClientRect();
+            }
+
+            // Calculate position
+            let left = targetRect.left;
+            let top = targetRect.top;
+
+            // Horizontal positioning
+            if (atPos.x === 'left') {
+                left = targetRect.left;
+            } else if (atPos.x === 'center') {
+                left = targetRect.left + targetRect.width / 2;
+            } else if (atPos.x === 'right') {
+                left = targetRect.left + targetRect.width;
+            }
+
+            if (myPos.x === 'center') {
+                left -= elemRect.width / 2;
+            } else if (myPos.x === 'right') {
+                left -= elemRect.width;
+            }
+
+            // Vertical positioning
+            if (atPos.y === 'top') {
+                top = targetRect.top;
+            } else if (atPos.y === 'center') {
+                top = targetRect.top + targetRect.height / 2;
+            } else if (atPos.y === 'bottom') {
+                top = targetRect.top + targetRect.height;
+            }
+
+            if (myPos.y === 'center') {
+                top -= elemRect.height / 2;
+            } else if (myPos.y === 'bottom') {
+                top -= elemRect.height;
+            }
+
+            // Apply offset
+            left += (offset.x || 0);
+            top += (offset.y || 0);
+
+            // Collision detection
+            if (collision === 'flip') {
+                // Check if element goes off screen and flip if needed
+                if (left < 0) {
+                    left = targetRect.right;
+                } else if (left + elemRect.width > window.innerWidth) {
+                    left = targetRect.left - elemRect.width;
+                }
+
+                if (top < 0) {
+                    top = targetRect.bottom;
+                } else if (top + elemRect.height > window.innerHeight) {
+                    top = targetRect.top - elemRect.height;
+                }
+            } else if (collision === 'fit') {
+                // Keep within viewport
+                left = Math.max(0, Math.min(left, window.innerWidth - elemRect.width));
+                top = Math.max(0, Math.min(top, window.innerHeight - elemRect.height));
+            }
+
+            // Apply position
+            elem.style.position = 'absolute';
+            elem.style.left = left + 'px';
+            elem.style.top = top + 'px';
+        });
+    };
+
     // NEW! 3D Transforms
     Yaka.prototype.transform3d = function (options = {}) {
         return this.each((i, elem) => {
@@ -3655,11 +5843,21 @@
                 '_yaka_parallax_cleanup',
                 '_yaka_sticky_cleanup',
                 '_yaka_draggable_cleanup',
+                '_yaka_resizable_cleanup',
+                '_yaka_droppable_cleanup',
+                '_yaka_selectable_cleanup',
                 '_yaka_scroll_cleanup',        // infiniteScroll
                 '_yaka_scrollspy_cleanup',
                 '_yaka_tilt_cleanup',
                 '_yaka_magnetic_cleanup',
                 '_yaka_tooltip_cleanup',
+                '_yaka_button_cleanup',
+                '_yaka_checkboxradio_cleanup',
+                '_yaka_controlgroup_cleanup',
+                '_yaka_menu_cleanup',
+                '_yaka_selectbox_cleanup',
+                '_yaka_timepicker_cleanup',
+                '_yaka_fullpage_cleanup',
                 '_yaka_colorpicker_cleanup',
                 '_yaka_datepicker_cleanup',
                 '_yaka_slider_cleanup',
@@ -5807,6 +8005,22 @@
             65% { transform: scaleX(0.95) scaleY(1.05); }
             75% { transform: scaleX(1.05) scaleY(0.95); }
             100% { transform: scale(1); }
+        }
+        @keyframes toastSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes toastSlideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         
         /* Validation styles */

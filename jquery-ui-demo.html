@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YakaJS - Complete jQuery UI Feature Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .demo-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .demo-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+            font-size: 1.3em;
+        }
+        
+        .demo-content {
+            margin-top: 15px;
+        }
+        
+        /* Selectable Demo */
+        .selectable-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+        
+        .selectable-item {
+            padding: 20px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .selectable-item.ui-selected {
+            background: #2196F3;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+        }
+        
+        /* Button Demo */
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        /* Checkboxradio Demo */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        /* Menu Demo */
+        .menu-container {
+            display: none;
+            position: absolute;
+            z-index: 1000;
+        }
+        
+        .menu-container.show {
+            display: block;
+        }
+        
+        /* Color Animation Demo */
+        .color-box {
+            width: 100%;
+            height: 100px;
+            background: #e3f2fd;
+            border: 3px solid #2196F3;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1976D2;
+            margin-bottom: 10px;
+        }
+        
+        /* Position Demo */
+        .position-target {
+            width: 150px;
+            height: 60px;
+            background: #4CAF50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 20px auto;
+        }
+        
+        .position-popup {
+            display: none;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 2px solid #667eea;
+        }
+        
+        .position-popup.show {
+            display: block;
+        }
+        
+        /* Class Animation Demo */
+        .animate-box {
+            width: 100%;
+            height: 80px;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #856404;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .animate-box.highlight {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+            padding: 20px;
+            transform: scale(1.1);
+        }
+        
+        .info {
+            background: #e3f2fd;
+            padding: 12px;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #1565C0;
+        }
+        
+        .log {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            max-height: 120px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+        }
+        
+        .log-entry {
+            padding: 4px 0;
+            color: #333;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+        
+        .timestamp {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        @media (max-width: 768px) {
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 YakaJS - Complete jQuery UI Compatibility</h1>
+        <p class="subtitle">Now with ALL jQuery UI features: Selectable, Button, Checkboxradio, Controlgroup, Menu, Position, and Enhanced Animations!</p>
+        
+        <div class="demo-grid">
+            <!-- Selectable Demo -->
+            <div class="demo-section">
+                <h2>1️⃣ Selectable Elements</h2>
+                <div class="info">
+                    <strong>Instructions:</strong> Click and drag to select multiple items with a marquee.
+                </div>
+                <div id="selectable" class="selectable-container">
+                    <div class="selectable-item">Item 1</div>
+                    <div class="selectable-item">Item 2</div>
+                    <div class="selectable-item">Item 3</div>
+                    <div class="selectable-item">Item 4</div>
+                    <div class="selectable-item">Item 5</div>
+                    <div class="selectable-item">Item 6</div>
+                </div>
+                <div class="log" id="selectable-log">
+                    <div class="log-entry">Waiting for selection...</div>
+                </div>
+            </div>
+            
+            <!-- Button Widget Demo -->
+            <div class="demo-section">
+                <h2>2️⃣ Button Widget</h2>
+                <div class="info">
+                    <strong>Instructions:</strong> Enhanced buttons with icons and states.
+                </div>
+                <div class="button-group">
+                    <button id="btn1">Button 1</button>
+                    <button id="btn2">Button 2</button>
+                    <button id="btn3" disabled>Disabled</button>
+                </div>
+                <div class="demo-content">
+                    <button id="toggle-btn" style="margin-top: 15px;">Toggle Button 2</button>
+                </div>
+                <div class="log" id="button-log">
+                    <div class="log-entry">Waiting for button clicks...</div>
+                </div>
+            </div>
+            
+            <!-- Checkboxradio Demo -->
+            <div class="demo-section">
+                <h2>3️⃣ Checkboxradio</h2>
+                <div class="info">
+                    <strong>Instructions:</strong> Themed checkboxes and radio buttons.
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="check1" data-label="Option 1">
+                    <input type="checkbox" id="check2" data-label="Option 2">
+                    <input type="radio" name="radio1" id="radio1" data-label="Choice A">
+                    <input type="radio" name="radio1" id="radio2" data-label="Choice B">
+                </div>
+                <div class="log" id="checkbox-log">
+                    <div class="log-entry">Waiting for changes...</div>
+                </div>
+            </div>
+            
+            <!-- Controlgroup Demo -->
+            <div class="demo-section">
+                <h2>4️⃣ Controlgroup</h2>
+                <div class="info">
+                    <strong>Instructions:</strong> Grouped form controls.
+                </div>
+                <div id="controlgroup" class="demo-content">
+                    <button>Left</button>
+                    <button>Center</button>
+                    <button>Right</button>
+                </div>
+            </div>
+            
+            <!-- Menu Widget Demo -->
+            <div class="demo-section">
+                <h2>5️⃣ Menu Widget</h2>
+                <div class="info">
+                    <strong>Instructions:</strong> Click to show menu with keyboard navigation.
+                </div>
+                <button id="menu-btn">Show Menu</button>
+                <ul id="menu" class="menu-container">
+                    <li>Option 1</li>
+                    <li>Option 2</li>
+                    <li>Option 3</li>
+                    <li>Option 4</li>
+                </ul>
+                <div class="log" id="menu-log">
+                    <div class="log-entry">Waiting for menu selection...</div>
+                </div>
+            </div>
+            
+            <!-- Position Utility Demo -->
+            <div class="demo-section">
+                <h2>6️⃣ Position Utility</h2>
+                <div class="info">
+                    <strong>Instructions:</strong> Click button to position popup below it.
+                </div>
+                <div id="position-target" class="position-target">Click Me!</div>
+                <div id="position-popup" class="position-popup">
+                    <strong>Positioned Popup</strong><br>
+                    This popup is positioned relative to the button above!
+                </div>
+            </div>
+            
+            <!-- Color Animation Demo -->
+            <div class="demo-section">
+                <h2>7️⃣ Color Animation</h2>
+                <div class="info">
+                    <strong>Instructions:</strong> Animate color properties.
+                </div>
+                <div id="color-box" class="color-box">Click to Animate Colors</div>
+                <button id="animate-color-btn">Animate Background Color</button>
+            </div>
+            
+            <!-- Class Animation Demo -->
+            <div class="demo-section">
+                <h2>8️⃣ Class Animation</h2>
+                <div class="info">
+                    <strong>Instructions:</strong> addClass/removeClass with animation.
+                </div>
+                <div id="animate-box" class="animate-box">Click to Toggle Class</div>
+                <div class="demo-content">
+                    <button id="add-class-btn">Add Class (Animated)</button>
+                    <button id="remove-class-btn">Remove Class (Animated)</button>
+                    <button id="toggle-class-btn">Toggle Class (Animated)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="yaka.js"></script>
+    <script>
+        _.debug = true;
+        
+        console.log('🎉 YakaJS Complete jQuery UI Demo');
+        
+        // === SELECTABLE ===
+        let selectableLog = 0;
+        function addSelectableLog(msg) {
+            const log = _('#selectable-log');
+            const entry = `<div class="log-entry"><span class="timestamp">[${new Date().toLocaleTimeString()}]</span> ${msg}</div>`;
+            if (selectableLog === 0) {
+                log.html(entry);
+            } else {
+                log.html(entry + log.html());
+            }
+            selectableLog++;
+            const entries = log.get(0).querySelectorAll('.log-entry');
+            if (entries.length > 3) entries[entries.length - 1].remove();
+        }
+        
+        _('#selectable').selectable({
+            onSelect: function() {
+                addSelectableLog(`✅ Selected: ${this.textContent}`);
+            },
+            onStop: function(e, selected) {
+                addSelectableLog(`🎯 Selection complete: ${selected.length} items selected`);
+            }
+        });
+        
+        // === BUTTON WIDGET ===
+        let buttonLog = 0;
+        function addButtonLog(msg) {
+            const log = _('#button-log');
+            const entry = `<div class="log-entry"><span class="timestamp">[${new Date().toLocaleTimeString()}]</span> ${msg}</div>`;
+            if (buttonLog === 0) {
+                log.html(entry);
+            } else {
+                log.html(entry + log.html());
+            }
+            buttonLog++;
+            const entries = log.get(0).querySelectorAll('.log-entry');
+            if (entries.length > 3) entries[entries.length - 1].remove();
+        }
+        
+        _('#btn1').button({ icon: '🚀' });
+        _('#btn2').button({ icon: '⭐' });
+        _('#btn3').button({ icon: '❌', disabled: true });
+        
+        _('#btn1').on('click', () => addButtonLog('🚀 Button 1 clicked'));
+        _('#btn2').on('click', () => addButtonLog('⭐ Button 2 clicked'));
+        
+        _('#toggle-btn').on('click', function() {
+            const btn2 = _('#btn2').get(0);
+            if (btn2._yaka_button_api) {
+                if (btn2.disabled) {
+                    btn2._yaka_button_api.enable();
+                    addButtonLog('✅ Button 2 enabled');
+                } else {
+                    btn2._yaka_button_api.disable();
+                    addButtonLog('❌ Button 2 disabled');
+                }
+            }
+        });
+        
+        // === CHECKBOXRADIO ===
+        let checkboxLog = 0;
+        function addCheckboxLog(msg) {
+            const log = _('#checkbox-log');
+            const entry = `<div class="log-entry"><span class="timestamp">[${new Date().toLocaleTimeString()}]</span> ${msg}</div>`;
+            if (checkboxLog === 0) {
+                log.html(entry);
+            } else {
+                log.html(entry + log.html());
+            }
+            checkboxLog++;
+            const entries = log.get(0).querySelectorAll('.log-entry');
+            if (entries.length > 3) entries[entries.length - 1].remove();
+        }
+        
+        _('#check1, #check2, #radio1, #radio2').checkboxradio();
+        
+        _('#check1, #check2').on('change', function() {
+            addCheckboxLog(`${this.checked ? '☑️' : '☐'} ${this.getAttribute('data-label')}: ${this.checked}`);
+        });
+        
+        _('#radio1, #radio2').on('change', function() {
+            if (this.checked) {
+                addCheckboxLog(`📻 Selected: ${this.getAttribute('data-label')}`);
+            }
+        });
+        
+        // === CONTROLGROUP ===
+        _('#controlgroup').controlgroup();
+        
+        // === MENU ===
+        let menuLog = 0;
+        function addMenuLog(msg) {
+            const log = _('#menu-log');
+            const entry = `<div class="log-entry"><span class="timestamp">[${new Date().toLocaleTimeString()}]</span> ${msg}</div>`;
+            if (menuLog === 0) {
+                log.html(entry);
+            } else {
+                log.html(entry + log.html());
+            }
+            menuLog++;
+            const entries = log.get(0).querySelectorAll('.log-entry');
+            if (entries.length > 3) entries[entries.length - 1].remove();
+        }
+        
+        _('#menu').menu({
+            onSelect: function(text, index) {
+                addMenuLog(`📋 Selected: ${text}`);
+                _('#menu').remove('show');
+            }
+        });
+        
+        _('#menu-btn').on('click', function() {
+            _('#menu').toggle('show');
+            _('#menu').position({
+                my: 'left top',
+                at: 'left bottom',
+                of: '#menu-btn',
+                collision: 'flip'
+            });
+        });
+        
+        // === POSITION ===
+        _('#position-target').on('click', function() {
+            _('#position-popup').toggle('show');
+            _('#position-popup').position({
+                my: 'center top',
+                at: 'center bottom',
+                of: '#position-target',
+                offset: { x: 0, y: 10 },
+                collision: 'flip'
+            });
+        });
+        
+        // === COLOR ANIMATION ===
+        _('#animate-color-btn').on('click', function() {
+            _('#color-box').animate({
+                backgroundColor: '#ff5722',
+                color: '#ffffff',
+                borderColor: '#d32f2f'
+            }, 1000);
+            
+            setTimeout(() => {
+                _('#color-box').animate({
+                    backgroundColor: '#e3f2fd',
+                    color: '#1976D2',
+                    borderColor: '#2196F3'
+                }, 1000);
+            }, 1100);
+        });
+        
+        // === CLASS ANIMATION ===
+        _('#add-class-btn').on('click', function() {
+            _('#animate-box').add('highlight', 400);
+        });
+        
+        _('#remove-class-btn').on('click', function() {
+            _('#animate-box').remove('highlight', 400);
+        });
+        
+        _('#toggle-class-btn').on('click', function() {
+            _('#animate-box').toggle('highlight', 400);
+        });
+        
+        console.log('✅ All jQuery UI features initialized!');
+        console.log('📦 Features: Selectable, Button, Checkboxradio, Controlgroup, Menu, Position, Color Animation, Class Animation');
+        
+        addSelectableLog('Ready - drag to select items');
+        addButtonLog('Buttons initialized with icons');
+        addCheckboxLog('Themed inputs ready');
+        addMenuLog('Menu ready - click button to show');
+    </script>
+</body>
+</html>
