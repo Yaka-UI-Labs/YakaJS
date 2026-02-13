@@ -51,9 +51,23 @@ function getModulesForCategories(categories) {
 function generateBuild(yakaPath, selectedModules, options = {}) {
     // Sanitize output path to prevent directory traversal
     let outputPath = options.output || 'custom-yaka.js';
-    const basename = path.basename(outputPath);
-    const sanitizedName = basename.replace(/[^a-zA-Z0-9._-]/g, '_');
-    outputPath = path.join(path.dirname(yakaPath), sanitizedName);
+    
+    // Normalize the path to handle cases like './file.js'
+    const normalizedPath = path.normalize(outputPath);
+    const basename = path.basename(normalizedPath);
+    const dirname = path.dirname(normalizedPath);
+    
+    // If it's just a filename (no directory separator in the normalized path, or dirname is '.')
+    // then use current working directory
+    if (!path.isAbsolute(normalizedPath) && (dirname === '.' || dirname === normalizedPath)) {
+        const sanitizedName = basename.replace(/[^a-zA-Z0-9._-]/g, '_');
+        outputPath = path.join(process.cwd(), sanitizedName);
+    } else {
+        // For absolute paths or paths with directories, keep the directory but sanitize the basename
+        const sanitizedName = basename.replace(/[^a-zA-Z0-9._-]/g, '_');
+        const resolvedDir = path.isAbsolute(normalizedPath) ? dirname : path.resolve(process.cwd(), dirname);
+        outputPath = path.join(resolvedDir, sanitizedName);
+    }
     
     const includeComments = options.comments !== false;
     
