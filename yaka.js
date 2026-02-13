@@ -1411,26 +1411,34 @@
 
     // NEW! WebRTC Video Call
     Yaka.webrtc = async function (options = {}) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: options.video !== false,
-            audio: options.audio !== false
-        });
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: options.video !== false,
+                audio: options.audio !== false
+            });
 
-        return {
-            stream: stream,
-            attachTo: (videoElement) => {
-                videoElement.srcObject = stream;
-            },
-            stop: () => {
-                stream.getTracks().forEach(track => track.stop());
-            }
-        };
+            return {
+                stream: stream,
+                attachTo: (videoElement) => {
+                    videoElement.srcObject = stream;
+                },
+                stop: () => {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            };
+        } catch (error) {
+            console.error('Error accessing media devices:', error);
+            throw error;
+        }
     };
 
     // NEW! Canvas Helper
     Yaka.prototype.canvas = function () {
         const canvas = this.elements[0];
-        if (!canvas || canvas.tagName !== 'CANVAS') return null;
+        if (!canvas || canvas.tagName !== 'CANVAS') {
+            console.warn('canvas() requires a canvas element');
+            return null;
+        }
 
         const ctx = canvas.getContext('2d');
 
@@ -2679,6 +2687,28 @@
                 `;
                 elem.appendChild(line);
             }
+        });
+    };
+
+    // NEW! Cleanup helper - removes all Yaka event listeners and observers
+    Yaka.prototype.cleanup = function () {
+        return this.each((i, elem) => {
+            // Call all cleanup methods if they exist
+            const cleanupMethods = [
+                '_yaka_parallax_cleanup',
+                '_yaka_sticky_cleanup',
+                '_yaka_draggable_cleanup',
+                '_yaka_scroll_cleanup',
+                '_yaka_scrollspy_cleanup',
+                '_yaka_tilt_cleanup',
+                '_yaka_magnetic_cleanup'
+            ];
+            
+            cleanupMethods.forEach(method => {
+                if (typeof elem[method] === 'function') {
+                    elem[method]();
+                }
+            });
         });
     };
 
