@@ -8078,6 +8078,32 @@
     `;
     document.head.appendChild(style);
 
+    // Backward compatibility aliases for old method names
+    // These provide compatibility but log deprecation warnings
+    Yaka.prototype.add = function(className, duration) {
+        console.warn('add() is deprecated. Use addClass() instead.');
+        return this.addClass(className, duration);
+    };
+    
+    Yaka.prototype.remove = function(className, duration) {
+        if (!className) {
+            console.warn('remove() with no arguments is deprecated. Use detach() to remove element from DOM.');
+            return this.detach();
+        }
+        console.warn('remove() is deprecated. Use removeClass() to remove CSS classes.');
+        return this.removeClass(className, duration);
+    };
+    
+    Yaka.prototype.toggle = function(className, duration) {
+        console.warn('toggle() is deprecated. Use toggleClass() instead.');
+        return this.toggleClass(className, duration);
+    };
+    
+    Yaka.prototype.has = function(className) {
+        console.warn('has() is deprecated. Use hasClass() instead.');
+        return this.hasClass(className);
+    };
+
     // Export to window
     window.Yaka = Yaka;
     // Only take _ if it's not already claimed (e.g., by lodash)
