@@ -236,8 +236,8 @@ module.exports = {
         // ADVANCED
         'draggable': { start: 1048, end: 1098, category: 'advanced' },
         'sortable': { start: 1100, end: 1142, category: 'advanced' },
-        'resizable': { start: 1145, end: 1279, category: 'advanced' },
-        'droppable': { start: 1281, end: 1368, category: 'advanced' },
+        'resizable': { start: 1145, end: 1278, category: 'advanced' },
+        'droppable': { start: 1281, end: 1367, category: 'advanced' },
         'gestures': { start: 1370, end: 1399, category: 'advanced' },
         'web-workers': { start: 3337, end: 3380, category: 'advanced' },
         'view-transitions': { start: 3111, end: 3144, category: 'advanced' },
