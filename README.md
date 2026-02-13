@@ -810,7 +810,7 @@ Advanced features (AI, Bluetooth, View Transitions) require newer browsers and m
 
 **Q: CDN links not working?**
 - Make sure you have an internet connection
-- Try alternative CDNs (unpkg, GitHub)
+- Try alternative CDNs (unpkg)
 - Check browser console for CORS errors
 - For offline use, download and host locally
 
@@ -982,6 +982,8 @@ Check out these files in the repository for comprehensive examples:
         });
 
         // Render function
+        // Note: In production, consider using a virtual DOM or diffing algorithm
+        // for better performance with large lists
         function render() {
             _('#todo-list').html(''); // Clear list
             
@@ -998,8 +1000,8 @@ Check out these files in the repository for comprehensive examples:
                     store.commit('toggleTodo', parseInt(e.target.dataset.id));
                 });
                 
-                // Text content (safely escaped)
-                const text = document.createTextNode(_.security.escapeHtml(todo.text));
+                // Text content (automatically escaped by createTextNode)
+                const text = document.createTextNode(todo.text);
                 
                 // Remove button with event delegation
                 const btn = document.createElement('button');
