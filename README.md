@@ -67,11 +67,21 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 ## 📦 Installation
 
 ```html
-<!-- Include from CDN (coming soon) -->
-<script src="yaka.js"></script>
+<!-- Include minified version (recommended for production) -->
+<script src="yaka.min.js"></script>
 
-<!-- Or download and include locally -->
-<script src="path/to/yaka.js"></script>
+<!-- Or use the full version for development -->
+<script src="yaka.js"></script>
+```
+
+### Build from Source
+
+```bash
+# Install dependencies
+npm install
+
+# Generate minified versions
+npm run build
 ```
 
 ## 🚀 Quick Start
