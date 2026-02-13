@@ -1,6 +1,13 @@
 # YakaCLI
 
-Command-line tool for scaffolding YakaJS projects.
+Command-line tool for scaffolding YakaJS projects and generating custom builds.
+
+## Features
+
+🚀 **Project Scaffolding** - Create new projects with 4 templates  
+🔧 **Custom Builds** - Generate YakaJS with only the features you need  
+📊 **Codebase Analysis** - Inspect YakaJS structure and statistics  
+⚡ **Size Optimization** - Reduce bundle size by 50-90%
 
 ## Installation
 
@@ -37,6 +44,28 @@ This will prompt you to select a template:
 2. **SPA (Single Page App)** - Full routing and state management
 3. **Dashboard** - Admin dashboard with charts and tables
 4. **PWA (Progressive Web App)** - Offline-capable progressive web app
+
+### Generate Custom Build 🆕
+
+Create a custom YakaJS build with only the features you need:
+
+```bash
+yakacli build
+```
+
+**Why Custom Builds?**
+- ✅ Reduce bundle size by 50-90%
+- ✅ Include only features you use
+- ✅ Faster page loads
+- ✅ Better performance
+
+**Example Use Cases:**
+- **Minimal** (18 KB) - Simple sites without webcam/media
+- **Media Rich** (36 KB) - Apps WITH webcam, audio, video
+- **SPA** (73 KB) - Single-page applications
+- **Standard** (41 KB) - Most common features
+
+[📖 Read the Custom Builds Guide](CUSTOM-BUILDS.md)
 
 ### Analyze Codebase
 

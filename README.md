@@ -1138,23 +1138,68 @@ MIT License - see LICENSE file for details
 
 ## 🛠️ YakaCLI - Project Scaffolding Tool
 
-**NEW!** YakaCLI is now available! Quickly scaffold new YakaJS projects with multiple templates.
+**NEW!** YakaCLI is now available with **Custom Build Generator**!
+
+### Quick Start
 
 ```bash
-# Install globally (when published)
-npm install -g yakacli
-
-# Or run directly from the repo
+# Scaffold a new project
 node yakacli/yakacli.js create my-project
+
+# Generate custom build (NEW!)
+node yakacli/yakacli.js build
 ```
 
-**Features:**
-- 🚀 4 project templates (Basic, SPA, Dashboard, PWA)
-- 📊 Codebase analysis tool
-- 🎨 Modern, production-ready designs
-- 📦 Zero configuration needed
+### Features
 
-[📖 View YakaCLI Documentation](yakacli/README.md)
+✅ **4 Project Templates** - Basic, SPA, Dashboard, PWA  
+✅ **Custom Builds** - Generate YakaJS with only features you need  
+✅ **Codebase Analysis** - Detailed statistics and feature detection  
+✅ **Zero Configuration** - Works out of the box
+
+### Custom Builds - Pick Your Features! 🎯
+
+Not everyone needs everything. Generate custom builds that are **50-90% smaller**:
+
+**Example: Media-Rich Build (36 KB)**
+```bash
+yakacli build
+# Select "Media Rich" preset
+# ✅ Includes: Webcam, Audio, Video, Screen Recording
+# ❌ Excludes: AI, Bluetooth, Advanced Effects
+```
+
+**Example: Minimal Build (18 KB)**
+```bash
+yakacli build  
+# Select "Minimal" preset
+# ✅ Includes: DOM, Events, HTTP, Storage
+# ❌ Excludes: Webcam, Media, AI, Effects
+```
+
+**Available Presets:**
+- 📦 **Minimal** (18 KB) - Core features only
+- 🎨 **Standard** (41 KB) - Core + UI components
+- 📱 **SPA** (73 KB) - Single-page app framework
+- 📹 **Media Rich** (36 KB) - Webcam, audio, video
+- ✨ **Interactive** (67 KB) - Rich effects & animations
+- 🔧 **Developer** (52 KB) - Debug & dev tools
+- 🌟 **Full** (176 KB) - Everything included
+
+**Or select custom categories:**
+- Animations
+- UI Components
+- Forms & Validation
+- Routing & State
+- Visual Effects
+- Media & WebRTC 📹
+- Device APIs
+- AI & ML
+- And more!
+
+[📖 Read Custom Builds Documentation](yakacli/CUSTOM-BUILDS.md)
+
+### Standard Features
 
 ## 🔥 Coming Soon
 
