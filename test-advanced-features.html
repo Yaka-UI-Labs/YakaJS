@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YakaJS Advanced Features Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg-color, #f5f5f5);
+            color: var(--text-color, #333);
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color, #667eea);
+        }
+        
+        .section {
+            background: var(--card-bg, white);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.1));
+        }
+        
+        h2 {
+            color: var(--primary-color, #667eea);
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--border-color, #e0e0e0);
+            padding-bottom: 10px;
+        }
+        
+        button {
+            background: var(--primary-color, #667eea);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .input-group {
+            margin: 10px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="tel"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color, #ddd);
+            border-radius: 4px;
+            font-size: 14px;
+            background: var(--bg-color, white);
+            color: var(--text-color, #333);
+        }
+        
+        .result-box {
+            background: var(--bg-color, #f0f0f0);
+            border: 1px solid var(--border-color, #ddd);
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            display: block;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .demo-element {
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        #counter-display {
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--primary-color, #667eea);
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .hotkey-info {
+            background: var(--bg-color, #f9f9f9);
+            padding: 10px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        #spam-form {
+            border: 1px solid var(--border-color, #ddd);
+            padding: 15px;
+            border-radius: 4px;
+        }
+        
+        #spam-form input {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 YakaJS Advanced Features Test Suite</h1>
+        
+        <!-- Phase 1: Error Handling & Debug -->
+        <div class="section">
+            <h2>Phase 1: Smart Auto-Fix & Error Handling</h2>
+            
+            <div class="input-group">
+                <button onclick="testDebugMode()">Enable Debug Mode</button>
+                <button onclick="testSafeMode()">Test Safe Mode</button>
+                <button onclick="testFeatureDetection()">Check Feature Support</button>
+            </div>
+            
+            <div id="phase1-results" class="result-box"></div>
+        </div>
+        
+        <!-- Phase 2: Performance & Reactivity -->
+        <div class="section">
+            <h2>Phase 2: Signals-Based Reactivity</h2>
+            
+            <div class="input-group">
+                <button onclick="testSignals()">Test Signals</button>
+                <button onclick="testMemoryLeaks()">Detect Memory Leaks</button>
+                <button onclick="testVisibilityObserver()">Test Enhanced Visibility</button>
+            </div>
+            
+            <div id="counter-display">Count: 0</div>
+            <div class="demo-element" id="visibility-test" style="margin-top: 100vh;">
+                Scroll down to see me!
+            </div>
+            
+            <div id="phase2-results" class="result-box"></div>
+        </div>
+        
+        <!-- Phase 3: UI Interactions -->
+        <div class="section">
+            <h2>Phase 3: Advanced UI Interaction</h2>
+            
+            <div class="input-group">
+                <label>Phone Number (with masking):</label>
+                <input type="tel" id="phone-input" placeholder="Enter phone number">
+            </div>
+            
+            <div class="input-group">
+                <label>Credit Card (with masking):</label>
+                <input type="text" id="card-input" placeholder="Enter card number">
+            </div>
+            
+            <div class="input-group">
+                <label>Date (MM/DD/YYYY):</label>
+                <input type="text" id="date-input" placeholder="Enter date">
+            </div>
+            
+            <div class="hotkey-info">
+                <strong>Keyboard Shortcuts:</strong><br>
+                • Ctrl+S or Cmd+S - Save<br>
+                • Ctrl+K or Cmd+K - Open Search<br>
+                • Alt+T - Toggle Theme
+            </div>
+            
+            <form id="spam-form">
+                <h3>Spam Protection Test</h3>
+                <input type="text" placeholder="Your Name" required>
+                <input type="email" placeholder="Your Email" required>
+                <button type="submit">Submit (Try as bot)</button>
+            </form>
+            
+            <div id="phase3-results" class="result-box"></div>
+        </div>
+        
+        <!-- Phase 4: Modern Browser Features -->
+        <div class="section">
+            <h2>Phase 4: Modern Browser Superpowers</h2>
+            
+            <div class="input-group">
+                <button onclick="testWebWorker()">Test Web Worker</button>
+                <button onclick="testAI()">Test AI (if available)</button>
+                <button onclick="testIndexedDB()">Test IndexedDB Enhancement</button>
+            </div>
+            
+            <div id="phase4-results" class="result-box"></div>
+        </div>
+        
+        <!-- Phase 5: Developer Experience -->
+        <div class="section">
+            <h2>Phase 5: Developer Experience</h2>
+            
+            <div class="input-group">
+                <button onclick="_.theme.toggle()">Toggle Theme</button>
+                <button onclick="_.theme.dark()">Dark Mode</button>
+                <button onclick="_.theme.light()">Light Mode</button>
+            </div>
+            
+            <div class="input-group">
+                <button onclick="testPlugin()">Test Plugin System</button>
+                <button onclick="testMemoization()">Test Memoization</button>
+                <button onclick="testDevTools()">Show Dev Tools</button>
+            </div>
+            
+            <div id="phase5-results" class="result-box"></div>
+        </div>
+    </div>
+    
+    <script src="yaka.js"></script>
+    <script>
+        // Enable debug mode
+        _.debug = true;
+        
+        // Phase 1 Tests
+        function testDebugMode() {
+            const results = document.getElementById('phase1-results');
+            results.textContent = '✅ Debug mode enabled! Check console for detailed logs.\n';
+            _._log('info', 'Debug mode test', { status: 'working' });
+            _._log('warn', 'This is a warning', { level: 'medium' });
+            _._log('success', 'Success message', { awesome: true });
+        }
+        
+        function testSafeMode() {
+            const results = document.getElementById('phase1-results');
+            
+            // Try to operate on non-existent element (should not crash)
+            const result = _('#non-existent-element-xyz').safe().hide().fadeIn().css('color', 'red');
+            
+            results.textContent = '✅ Safe mode prevented crashes on empty selector!\n';
+            results.textContent += 'Check console for warnings.\n\n';
+            results.textContent += 'Attempted: $("#non-existent-element-xyz").safe().hide().fadeIn().css()\n';
+            results.textContent += 'Result: No errors thrown!';
+        }
+        
+        function testFeatureDetection() {
+            const results = document.getElementById('phase1-results');
+            const features = [
+                'webworker', 'websocket', 'webrtc', 'geolocation',
+                'bluetooth', 'indexeddb', 'view-transition', 'webgl'
+            ];
+            
+            let output = 'Feature Support Check:\n\n';
+            features.forEach(feature => {
+                const supported = _.supports(feature);
+                output += `${supported ? '✅' : '❌'} ${feature}: ${supported}\n`;
+            });
+            
+            results.textContent = output;
+        }
+        
+        // Phase 2 Tests
+        let counter, setCounter;
+        
+        function testSignals() {
+            const results = document.getElementById('phase2-results');
+            
+            // Create a signal
+            [counter, setCounter] = _.signal(0);
+            
+            // Create an effect that updates the display
+            _.effect(() => {
+                document.getElementById('counter-display').textContent = `Count: ${counter()}`;
+            });
+            
+            // Increment counter every second
+            let count = 0;
+            const interval = setInterval(() => {
+                count++;
+                setCounter(count);
+                
+                if (count >= 5) {
+                    clearInterval(interval);
+                    results.textContent = '✅ Signals test complete!\n';
+                    results.textContent += 'Counter updated 5 times using reactive signals.\n';
+                    results.textContent += 'Check the counter display above.';
+                }
+            }, 500);
+            
+            results.textContent = '⏳ Running signals test...\nWatch the counter above!';
+        }
+        
+        function testMemoryLeaks() {
+            const results = document.getElementById('phase2-results');
+            const leaks = _.detectLeaks();
+            
+            results.textContent = `Memory Leak Detection:\n\n`;
+            if (leaks.length === 0) {
+                results.textContent += '✅ No memory leaks detected!';
+            } else {
+                results.textContent += `⚠️ Found ${leaks.length} potential leaks:\n\n`;
+                leaks.forEach(leak => {
+                    results.textContent += `- ${leak.tagName}#${leak.id || 'no-id'}: ${leak.cleanupMethods} cleanup methods\n`;
+                });
+            }
+        }
+        
+        function testVisibilityObserver() {
+            const results = document.getElementById('phase2-results');
+            
+            _('#visibility-test').onVisibleAdvanced((elem, isVisible) => {
+                if (isVisible) {
+                    elem.style.transform = 'scale(1.1)';
+                    elem.style.transition = 'transform 0.5s';
+                    results.textContent = '✅ Element became visible!\n';
+                    results.textContent += 'The element at the bottom detected visibility.';
+                }
+            }, { threshold: 0.5, once: true });
+            
+            results.textContent = '⏳ Scroll down to test visibility detection...';
+        }
+        
+        // Phase 3 Tests - Input Masking
+        _('#phone-input').mask('phone');
+        _('#card-input').mask('creditCard');
+        _('#date-input').mask('date');
+        
+        // Keyboard shortcuts
+        _.hotkey('ctrl+s', (e) => {
+            const results = document.getElementById('phase3-results');
+            results.textContent = '✅ Ctrl+S pressed! (Save action)\n';
+            results.textContent += 'Timestamp: ' + new Date().toLocaleTimeString();
+        });
+        
+        _.hotkey('ctrl+k', (e) => {
+            const results = document.getElementById('phase3-results');
+            results.textContent = '✅ Ctrl+K pressed! (Search action)\n';
+            results.textContent += 'This would open a search dialog.';
+        });
+        
+        _.hotkey('alt+t', (e) => {
+            _.theme.toggle();
+        });
+        
+        // Honeypot
+        _('#spam-form').honeypot({
+            onSpam: (e) => {
+                const results = document.getElementById('phase3-results');
+                results.textContent = '🚫 SPAM DETECTED!\n';
+                results.textContent += 'Honeypot field was filled (bot behavior).';
+            }
+        });
+        
+        document.getElementById('spam-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const results = document.getElementById('phase3-results');
+            results.textContent = '✅ Form submitted successfully!\n';
+            results.textContent += 'No spam detected. Form is legitimate.';
+        });
+        
+        // Phase 4 Tests
+        function testWebWorker() {
+            const results = document.getElementById('phase4-results');
+            results.textContent = '⏳ Running heavy computation in Web Worker...\n';
+            
+            // Heavy computation
+            _.worker(function(data) {
+                // Calculate prime numbers
+                const primes = [];
+                for (let i = 2; i < data.max; i++) {
+                    let isPrime = true;
+                    for (let j = 2; j < i; j++) {
+                        if (i % j === 0) {
+                            isPrime = false;
+                            break;
+                        }
+                    }
+                    if (isPrime) primes.push(i);
+                }
+                return primes;
+            }, { max: 1000 })
+            .then(primes => {
+                results.textContent = '✅ Web Worker completed!\n\n';
+                results.textContent += `Found ${primes.length} prime numbers under 1000\n`;
+                results.textContent += `First 10: ${primes.slice(0, 10).join(', ')}\n`;
+                results.textContent += `Last 10: ${primes.slice(-10).join(', ')}`;
+            })
+            .catch(error => {
+                results.textContent = '❌ Web Worker failed:\n' + error.message;
+            });
+        }
+        
+        function testAI() {
+            const results = document.getElementById('phase4-results');
+            
+            if (!_.ai.isAvailable()) {
+                results.textContent = '⚠️ AI features not available in this browser.\n\n';
+                results.textContent += 'Note: AI APIs are experimental and may require:\n';
+                results.textContent += '- Chrome Canary or Edge Canary\n';
+                results.textContent += '- Enabled flags for AI features\n';
+                results.textContent += '- Latest browser version';
+                return;
+            }
+            
+            results.textContent = '✅ AI features available!\n\n';
+            results.textContent += 'Testing sentiment analysis...\n';
+            
+            _.ai.analyzeSentiment('I love this library! It is amazing!')
+                .then(sentiment => {
+                    results.textContent += `Sentiment: ${sentiment}\n`;
+                })
+                .catch(err => {
+                    results.textContent += `AI Error: ${err.message}\n`;
+                });
+        }
+        
+        function testIndexedDB() {
+            const results = document.getElementById('phase4-results');
+            results.textContent = '⏳ Testing enhanced IndexedDB...\n';
+            
+            if (!_.db) {
+                results.textContent = '❌ IndexedDB wrapper not available';
+                return;
+            }
+            
+            results.textContent = '✅ IndexedDB enhanced features available!\n\n';
+            results.textContent += 'New methods added:\n';
+            results.textContent += '- _.db.saveMany() - Batch save\n';
+            results.textContent += '- _.db.query() - Query with filters\n';
+            results.textContent += '- _.db.count() - Count records\n\n';
+            results.textContent += 'Note: Check console for API details';
+        }
+        
+        // Phase 5 Tests
+        _.theme.onChange((theme) => {
+            console.log('Theme changed to:', theme);
+        });
+        
+        function testPlugin() {
+            const results = document.getElementById('phase5-results');
+            
+            // Create a sample plugin
+            const myPlugin = _.createPlugin('myFeature', {
+                statics: {
+                    greet: (name) => `Hello, ${name}!`
+                },
+                methods: {
+                    highlight: function() {
+                        return this.each((i, elem) => {
+                            elem.style.background = 'yellow';
+                        });
+                    }
+                }
+            });
+            
+            // Register plugin
+            _.use('myFeature', myPlugin);
+            
+            // Use plugin
+            const greeting = _.greet('YakaJS User');
+            
+            results.textContent = '✅ Plugin system test:\n\n';
+            results.textContent += `Plugin registered: "myFeature"\n`;
+            results.textContent += `Static method result: ${greeting}\n\n`;
+            results.textContent += 'Check _.dev.plugins() for all plugins';
+        }
+        
+        function testMemoization() {
+            const results = document.getElementById('phase5-results');
+            
+            // Expensive function
+            const fibonacci = _.memoize((n) => {
+                if (n <= 1) return n;
+                return fibonacci(n - 1) + fibonacci(n - 2);
+            });
+            
+            const start1 = performance.now();
+            const result1 = fibonacci(30);
+            const time1 = performance.now() - start1;
+            
+            const start2 = performance.now();
+            const result2 = fibonacci(30);
+            const time2 = performance.now() - start2;
+            
+            results.textContent = '✅ Memoization test:\n\n';
+            results.textContent += `First call (fibonacci(30)): ${time1.toFixed(2)}ms\n`;
+            results.textContent += `Second call (cached): ${time2.toFixed(2)}ms\n`;
+            results.textContent += `Result: ${result1}\n\n`;
+            results.textContent += `Speedup: ${(time1 / time2).toFixed(0)}x faster!`;
+        }
+        
+        function testDevTools() {
+            const results = document.getElementById('phase5-results');
+            
+            results.textContent = '🛠️ Developer Tools:\n\n';
+            
+            // Profile a function
+            _.dev.profile('test-operation', () => {
+                let sum = 0;
+                for (let i = 0; i < 1000000; i++) {
+                    sum += i;
+                }
+                return sum;
+            });
+            
+            // Get memory info
+            const memory = _.dev.memory();
+            
+            results.textContent += 'Available commands:\n';
+            results.textContent += '- _.dev.profile(name, fn)\n';
+            results.textContent += '- _.dev.memory()\n';
+            results.textContent += '- _.dev.inspect(selector)\n';
+            results.textContent += '- _.dev.plugins()\n';
+            results.textContent += '- _.dev.hotkeys()\n\n';
+            results.textContent += 'Check console for detailed output!';
+            
+            // Show some dev info
+            _.dev.inspect('#phase5-results');
+            _.dev.plugins();
+            _.dev.hotkeys();
+        }
+        
+        // Log feature summary
+        console.log('%c🚀 YakaJS Advanced Features Loaded!', 'color: #667eea; font-size: 20px; font-weight: bold;');
+        console.log('%cNew Features Available:', 'color: #764ba2; font-size: 16px; font-weight: bold;');
+        console.log('📋 Phase 1: Safe mode, Debug logging, Feature detection');
+        console.log('⚡ Phase 2: Signals, Effects, Computed values, Memory leak detection');
+        console.log('🎨 Phase 3: Input masking, Honeypot, Keyboard shortcuts, Page transitions');
+        console.log('🔮 Phase 4: Web Workers, AI integration, Enhanced IndexedDB');
+        console.log('💎 Phase 5: Theme engine, Plugin API, Dev tools, Memoization');
+        console.log('\n Try the interactive tests above or check the documentation!');
+    </script>
+</body>
+</html>

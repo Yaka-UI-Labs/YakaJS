@@ -2890,6 +2890,945 @@
         });
     };
 
+    // ==================== PHASE 1: SMART AUTO-FIX & ERROR HANDLING ====================
+
+    // Global debug flag
+    Yaka.debug = false;
+
+    // Debug logger utility
+    Yaka._log = function(type, message, data) {
+        if (!Yaka.debug) return;
+        
+        const styles = {
+            info: 'color: #3498db; font-weight: bold;',
+            warn: 'color: #f39c12; font-weight: bold;',
+            error: 'color: #e74c3c; font-weight: bold;',
+            success: 'color: #2ecc71; font-weight: bold;'
+        };
+        
+        const prefix = `[Yaka ${type.toUpperCase()}]`;
+        console.log(`%c${prefix}`, styles[type] || styles.info, message, data || '');
+    };
+
+    // Safe mode wrapper - prevents crashes on empty selectors
+    Yaka.prototype.safe = function() {
+        // Create a proxy that returns this for any method call on empty elements
+        const self = this;
+        
+        if (!this.elements || this.elements.length === 0) {
+            Yaka._log('warn', 'Safe mode: Operating on empty selector', { selector: this });
+            
+            // Return a proxy that safely handles all method calls
+            return new Proxy(this, {
+                get(target, prop) {
+                    // If it's a function, return a no-op that returns the proxy for chaining
+                    if (typeof Yaka.prototype[prop] === 'function') {
+                        return function() {
+                            Yaka._log('warn', `Safe mode: Skipping .${prop}() on empty elements`);
+                            return target;
+                        };
+                    }
+                    return target[prop];
+                }
+            });
+        }
+        
+        return this;
+    };
+
+    // Feature detection utility
+    Yaka.supports = function(feature) {
+        const features = {
+            'webrtc': () => !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+            'geolocation': () => !!navigator.geolocation,
+            'bluetooth': () => !!navigator.bluetooth,
+            'webworker': () => typeof Worker !== 'undefined',
+            'serviceworker': () => 'serviceWorker' in navigator,
+            'indexeddb': () => !!window.indexedDB,
+            'websocket': () => typeof WebSocket !== 'undefined',
+            'intersection-observer': () => typeof IntersectionObserver !== 'undefined',
+            'mutation-observer': () => typeof MutationObserver !== 'undefined',
+            'performance-observer': () => typeof PerformanceObserver !== 'undefined',
+            'view-transition': () => !!document.startViewTransition,
+            'webnn': () => !!(navigator.ml),
+            'battery': () => !!navigator.getBattery,
+            'share': () => !!navigator.share,
+            'clipboard': () => !!navigator.clipboard,
+            'vibrate': () => !!navigator.vibrate,
+            'fullscreen': () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled),
+            'webgl': () => {
+                try {
+                    const canvas = document.createElement('canvas');
+                    return !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+                } catch(e) {
+                    return false;
+                }
+            },
+            'webgl2': () => {
+                try {
+                    return !!document.createElement('canvas').getContext('webgl2');
+                } catch(e) {
+                    return false;
+                }
+            }
+        };
+        
+        const detector = features[feature.toLowerCase()];
+        if (!detector) {
+            Yaka._log('warn', `Unknown feature: ${feature}`);
+            return false;
+        }
+        
+        try {
+            return detector();
+        } catch(e) {
+            Yaka._log('error', `Error detecting feature ${feature}:`, e);
+            return false;
+        }
+    };
+
+    // ==================== PHASE 2: PERFORMANCE & LIFECYCLE ====================
+
+    // Enhanced onVisible with more options
+    Yaka.prototype.onVisibleAdvanced = function(callback, options = {}) {
+        const threshold = options.threshold || 0.1;
+        const rootMargin = options.rootMargin || '0px';
+        const once = options.once !== false; // Default true
+        const unobserveOnLeave = options.unobserveOnLeave || false;
+        
+        return this.each((i, elem) => {
+            if (!Yaka.supports('intersection-observer')) {
+                Yaka._log('warn', 'IntersectionObserver not supported, calling callback immediately');
+                callback.call(elem, elem, true);
+                return;
+            }
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const isVisible = entry.isIntersecting;
+                    
+                    if (isVisible && once) {
+                        callback.call(entry.target, entry.target, true);
+                        observer.unobserve(entry.target);
+                    } else if (isVisible || !unobserveOnLeave) {
+                        callback.call(entry.target, entry.target, isVisible);
+                        if (!isVisible && unobserveOnLeave) {
+                            observer.unobserve(entry.target);
+                        }
+                    }
+                });
+            }, { threshold, rootMargin });
+            
+            observer.observe(elem);
+            
+            // Store cleanup
+            elem._yaka_visibility_cleanup = () => {
+                observer.disconnect();
+            };
+        });
+    };
+
+    // Signals-based reactivity (inspired by SolidJS)
+    Yaka.signal = function(initialValue) {
+        let value = initialValue;
+        const subscribers = new Set();
+        
+        const read = () => {
+            // Track current effect if any
+            if (Yaka.signal._currentEffect) {
+                subscribers.add(Yaka.signal._currentEffect);
+            }
+            return value;
+        };
+        
+        const write = (newValue) => {
+            if (value === newValue) return;
+            value = typeof newValue === 'function' ? newValue(value) : newValue;
+            Yaka._log('info', 'Signal updated', { value });
+            subscribers.forEach(effect => effect());
+        };
+        
+        return [read, write];
+    };
+
+    // Effect runner for signals
+    Yaka.effect = function(fn) {
+        const effect = () => {
+            Yaka.signal._currentEffect = effect;
+            try {
+                fn();
+            } finally {
+                Yaka.signal._currentEffect = null;
+            }
+        };
+        effect();
+    };
+
+    // Computed signal
+    Yaka.computed = function(fn) {
+        const [value, setValue] = Yaka.signal(undefined);
+        Yaka.effect(() => setValue(fn()));
+        return value;
+    };
+
+    // Memory leak detector
+    Yaka.detectLeaks = function() {
+        const leaks = [];
+        
+        document.querySelectorAll('*').forEach(elem => {
+            let listenerCount = 0;
+            const yakaProps = Object.keys(elem).filter(key => key.startsWith('_yaka_'));
+            
+            // Check for cleanup methods
+            yakaProps.forEach(prop => {
+                if (prop.endsWith('_cleanup')) {
+                    listenerCount++;
+                }
+            });
+            
+            if (listenerCount > 5) {
+                leaks.push({
+                    element: elem,
+                    tagName: elem.tagName,
+                    id: elem.id,
+                    cleanupMethods: listenerCount
+                });
+            }
+        });
+        
+        if (leaks.length > 0) {
+            Yaka._log('warn', `Potential memory leaks detected: ${leaks.length} elements`, leaks);
+        } else {
+            Yaka._log('success', 'No memory leaks detected');
+        }
+        
+        return leaks;
+    };
+
+    // ==================== PHASE 3: ADVANCED UI INTERACTION ====================
+
+    // View Transitions API
+    Yaka.pageTransition = function(url, options = {}) {
+        if (!Yaka.supports('view-transition')) {
+            Yaka._log('warn', 'View Transition API not supported, using regular navigation');
+            window.location.href = url;
+            return Promise.resolve();
+        }
+        
+        const transition = document.startViewTransition(async () => {
+            if (options.beforeTransition) {
+                await options.beforeTransition();
+            }
+            
+            // Fetch new content
+            const response = await fetch(url);
+            const html = await response.text();
+            
+            // Parse and update
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, 'text/html');
+            const target = options.target || 'body';
+            const targetElem = document.querySelector(target);
+            const newContent = newDoc.querySelector(target);
+            
+            if (targetElem && newContent) {
+                targetElem.innerHTML = newContent.innerHTML;
+            }
+            
+            if (options.afterTransition) {
+                await options.afterTransition();
+            }
+        });
+        
+        return transition.finished;
+    };
+
+    // Input masking
+    Yaka.prototype.mask = function(type, options = {}) {
+        const masks = {
+            phone: {
+                pattern: '(###) ###-####',
+                placeholder: '_',
+                filter: /[0-9]/
+            },
+            creditCard: {
+                pattern: '#### #### #### ####',
+                placeholder: '_',
+                filter: /[0-9]/
+            },
+            date: {
+                pattern: '##/##/####',
+                placeholder: '_',
+                filter: /[0-9]/
+            },
+            ssn: {
+                pattern: '###-##-####',
+                placeholder: '_',
+                filter: /[0-9]/
+            },
+            zipcode: {
+                pattern: '#####',
+                placeholder: '_',
+                filter: /[0-9]/
+            }
+        };
+        
+        const mask = typeof type === 'string' ? masks[type] : type;
+        if (!mask) {
+            Yaka._log('error', `Unknown mask type: ${type}`);
+            return this;
+        }
+        
+        return this.each((i, elem) => {
+            if (elem.tagName !== 'INPUT') return;
+            
+            const format = (value) => {
+                const cleaned = value.replace(/[^0-9]/g, '');
+                let formatted = '';
+                let valueIndex = 0;
+                
+                for (let i = 0; i < mask.pattern.length && valueIndex < cleaned.length; i++) {
+                    if (mask.pattern[i] === '#') {
+                        formatted += cleaned[valueIndex];
+                        valueIndex++;
+                    } else {
+                        formatted += mask.pattern[i];
+                    }
+                }
+                
+                return formatted;
+            };
+            
+            const handler = (e) => {
+                const cursorPos = elem.selectionStart;
+                const oldLength = elem.value.length;
+                elem.value = format(elem.value);
+                const newLength = elem.value.length;
+                
+                // Adjust cursor position
+                const diff = newLength - oldLength;
+                elem.setSelectionRange(cursorPos + diff, cursorPos + diff);
+            };
+            
+            elem.addEventListener('input', handler);
+            
+            // Store cleanup
+            elem._yaka_mask_cleanup = () => {
+                elem.removeEventListener('input', handler);
+            };
+        });
+    };
+
+    // Honeypot spam prevention
+    Yaka.prototype.honeypot = function(options = {}) {
+        return this.each((i, form) => {
+            if (form.tagName !== 'FORM') return;
+            
+            // Create hidden honeypot field
+            const honeypot = document.createElement('input');
+            honeypot.type = 'text';
+            honeypot.name = options.name || 'website';
+            honeypot.style.cssText = 'position: absolute; left: -9999px; width: 1px; height: 1px;';
+            honeypot.tabIndex = -1;
+            honeypot.autocomplete = 'off';
+            honeypot.setAttribute('aria-hidden', 'true');
+            
+            form.appendChild(honeypot);
+            
+            // Check on submit
+            const submitHandler = (e) => {
+                if (honeypot.value) {
+                    e.preventDefault();
+                    Yaka._log('warn', 'Honeypot triggered - potential spam detected');
+                    if (options.onSpam) {
+                        options.onSpam(e);
+                    }
+                    return false;
+                }
+            };
+            
+            form.addEventListener('submit', submitHandler);
+            
+            // Store cleanup
+            form._yaka_honeypot_cleanup = () => {
+                form.removeEventListener('submit', submitHandler);
+                if (honeypot.parentNode) {
+                    honeypot.parentNode.removeChild(honeypot);
+                }
+            };
+        });
+    };
+
+    // Keyboard shortcuts manager
+    Yaka.hotkeys = {};
+    Yaka.hotkey = function(combo, handler, options = {}) {
+        const normalized = combo.toLowerCase().replace(/\s+/g, '');
+        
+        const hotkeyHandler = (e) => {
+            const keys = [];
+            if (e.ctrlKey || e.metaKey) keys.push('ctrl');
+            if (e.altKey) keys.push('alt');
+            if (e.shiftKey) keys.push('shift');
+            keys.push(e.key.toLowerCase());
+            
+            const pressed = keys.join('+');
+            
+            if (pressed === normalized || pressed.replace('ctrl', 'meta') === normalized) {
+                if (options.preventDefault !== false) {
+                    e.preventDefault();
+                }
+                handler(e);
+            }
+        };
+        
+        document.addEventListener('keydown', hotkeyHandler);
+        Yaka.hotkeys[normalized] = hotkeyHandler;
+        
+        Yaka._log('info', `Hotkey registered: ${combo}`);
+        
+        return {
+            remove: () => {
+                document.removeEventListener('keydown', hotkeyHandler);
+                delete Yaka.hotkeys[normalized];
+            }
+        };
+    };
+
+    // Remove specific hotkey
+    Yaka.removeHotkey = function(combo) {
+        const normalized = combo.toLowerCase().replace(/\s+/g, '');
+        if (Yaka.hotkeys[normalized]) {
+            document.removeEventListener('keydown', Yaka.hotkeys[normalized]);
+            delete Yaka.hotkeys[normalized];
+        }
+    };
+
+    // ==================== PHASE 4: MODERN BROWSER SUPERPOWERS ====================
+
+    // Web Worker wrapper
+    Yaka.worker = function(fn, data) {
+        if (!Yaka.supports('webworker')) {
+            return Promise.reject(new Error('Web Workers not supported'));
+        }
+        
+        return new Promise((resolve, reject) => {
+            try {
+                // Convert function to worker code
+                const code = `
+                    self.onmessage = function(e) {
+                        const fn = ${fn.toString()};
+                        try {
+                            const result = fn(e.data);
+                            self.postMessage({ success: true, result });
+                        } catch (error) {
+                            self.postMessage({ success: false, error: error.message });
+                        }
+                    };
+                `;
+                
+                const blob = new Blob([code], { type: 'application/javascript' });
+                const worker = new Worker(URL.createObjectURL(blob));
+                
+                worker.onmessage = (e) => {
+                    if (e.data.success) {
+                        resolve(e.data.result);
+                    } else {
+                        reject(new Error(e.data.error));
+                    }
+                    worker.terminate();
+                };
+                
+                worker.onerror = (error) => {
+                    reject(error);
+                    worker.terminate();
+                };
+                
+                worker.postMessage(data);
+            } catch (error) {
+                reject(error);
+            }
+        });
+    };
+
+    // Enhanced IndexedDB wrapper (extends existing _.db)
+    if (Yaka.db) {
+        // Add batch operations
+        Yaka.db.saveMany = async function(storeName, items) {
+            if (!Yaka.supports('indexeddb')) {
+                return Promise.reject(new Error('IndexedDB not supported'));
+            }
+            
+            const db = await this._open();
+            const tx = db.transaction(storeName, 'readwrite');
+            const store = tx.objectStore(storeName);
+            
+            const promises = items.map(item => {
+                return new Promise((resolve, reject) => {
+                    const request = store.add(item);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            });
+            
+            return Promise.all(promises);
+        };
+        
+        Yaka.db.query = async function(storeName, filter) {
+            if (!Yaka.supports('indexeddb')) {
+                return Promise.reject(new Error('IndexedDB not supported'));
+            }
+            
+            const db = await this._open();
+            const tx = db.transaction(storeName, 'readonly');
+            const store = tx.objectStore(storeName);
+            
+            return new Promise((resolve, reject) => {
+                const request = store.getAll();
+                request.onsuccess = () => {
+                    let results = request.result;
+                    if (filter) {
+                        results = results.filter(filter);
+                    }
+                    resolve(results);
+                };
+                request.onerror = () => reject(request.error);
+            });
+        };
+        
+        Yaka.db.count = async function(storeName) {
+            if (!Yaka.supports('indexeddb')) {
+                return Promise.reject(new Error('IndexedDB not supported'));
+            }
+            
+            const db = await this._open();
+            const tx = db.transaction(storeName, 'readonly');
+            const store = tx.objectStore(storeName);
+            
+            return new Promise((resolve, reject) => {
+                const request = store.count();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        };
+    }
+
+    // WebNN/AI Integration wrapper
+    Yaka.ai = {
+        isAvailable: () => Yaka.supports('webnn') || !!(window.ai),
+        
+        // Text summarization
+        summarize: async function(text, options = {}) {
+            if (!this.isAvailable()) {
+                return Promise.reject(new Error('AI capabilities not supported in this browser'));
+            }
+            
+            try {
+                if (window.ai && window.ai.summarizer) {
+                    const summarizer = await window.ai.summarizer.create(options);
+                    return await summarizer.summarize(text);
+                }
+                throw new Error('Summarization API not available');
+            } catch (error) {
+                Yaka._log('error', 'AI summarization failed:', error);
+                throw error;
+            }
+        },
+        
+        // Sentiment analysis
+        analyzeSentiment: async function(text) {
+            if (!this.isAvailable()) {
+                return Promise.reject(new Error('AI capabilities not supported in this browser'));
+            }
+            
+            try {
+                // Use browser AI if available
+                if (window.ai && window.ai.languageModel) {
+                    const model = await window.ai.languageModel.create();
+                    const prompt = `Analyze the sentiment of this text and return only "positive", "negative", or "neutral": "${text}"`;
+                    const result = await model.prompt(prompt);
+                    return result.toLowerCase().trim();
+                }
+                throw new Error('Language model API not available');
+            } catch (error) {
+                Yaka._log('error', 'Sentiment analysis failed:', error);
+                throw error;
+            }
+        },
+        
+        // Translation
+        translate: async function(text, targetLang) {
+            if (!this.isAvailable()) {
+                return Promise.reject(new Error('AI capabilities not supported in this browser'));
+            }
+            
+            try {
+                if (window.ai && window.ai.translator) {
+                    const translator = await window.ai.translator.create({
+                        sourceLanguage: 'en',
+                        targetLanguage: targetLang
+                    });
+                    return await translator.translate(text);
+                }
+                throw new Error('Translation API not available');
+            } catch (error) {
+                Yaka._log('error', 'Translation failed:', error);
+                throw error;
+            }
+        }
+    };
+
+    // ==================== PHASE 5: DEVELOPER EXPERIENCE ====================
+
+    // Theme Engine
+    Yaka.theme = {
+        _current: localStorage.getItem('yaka-theme') || 'light',
+        _listeners: [],
+        
+        get current() {
+            return this._current;
+        },
+        
+        set: function(theme) {
+            if (theme !== 'light' && theme !== 'dark') {
+                Yaka._log('error', `Invalid theme: ${theme}. Use 'light' or 'dark'`);
+                return;
+            }
+            
+            this._current = theme;
+            localStorage.setItem('yaka-theme', theme);
+            
+            // Update CSS variables
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            const vars = theme === 'dark' ? {
+                '--bg-color': '#1a1a1a',
+                '--text-color': '#ffffff',
+                '--primary-color': '#667eea',
+                '--secondary-color': '#764ba2',
+                '--border-color': '#333333',
+                '--card-bg': '#2a2a2a',
+                '--shadow': '0 2px 8px rgba(0,0,0,0.5)'
+            } : {
+                '--bg-color': '#ffffff',
+                '--text-color': '#333333',
+                '--primary-color': '#667eea',
+                '--secondary-color': '#764ba2',
+                '--border-color': '#e0e0e0',
+                '--card-bg': '#f9f9f9',
+                '--shadow': '0 2px 8px rgba(0,0,0,0.1)'
+            };
+            
+            Object.entries(vars).forEach(([key, value]) => {
+                document.documentElement.style.setProperty(key, value);
+            });
+            
+            // Notify listeners
+            this._listeners.forEach(fn => fn(theme));
+            
+            Yaka._log('info', `Theme changed to: ${theme}`);
+        },
+        
+        dark: function() {
+            this.set('dark');
+        },
+        
+        light: function() {
+            this.set('light');
+        },
+        
+        toggle: function() {
+            this.set(this._current === 'dark' ? 'light' : 'dark');
+        },
+        
+        onChange: function(callback) {
+            this._listeners.push(callback);
+        },
+        
+        init: function() {
+            // Apply saved theme on load
+            this.set(this._current);
+            
+            // Listen for system preference changes
+            if (window.matchMedia) {
+                const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                darkModeQuery.addEventListener('change', (e) => {
+                    if (!localStorage.getItem('yaka-theme')) {
+                        this.set(e.matches ? 'dark' : 'light');
+                    }
+                });
+            }
+        }
+    };
+
+    // Initialize theme on load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => Yaka.theme.init());
+    } else {
+        Yaka.theme.init();
+    }
+
+    // Enhanced Plugin API
+    Yaka.plugins = {};
+    
+    // Override existing use() method to be more standardized
+    const originalUse = Yaka.use;
+    Yaka.use = function(name, plugin) {
+        if (typeof plugin !== 'function' && typeof plugin !== 'object') {
+            Yaka._log('error', 'Plugin must be a function or object');
+            return;
+        }
+        
+        if (Yaka.plugins[name]) {
+            Yaka._log('warn', `Plugin "${name}" is already registered`);
+            return;
+        }
+        
+        try {
+            // If plugin is a function, call it with Yaka
+            if (typeof plugin === 'function') {
+                plugin(Yaka);
+            } else if (plugin.install) {
+                // If plugin has install method, call it
+                plugin.install(Yaka);
+            } else {
+                // Otherwise, merge plugin methods into Yaka
+                Object.assign(Yaka, plugin);
+            }
+            
+            Yaka.plugins[name] = plugin;
+            Yaka._log('success', `Plugin "${name}" registered successfully`);
+        } catch (error) {
+            Yaka._log('error', `Failed to register plugin "${name}":`, error);
+        }
+    };
+
+    // Plugin helper to create plugins
+    Yaka.createPlugin = function(name, definition) {
+        return {
+            name,
+            install: (Yaka) => {
+                if (definition.methods) {
+                    Object.assign(Yaka.prototype, definition.methods);
+                }
+                if (definition.statics) {
+                    Object.assign(Yaka, definition.statics);
+                }
+                if (definition.init) {
+                    definition.init(Yaka);
+                }
+            }
+        };
+    };
+
+    // Development utilities
+    Yaka.dev = {
+        // Performance profiler
+        profile: function(name, fn) {
+            const start = performance.now();
+            const result = fn();
+            const end = performance.now();
+            
+            console.log(`%c[Yaka Profile] ${name}`, 'color: #9b59b6; font-weight: bold;', `${(end - start).toFixed(2)}ms`);
+            
+            return result;
+        },
+        
+        // Memory usage
+        memory: function() {
+            if (performance.memory) {
+                const used = (performance.memory.usedJSHeapSize / 1048576).toFixed(2);
+                const total = (performance.memory.totalJSHeapSize / 1048576).toFixed(2);
+                console.log(`%c[Yaka Memory]`, 'color: #e67e22; font-weight: bold;', `${used}MB / ${total}MB`);
+                return { used, total };
+            }
+            console.warn('Performance.memory not available');
+            return null;
+        },
+        
+        // Element inspector
+        inspect: function(selector) {
+            const elem = document.querySelector(selector);
+            if (!elem) {
+                console.warn(`Element not found: ${selector}`);
+                return;
+            }
+            
+            const info = {
+                tagName: elem.tagName,
+                id: elem.id,
+                classes: Array.from(elem.classList),
+                attributes: {},
+                styles: {},
+                listeners: [],
+                yakaFeatures: []
+            };
+            
+            // Get attributes
+            Array.from(elem.attributes).forEach(attr => {
+                info.attributes[attr.name] = attr.value;
+            });
+            
+            // Get computed styles
+            const computed = window.getComputedStyle(elem);
+            ['display', 'position', 'width', 'height', 'margin', 'padding'].forEach(prop => {
+                info.styles[prop] = computed[prop];
+            });
+            
+            // Check for Yaka features
+            Object.keys(elem).forEach(key => {
+                if (key.startsWith('_yaka_')) {
+                    info.yakaFeatures.push(key);
+                }
+            });
+            
+            console.log(`%c[Yaka Inspector]`, 'color: #3498db; font-weight: bold;', selector, info);
+            return info;
+        },
+        
+        // List all registered plugins
+        plugins: function() {
+            console.log(`%c[Yaka Plugins]`, 'color: #2ecc71; font-weight: bold;', Object.keys(Yaka.plugins));
+            return Yaka.plugins;
+        },
+        
+        // List all hotkeys
+        hotkeys: function() {
+            console.log(`%c[Yaka Hotkeys]`, 'color: #f39c12; font-weight: bold;', Object.keys(Yaka.hotkeys));
+            return Yaka.hotkeys;
+        }
+    };
+
+    // Memoization utility for expensive function results
+    Yaka.memoize = function(fn) {
+        const cache = new Map();
+        
+        return function(...args) {
+            const key = JSON.stringify(args);
+            
+            if (cache.has(key)) {
+                Yaka._log('info', 'Memoize: Cache hit', { key });
+                return cache.get(key);
+            }
+            
+            const result = fn.apply(this, args);
+            cache.set(key, result);
+            Yaka._log('info', 'Memoize: Cache miss, storing result', { key });
+            
+            return result;
+        };
+    };
+
+    // Router middleware support
+    if (Yaka.router) {
+        const originalRouter = Yaka.router;
+        
+        Yaka.router = function(routes, options = {}) {
+            const middleware = options.middleware || [];
+            const router = originalRouter(routes);
+            
+            // Wrap navigate to support middleware
+            const originalNavigate = router.navigate;
+            router.navigate = async function(path) {
+                // Run middleware
+                for (const fn of middleware) {
+                    const result = await fn(path, router);
+                    if (result === false) {
+                        Yaka._log('info', `Navigation to ${path} blocked by middleware`);
+                        return;
+                    }
+                }
+                
+                originalNavigate.call(router, path);
+            };
+            
+            return router;
+        };
+    }
+
+    // Lottie animation support (basic wrapper)
+    Yaka.prototype.lottie = function(options = {}) {
+        return this.each((i, elem) => {
+            if (typeof lottie === 'undefined') {
+                Yaka._log('error', 'Lottie library not loaded. Include it from: https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js');
+                return;
+            }
+            
+            const animation = lottie.loadAnimation({
+                container: elem,
+                renderer: options.renderer || 'svg',
+                loop: options.loop !== false,
+                autoplay: options.autoplay !== false,
+                path: options.path || options.animationData
+            });
+            
+            elem._yaka_lottie = animation;
+            elem._yaka_lottie_cleanup = () => {
+                animation.destroy();
+            };
+        });
+    };
+
+    // Bluetooth API wrapper
+    Yaka.bluetooth = {
+        isAvailable: () => Yaka.supports('bluetooth'),
+        
+        connect: async function(options = {}) {
+            if (!this.isAvailable()) {
+                return Promise.reject(new Error('Bluetooth not supported'));
+            }
+            
+            try {
+                const device = await navigator.bluetooth.requestDevice({
+                    filters: options.filters || [{ services: ['heart_rate'] }],
+                    optionalServices: options.optionalServices || []
+                });
+                
+                Yaka._log('info', 'Bluetooth device connected:', device.name);
+                
+                const server = await device.gatt.connect();
+                
+                return {
+                    device,
+                    server,
+                    getService: async (serviceUuid) => {
+                        return await server.getPrimaryService(serviceUuid);
+                    },
+                    disconnect: () => {
+                        server.disconnect();
+                        Yaka._log('info', 'Bluetooth device disconnected');
+                    }
+                };
+            } catch (error) {
+                Yaka._log('error', 'Bluetooth connection failed:', error);
+                throw error;
+            }
+        },
+        
+        // Heart rate monitor helper
+        heartRateMonitor: async function(callback) {
+            try {
+                const connection = await this.connect({
+                    filters: [{ services: ['heart_rate'] }]
+                });
+                
+                const service = await connection.getService('heart_rate');
+                const characteristic = await service.getCharacteristic('heart_rate_measurement');
+                
+                characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                    const value = event.target.value.getUint8(1);
+                    callback(value);
+                });
+                
+                await characteristic.startNotifications();
+                
+                return connection;
+            } catch (error) {
+                Yaka._log('error', 'Heart rate monitor failed:', error);
+                throw error;
+            }
+        }
+    };
+
     // Add CSS animations
     const style = document.createElement('style');
     style.textContent = `
