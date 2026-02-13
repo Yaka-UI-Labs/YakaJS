@@ -134,22 +134,98 @@
 
         // ==================== CLASSES ====================
 
-        add: function (className) {
+        add: function (className, duration) {
+            // jQuery UI compatible: addClass with animation
+            if (duration) {
+                return this.each((i, elem) => {
+                    const classes = className.split(' ');
+                    // Get current computed styles before adding class
+                    const before = {};
+                    const computed = getComputedStyle(elem);
+                    ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
+                        before[prop] = computed[prop];
+                    });
+                    
+                    // Add the class
+                    classes.forEach(cls => elem.classList.add(cls));
+                    
+                    // Get new computed styles
+                    const after = getComputedStyle(elem);
+                    const transitions = [];
+                    
+                    // Find what changed and animate it
+                    Object.keys(before).forEach(prop => {
+                        if (before[prop] !== after[prop]) {
+                            transitions.push(`${prop} ${duration}ms ease`);
+                        }
+                    });
+                    
+                    if (transitions.length > 0) {
+                        elem.style.transition = transitions.join(', ');
+                        setTimeout(() => elem.style.transition = '', duration);
+                    }
+                });
+            }
             return this.each((i, elem) => {
                 className.split(' ').forEach(cls => elem.classList.add(cls));
             });
         },
 
-        remove: function (className) {
+        remove: function (className, duration) {
             if (!className) {
                 return this.each((i, elem) => elem.remove());
             }
+            
+            // jQuery UI compatible: removeClass with animation
+            if (duration) {
+                return this.each((i, elem) => {
+                    const classes = className.split(' ');
+                    // Get current computed styles before removing class
+                    const before = {};
+                    const computed = getComputedStyle(elem);
+                    ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
+                        before[prop] = computed[prop];
+                    });
+                    
+                    // Remove the class
+                    classes.forEach(cls => elem.classList.remove(cls));
+                    
+                    // Get new computed styles
+                    const after = getComputedStyle(elem);
+                    const transitions = [];
+                    
+                    // Find what changed and animate it
+                    Object.keys(before).forEach(prop => {
+                        if (before[prop] !== after[prop]) {
+                            transitions.push(`${prop} ${duration}ms ease`);
+                        }
+                    });
+                    
+                    if (transitions.length > 0) {
+                        elem.style.transition = transitions.join(', ');
+                        setTimeout(() => elem.style.transition = '', duration);
+                    }
+                });
+            }
+            
             return this.each((i, elem) => {
                 className.split(' ').forEach(cls => elem.classList.remove(cls));
             });
         },
 
-        toggle: function (className) {
+        toggle: function (className, duration) {
+            // jQuery UI compatible: toggleClass with animation
+            if (duration) {
+                return this.each((i, elem) => {
+                    const hasClass = elem.classList.contains(className);
+                    if (hasClass) {
+                        this.remove(className, duration);
+                    } else {
+                        this.add(className, duration);
+                    }
+                });
+            }
+            
             return this.each((i, elem) => {
                 className.split(' ').forEach(cls => elem.classList.toggle(cls));
             });
@@ -225,13 +301,93 @@
             });
         },
 
-        // NEW! Animate any CSS property
+        // NEW! Animate any CSS property (with color support)
         animate: function (props, duration = 400, easing = 'ease') {
             return this.each((i, elem) => {
-                const transitions = Object.keys(props).map(key => `${key} ${duration}ms ${easing}`).join(', ');
-                elem.style.transition = transitions;
-                Object.assign(elem.style, props);
-                setTimeout(() => elem.style.transition = '', duration);
+                // Helper to parse color
+                const parseColor = (color) => {
+                    if (!color) return null;
+                    if (color.startsWith('#')) {
+                        const hex = color.substring(1);
+                        if (hex.length === 3) {
+                            return {
+                                r: parseInt(hex[0] + hex[0], 16),
+                                g: parseInt(hex[1] + hex[1], 16),
+                                b: parseInt(hex[2] + hex[2], 16)
+                            };
+                        }
+                        return {
+                            r: parseInt(hex.substring(0, 2), 16),
+                            g: parseInt(hex.substring(2, 4), 16),
+                            b: parseInt(hex.substring(4, 6), 16)
+                        };
+                    }
+                    if (color.startsWith('rgb')) {
+                        const match = color.match(/\d+/g);
+                        return { r: +match[0], g: +match[1], b: +match[2] };
+                    }
+                    return null;
+                };
+
+                // Check for color properties
+                const colorProps = ['color', 'backgroundColor', 'borderColor'];
+                const hasColorAnimation = Object.keys(props).some(key => colorProps.includes(key));
+                
+                if (hasColorAnimation) {
+                    // Animate colors using keyframes
+                    const startColors = {};
+                    const endColors = {};
+                    
+                    Object.keys(props).forEach(key => {
+                        if (colorProps.includes(key)) {
+                            const currentColor = getComputedStyle(elem)[key];
+                            startColors[key] = parseColor(currentColor);
+                            endColors[key] = parseColor(props[key]);
+                        }
+                    });
+                    
+                    const startTime = Date.now();
+                    const animateColors = () => {
+                        const elapsed = Date.now() - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        Object.keys(startColors).forEach(key => {
+                            if (startColors[key] && endColors[key]) {
+                                const r = Math.round(startColors[key].r + (endColors[key].r - startColors[key].r) * progress);
+                                const g = Math.round(startColors[key].g + (endColors[key].g - startColors[key].g) * progress);
+                                const b = Math.round(startColors[key].b + (endColors[key].b - startColors[key].b) * progress);
+                                elem.style[key] = `rgb(${r}, ${g}, ${b})`;
+                            }
+                        });
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(animateColors);
+                        }
+                    };
+                    
+                    animateColors();
+                    
+                    // Animate non-color properties normally
+                    const nonColorProps = {};
+                    Object.keys(props).forEach(key => {
+                        if (!colorProps.includes(key)) {
+                            nonColorProps[key] = props[key];
+                        }
+                    });
+                    
+                    if (Object.keys(nonColorProps).length > 0) {
+                        const transitions = Object.keys(nonColorProps).map(key => `${key} ${duration}ms ${easing}`).join(', ');
+                        elem.style.transition = transitions;
+                        Object.assign(elem.style, nonColorProps);
+                        setTimeout(() => elem.style.transition = '', duration);
+                    }
+                } else {
+                    // No color animation, proceed normally
+                    const transitions = Object.keys(props).map(key => `${key} ${duration}ms ${easing}`).join(', ');
+                    elem.style.transition = transitions;
+                    Object.assign(elem.style, props);
+                    setTimeout(() => elem.style.transition = '', duration);
+                }
             });
         },
 
@@ -1366,6 +1522,150 @@
         });
     };
 
+    // NEW! Selectable - Multi-element selection
+    Yaka.prototype.selectable = function (options = {}) {
+        return this.each((i, container) => {
+            if (container._yaka_selectable) return;
+            container._yaka_selectable = true;
+
+            const filter = options.filter || '*';
+            const cancel = options.cancel || 'input,textarea,button,select,option';
+            const tolerance = options.tolerance || 'touch'; // 'touch' or 'fit'
+            
+            let isSelecting = false;
+            let startX, startY;
+            let marquee = null;
+            let selectedItems = new Set();
+
+            // Create marquee element
+            const createMarquee = () => {
+                marquee = document.createElement('div');
+                marquee.style.cssText = `
+                    position: fixed;
+                    border: 1px dashed #4285f4;
+                    background: rgba(66, 133, 244, 0.1);
+                    z-index: 9999;
+                    pointer-events: none;
+                `;
+                document.body.appendChild(marquee);
+            };
+
+            // Update marquee position
+            const updateMarquee = (currentX, currentY) => {
+                const left = Math.min(startX, currentX);
+                const top = Math.min(startY, currentY);
+                const width = Math.abs(currentX - startX);
+                const height = Math.abs(currentY - startY);
+
+                marquee.style.left = left + 'px';
+                marquee.style.top = top + 'px';
+                marquee.style.width = width + 'px';
+                marquee.style.height = height + 'px';
+            };
+
+            // Check if element intersects with marquee
+            const intersects = (elem, marqueeRect) => {
+                const elemRect = elem.getBoundingClientRect();
+                
+                if (tolerance === 'fit') {
+                    // Element must be completely within marquee
+                    return elemRect.left >= marqueeRect.left &&
+                           elemRect.right <= marqueeRect.right &&
+                           elemRect.top >= marqueeRect.top &&
+                           elemRect.bottom <= marqueeRect.bottom;
+                } else {
+                    // Element must touch marquee
+                    return !(elemRect.right < marqueeRect.left ||
+                            elemRect.left > marqueeRect.right ||
+                            elemRect.bottom < marqueeRect.top ||
+                            elemRect.top > marqueeRect.bottom);
+                }
+            };
+
+            // Select/deselect items
+            const updateSelection = () => {
+                const marqueeRect = marquee.getBoundingClientRect();
+                const items = container.querySelectorAll(filter);
+
+                items.forEach(item => {
+                    // Skip cancel elements
+                    if (item.matches(cancel)) return;
+
+                    if (intersects(item, marqueeRect)) {
+                        if (!selectedItems.has(item)) {
+                            selectedItems.add(item);
+                            item.classList.add('ui-selected');
+                            if (options.onSelect) options.onSelect.call(item);
+                        }
+                    } else {
+                        if (selectedItems.has(item)) {
+                            selectedItems.delete(item);
+                            item.classList.remove('ui-selected');
+                            if (options.onUnselect) options.onUnselect.call(item);
+                        }
+                    }
+                });
+            };
+
+            const handleMouseDown = (e) => {
+                // Check if clicking on a cancel element
+                if (e.target.matches(cancel)) return;
+
+                // Clear previous selection if not holding ctrl/cmd
+                if (!e.ctrlKey && !e.metaKey) {
+                    selectedItems.forEach(item => {
+                        item.classList.remove('ui-selected');
+                    });
+                    selectedItems.clear();
+                }
+
+                isSelecting = true;
+                startX = e.clientX;
+                startY = e.clientY;
+                createMarquee();
+                updateMarquee(e.clientX, e.clientY);
+
+                if (options.onStart) options.onStart.call(container, e);
+            };
+
+            const handleMouseMove = (e) => {
+                if (!isSelecting) return;
+                
+                updateMarquee(e.clientX, e.clientY);
+                updateSelection();
+            };
+
+            const handleMouseUp = (e) => {
+                if (!isSelecting) return;
+
+                isSelecting = false;
+                if (marquee && marquee.parentNode) {
+                    marquee.remove();
+                }
+                marquee = null;
+
+                if (options.onStop) {
+                    options.onStop.call(container, e, Array.from(selectedItems));
+                }
+            };
+
+            container.addEventListener('mousedown', handleMouseDown);
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+
+            // Store cleanup function
+            container._yaka_selectable_cleanup = () => {
+                container.removeEventListener('mousedown', handleMouseDown);
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+                if (marquee && marquee.parentNode) marquee.remove();
+                selectedItems.forEach(item => item.classList.remove('ui-selected'));
+                delete container._yaka_selectable;
+                delete container._yaka_selectable_cleanup;
+            };
+        });
+    };
+
     // NEW! Touch gestures
     Yaka.prototype.swipe = function (handlers) {
         return this.each((i, elem) => {
@@ -1561,6 +1861,353 @@
                 if (tooltip.parentNode) tooltip.remove();
                 delete elem._yaka_tooltip;
                 delete elem._yaka_tooltip_cleanup;
+            };
+        });
+    };
+
+    // NEW! Button Widget - Enhanced button with states and icons
+    Yaka.prototype.button = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_button) return;
+            elem._yaka_button = true;
+
+            const label = options.label || elem.textContent || elem.value;
+            const icon = options.icon || null;
+            const iconPosition = options.iconPosition || 'left';
+            const disabled = options.disabled || false;
+
+            // Add button classes
+            elem.classList.add('ui-button', 'ui-widget');
+            
+            // Handle different element types
+            if (elem.tagName === 'INPUT' && (elem.type === 'button' || elem.type === 'submit' || elem.type === 'reset')) {
+                elem.value = label;
+            } else if (elem.tagName === 'A') {
+                elem.setAttribute('role', 'button');
+                elem.style.cssText += `
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 16px;
+                    background: #4285f4;
+                    color: white;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    border: none;
+                    font-size: 14px;
+                    transition: all 0.2s ease;
+                `;
+            } else {
+                elem.style.cssText += `
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
+                    padding: 8px 16px;
+                    background: #4285f4;
+                    color: white;
+                    border-radius: 4px;
+                    cursor: pointer;
+                    border: none;
+                    font-size: 14px;
+                    transition: all 0.2s ease;
+                `;
+            }
+
+            // Add icon if specified
+            if (icon) {
+                const iconElem = document.createElement('span');
+                iconElem.className = 'ui-button-icon';
+                iconElem.innerHTML = icon;
+                iconElem.style.display = 'inline-flex';
+                
+                if (iconPosition === 'left') {
+                    elem.insertBefore(iconElem, elem.firstChild);
+                } else {
+                    elem.appendChild(iconElem);
+                }
+            }
+
+            // Add hover effects
+            const handleMouseEnter = () => {
+                if (!elem.disabled && !elem.classList.contains('ui-state-disabled')) {
+                    elem.style.background = '#357ae8';
+                }
+            };
+
+            const handleMouseLeave = () => {
+                if (!elem.disabled && !elem.classList.contains('ui-state-disabled')) {
+                    elem.style.background = '#4285f4';
+                }
+            };
+
+            elem.addEventListener('mouseenter', handleMouseEnter);
+            elem.addEventListener('mouseleave', handleMouseLeave);
+
+            // Handle disabled state
+            if (disabled) {
+                elem.classList.add('ui-state-disabled');
+                elem.disabled = true;
+                elem.style.opacity = '0.6';
+                elem.style.cursor = 'not-allowed';
+            }
+
+            // Store methods
+            elem._yaka_button_api = {
+                enable: () => {
+                    elem.classList.remove('ui-state-disabled');
+                    elem.disabled = false;
+                    elem.style.opacity = '1';
+                    elem.style.cursor = 'pointer';
+                },
+                disable: () => {
+                    elem.classList.add('ui-state-disabled');
+                    elem.disabled = true;
+                    elem.style.opacity = '0.6';
+                    elem.style.cursor = 'not-allowed';
+                }
+            };
+
+            elem._yaka_button_cleanup = () => {
+                elem.removeEventListener('mouseenter', handleMouseEnter);
+                elem.removeEventListener('mouseleave', handleMouseLeave);
+                elem.classList.remove('ui-button', 'ui-widget', 'ui-state-disabled');
+                delete elem._yaka_button;
+                delete elem._yaka_button_api;
+                delete elem._yaka_button_cleanup;
+            };
+        });
+    };
+
+    // NEW! Checkboxradio - Themed checkbox and radio buttons
+    Yaka.prototype.checkboxradio = function (options = {}) {
+        return this.each((i, input) => {
+            if (input._yaka_checkboxradio) return;
+            if (input.type !== 'checkbox' && input.type !== 'radio') return;
+            
+            input._yaka_checkboxradio = true;
+
+            // Create wrapper
+            const wrapper = document.createElement('label');
+            wrapper.className = 'ui-checkboxradio-label';
+            wrapper.style.cssText = `
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                user-select: none;
+            `;
+
+            // Create visual element
+            const visual = document.createElement('span');
+            visual.className = 'ui-checkboxradio-icon';
+            visual.style.cssText = `
+                display: inline-block;
+                width: 18px;
+                height: 18px;
+                border: 2px solid #4285f4;
+                ${input.type === 'checkbox' ? 'border-radius: 3px;' : 'border-radius: 50%;'}
+                background: white;
+                position: relative;
+                transition: all 0.2s ease;
+            `;
+
+            // Insert wrapper
+            input.parentNode.insertBefore(wrapper, input);
+            wrapper.appendChild(input);
+            wrapper.appendChild(visual);
+            
+            // Add label text if exists
+            const labelText = options.label || input.getAttribute('data-label');
+            if (labelText) {
+                const textSpan = document.createElement('span');
+                textSpan.textContent = labelText;
+                wrapper.appendChild(textSpan);
+            }
+
+            // Hide original input
+            input.style.cssText = `
+                position: absolute;
+                opacity: 0;
+                pointer-events: none;
+            `;
+
+            const updateVisual = () => {
+                if (input.checked) {
+                    visual.style.background = '#4285f4';
+                    if (input.type === 'checkbox') {
+                        visual.innerHTML = '<span style="color: white; font-size: 14px; line-height: 14px;">✓</span>';
+                    } else {
+                        visual.innerHTML = '<span style="position: absolute; top: 3px; left: 3px; width: 8px; height: 8px; border-radius: 50%; background: white;"></span>';
+                    }
+                } else {
+                    visual.style.background = 'white';
+                    visual.innerHTML = '';
+                }
+            };
+
+            input.addEventListener('change', updateVisual);
+            updateVisual();
+
+            input._yaka_checkboxradio_cleanup = () => {
+                input.removeEventListener('change', updateVisual);
+                if (wrapper.parentNode) {
+                    wrapper.parentNode.insertBefore(input, wrapper);
+                    wrapper.remove();
+                }
+                input.style.cssText = '';
+                delete input._yaka_checkboxradio;
+                delete input._yaka_checkboxradio_cleanup;
+            };
+        });
+    };
+
+    // NEW! Controlgroup - Group form controls
+    Yaka.prototype.controlgroup = function (options = {}) {
+        return this.each((i, container) => {
+            if (container._yaka_controlgroup) return;
+            container._yaka_controlgroup = true;
+
+            const direction = options.direction || 'horizontal';
+            
+            container.classList.add('ui-controlgroup');
+            container.style.cssText = `
+                display: inline-flex;
+                ${direction === 'horizontal' ? 'flex-direction: row;' : 'flex-direction: column;'}
+                gap: 0;
+            `;
+
+            // Style child controls
+            const controls = Array.from(container.children);
+            controls.forEach((control, idx) => {
+                control.classList.add('ui-controlgroup-item');
+                
+                // Remove border radius from middle items
+                if (direction === 'horizontal') {
+                    if (idx > 0) {
+                        control.style.borderTopLeftRadius = '0';
+                        control.style.borderBottomLeftRadius = '0';
+                        control.style.marginLeft = '-1px';
+                    }
+                    if (idx < controls.length - 1) {
+                        control.style.borderTopRightRadius = '0';
+                        control.style.borderBottomRightRadius = '0';
+                    }
+                } else {
+                    if (idx > 0) {
+                        control.style.borderTopLeftRadius = '0';
+                        control.style.borderTopRightRadius = '0';
+                        control.style.marginTop = '-1px';
+                    }
+                    if (idx < controls.length - 1) {
+                        control.style.borderBottomLeftRadius = '0';
+                        control.style.borderBottomRightRadius = '0';
+                    }
+                }
+            });
+
+            container._yaka_controlgroup_cleanup = () => {
+                container.classList.remove('ui-controlgroup');
+                controls.forEach(control => {
+                    control.classList.remove('ui-controlgroup-item');
+                });
+                delete container._yaka_controlgroup;
+                delete container._yaka_controlgroup_cleanup;
+            };
+        });
+    };
+
+    // NEW! Menu Widget - Hierarchical menu
+    Yaka.prototype.menu = function (options = {}) {
+        return this.each((i, elem) => {
+            if (elem._yaka_menu) return;
+            elem._yaka_menu = true;
+
+            elem.classList.add('ui-menu', 'ui-widget');
+            elem.setAttribute('role', 'menu');
+            elem.style.cssText = `
+                list-style: none;
+                padding: 8px 0;
+                margin: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                min-width: 150px;
+            `;
+
+            const items = elem.querySelectorAll('li');
+            items.forEach((item, index) => {
+                item.classList.add('ui-menu-item');
+                item.setAttribute('role', 'menuitem');
+                item.setAttribute('tabindex', index === 0 ? '0' : '-1');
+                item.style.cssText = `
+                    padding: 10px 16px;
+                    cursor: pointer;
+                    transition: background 0.2s ease;
+                `;
+
+                const handleMouseEnter = () => {
+                    item.style.background = '#f5f5f5';
+                };
+
+                const handleMouseLeave = () => {
+                    item.style.background = 'white';
+                };
+
+                const handleClick = () => {
+                    if (options.onSelect) {
+                        options.onSelect.call(item, item.textContent, index);
+                    }
+                };
+
+                item.addEventListener('mouseenter', handleMouseEnter);
+                item.addEventListener('mouseleave', handleMouseLeave);
+                item.addEventListener('click', handleClick);
+
+                // Store cleanup for this item
+                if (!item._yaka_menu_item_cleanup) {
+                    item._yaka_menu_item_cleanup = () => {
+                        item.removeEventListener('mouseenter', handleMouseEnter);
+                        item.removeEventListener('mouseleave', handleMouseLeave);
+                        item.removeEventListener('click', handleClick);
+                    };
+                }
+            });
+
+            // Keyboard navigation
+            const handleKeyDown = (e) => {
+                const currentItem = document.activeElement;
+                const allItems = Array.from(items);
+                const currentIndex = allItems.indexOf(currentItem);
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const nextIndex = (currentIndex + 1) % allItems.length;
+                    allItems[nextIndex].focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prevIndex = (currentIndex - 1 + allItems.length) % allItems.length;
+                    allItems[prevIndex].focus();
+                } else if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    currentItem.click();
+                }
+            };
+
+            elem.addEventListener('keydown', handleKeyDown);
+
+            elem._yaka_menu_cleanup = () => {
+                elem.removeEventListener('keydown', handleKeyDown);
+                items.forEach(item => {
+                    if (item._yaka_menu_item_cleanup) {
+                        item._yaka_menu_item_cleanup();
+                        delete item._yaka_menu_item_cleanup;
+                    }
+                });
+                elem.classList.remove('ui-menu', 'ui-widget');
+                delete elem._yaka_menu;
+                delete elem._yaka_menu_cleanup;
             };
         });
     };
@@ -3351,6 +3998,110 @@
         return timeline;
     };
 
+    // NEW! Position - jQuery UI position utility
+    Yaka.prototype.position = function (options = {}) {
+        return this.each((i, elem) => {
+            const of = options.of || window;
+            const my = options.my || 'center';
+            const at = options.at || 'center';
+            const collision = options.collision || 'flip';
+            const offset = options.offset || { x: 0, y: 0 };
+
+            // Parse position strings like "left top", "center", "right bottom"
+            const parsePosition = (pos) => {
+                const parts = pos.split(' ');
+                const x = parts[0] || 'center';
+                const y = parts[1] || 'center';
+                return { x, y };
+            };
+
+            const myPos = parsePosition(my);
+            const atPos = parsePosition(at);
+
+            // Get target element or window
+            const target = of === window ? of : (of.nodeType ? of : document.querySelector(of));
+            if (!target) return;
+
+            // Get dimensions
+            const elemRect = elem.getBoundingClientRect();
+            let targetRect;
+
+            if (target === window) {
+                targetRect = {
+                    left: 0,
+                    top: 0,
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                };
+            } else {
+                targetRect = target.getBoundingClientRect();
+            }
+
+            // Calculate position
+            let left = targetRect.left;
+            let top = targetRect.top;
+
+            // Horizontal positioning
+            if (atPos.x === 'left') {
+                left = targetRect.left;
+            } else if (atPos.x === 'center') {
+                left = targetRect.left + targetRect.width / 2;
+            } else if (atPos.x === 'right') {
+                left = targetRect.left + targetRect.width;
+            }
+
+            if (myPos.x === 'center') {
+                left -= elemRect.width / 2;
+            } else if (myPos.x === 'right') {
+                left -= elemRect.width;
+            }
+
+            // Vertical positioning
+            if (atPos.y === 'top') {
+                top = targetRect.top;
+            } else if (atPos.y === 'center') {
+                top = targetRect.top + targetRect.height / 2;
+            } else if (atPos.y === 'bottom') {
+                top = targetRect.top + targetRect.height;
+            }
+
+            if (myPos.y === 'center') {
+                top -= elemRect.height / 2;
+            } else if (myPos.y === 'bottom') {
+                top -= elemRect.height;
+            }
+
+            // Apply offset
+            left += (offset.x || 0);
+            top += (offset.y || 0);
+
+            // Collision detection
+            if (collision === 'flip') {
+                // Check if element goes off screen and flip if needed
+                if (left < 0) {
+                    left = targetRect.right;
+                } else if (left + elemRect.width > window.innerWidth) {
+                    left = targetRect.left - elemRect.width;
+                }
+
+                if (top < 0) {
+                    top = targetRect.bottom;
+                } else if (top + elemRect.height > window.innerHeight) {
+                    top = targetRect.top - elemRect.height;
+                }
+            } else if (collision === 'fit') {
+                // Keep within viewport
+                left = Math.max(0, Math.min(left, window.innerWidth - elemRect.width));
+                top = Math.max(0, Math.min(top, window.innerHeight - elemRect.height));
+            }
+
+            // Apply position
+            elem.style.position = 'absolute';
+            elem.style.left = left + 'px';
+            elem.style.top = top + 'px';
+        });
+    };
+
     // NEW! 3D Transforms
     Yaka.prototype.transform3d = function (options = {}) {
         return this.each((i, elem) => {
@@ -3882,11 +4633,16 @@
                 '_yaka_draggable_cleanup',
                 '_yaka_resizable_cleanup',
                 '_yaka_droppable_cleanup',
+                '_yaka_selectable_cleanup',
                 '_yaka_scroll_cleanup',        // infiniteScroll
                 '_yaka_scrollspy_cleanup',
                 '_yaka_tilt_cleanup',
                 '_yaka_magnetic_cleanup',
                 '_yaka_tooltip_cleanup',
+                '_yaka_button_cleanup',
+                '_yaka_checkboxradio_cleanup',
+                '_yaka_controlgroup_cleanup',
+                '_yaka_menu_cleanup',
                 '_yaka_colorpicker_cleanup',
                 '_yaka_datepicker_cleanup',
                 '_yaka_slider_cleanup',
