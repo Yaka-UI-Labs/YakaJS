@@ -100,10 +100,9 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 ```html
 <!-- unpkg -->
 <script src="https://unpkg.com/yakajs@latest/min.yaka.js"></script>
-
-<!-- GitHub Raw (not recommended for production) -->
-<script src="https://raw.githubusercontent.com/Yaka-UI-Labs/YakaJS/main/min.yaka.js"></script>
 ```
+
+> ⚠️ **Note:** GitHub Raw URLs are not suitable for production use due to lack of CDN caching and reliability. Use jsDelivr or unpkg for production deployments.
 
 ### Option 2: Download and Host Locally
 
@@ -923,9 +922,9 @@ export default _;
 - ✅ No known vulnerabilities
 
 **Q: How to report security issues?**
-- Open a private security advisory on GitHub
-- Or email: security@yakajs.com (if available)
-- Do not post publicly until fixed
+- Open a [GitHub Security Advisory](https://github.com/Yaka-UI-Labs/YakaJS/security/advisories/new)
+- Do not post security issues publicly until they are fixed
+- Provide detailed steps to reproduce the vulnerability
 
 ### Performance Benchmarks
 
@@ -984,15 +983,37 @@ Check out these files in the repository for comprehensive examples:
 
         // Render function
         function render() {
-            const html = store.state.todos.map(todo => `
-                <li style="text-decoration: ${todo.done ? 'line-through' : 'none'}">
-                    <input type="checkbox" ${todo.done ? 'checked' : ''} 
-                           onchange="store.commit('toggleTodo', ${todo.id})">
-                    ${_.security.escapeHtml(todo.text)}
-                    <button onclick="store.commit('removeTodo', ${todo.id})">×</button>
-                </li>
-            `).join('');
-            _('#todo-list').html(html);
+            _('#todo-list').html(''); // Clear list
+            
+            store.state.todos.forEach(todo => {
+                const li = document.createElement('li');
+                li.style.textDecoration = todo.done ? 'line-through' : 'none';
+                
+                // Checkbox with event delegation
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = todo.done;
+                checkbox.dataset.id = todo.id;
+                _(checkbox).on('change', (e) => {
+                    store.commit('toggleTodo', parseInt(e.target.dataset.id));
+                });
+                
+                // Text content (safely escaped)
+                const text = document.createTextNode(_.security.escapeHtml(todo.text));
+                
+                // Remove button with event delegation
+                const btn = document.createElement('button');
+                btn.textContent = '×';
+                btn.dataset.id = todo.id;
+                _(btn).on('click', (e) => {
+                    store.commit('removeTodo', parseInt(e.target.dataset.id));
+                });
+                
+                li.appendChild(checkbox);
+                li.appendChild(text);
+                li.appendChild(btn);
+                _('#todo-list')[0].appendChild(li);
+            });
         }
 
         // Subscribe to changes
