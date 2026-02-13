@@ -216,17 +216,18 @@
         toggle: function (className, duration) {
             // jQuery UI compatible: toggleClass with animation
             if (duration) {
-                return this.each((i, elem) => {
+                return this.each((index, elem) => {
                     const hasClass = elem.classList.contains(className);
+                    const yakaElem = new Yaka(elem);
                     if (hasClass) {
-                        this.remove(className, duration);
+                        yakaElem.remove(className, duration);
                     } else {
-                        this.add(className, duration);
+                        yakaElem.add(className, duration);
                     }
                 });
             }
             
-            return this.each((i, elem) => {
+            return this.each((index, elem) => {
                 className.split(' ').forEach(cls => elem.classList.toggle(cls));
             });
         },
@@ -1539,6 +1540,7 @@
 
             // Create marquee element
             const createMarquee = () => {
+                if (marquee && marquee.parentNode) return; // Prevent multiple marquees
                 marquee = document.createElement('div');
                 marquee.style.cssText = `
                     position: fixed;
@@ -1880,7 +1882,8 @@
             elem.classList.add('ui-button', 'ui-widget');
             
             // Handle different element types
-            if (elem.tagName === 'INPUT' && (elem.type === 'button' || elem.type === 'submit' || elem.type === 'reset')) {
+            const buttonTypes = ['button', 'submit', 'reset'];
+            if (elem.tagName === 'INPUT' && buttonTypes.includes(elem.type)) {
                 elem.value = label;
             } else if (elem.tagName === 'A') {
                 elem.setAttribute('role', 'button');
