@@ -1594,6 +1594,7 @@
             }
             
             let currentData = [...data];
+            let sortHandlers = []; // Track handlers for cleanup
             
             // Helper to escape HTML to prevent XSS
             const escapeHtml = (text) => {
@@ -1603,6 +1604,12 @@
             };
 
             const render = () => {
+                // Remove old sort handlers before re-rendering
+                sortHandlers.forEach(({ th, handler }) => {
+                    th.removeEventListener('click', handler);
+                });
+                sortHandlers = [];
+                
                 let html = '<table style="width: 100%; border-collapse: collapse;">';
 
                 // Header
@@ -1626,9 +1633,9 @@
 
                 elem.innerHTML = html;
 
-                // Add sorting using event delegation to avoid listener accumulation
+                // Add sorting listeners and store for cleanup
                 elem.querySelectorAll('th[data-sort]').forEach(th => {
-                    th.addEventListener('click', () => {
+                    const handler = () => {
                         const key = th.dataset.sort;
                         currentData.sort((a, b) => {
                             if (a[key] < b[key]) return -1;
@@ -1636,7 +1643,9 @@
                             return 0;
                         });
                         render();
-                    }, { once: true }); // Use 'once' to automatically remove after first click
+                    };
+                    th.addEventListener('click', handler);
+                    sortHandlers.push({ th, handler });
                 });
             };
 
