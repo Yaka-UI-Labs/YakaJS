@@ -1761,6 +1761,272 @@
         }, duration);
     };
 
+    // NEW! Toast Notifications (Toastr-style)
+    Yaka.toast = function (message, options = {}) {
+        const type = options.type || 'info';
+        const position = options.position || 'top-right';
+        const duration = options.duration || 5000;
+        const progressBar = options.progressBar !== false;
+        const closeButton = options.closeButton !== false;
+        
+        const colors = {
+            success: { bg: '#51A351', icon: '✓' },
+            error: { bg: '#BD362F', icon: '✕' },
+            warning: { bg: '#F89406', icon: '⚠' },
+            info: { bg: '#2F96B4', icon: 'ℹ' }
+        };
+
+        const theme = colors[type] || colors.info;
+        
+        // Position mapping
+        const positions = {
+            'top-right': 'top: 20px; right: 20px;',
+            'top-left': 'top: 20px; left: 20px;',
+            'top-center': 'top: 20px; left: 50%; transform: translateX(-50%);',
+            'bottom-right': 'bottom: 20px; right: 20px;',
+            'bottom-left': 'bottom: 20px; left: 20px;',
+            'bottom-center': 'bottom: 20px; left: 50%; transform: translateX(-50%);'
+        };
+
+        const toast = document.createElement('div');
+        toast.className = 'yaka-toast';
+        toast.style.cssText = `
+            position: fixed;
+            ${positions[position] || positions['top-right']}
+            background: ${theme.bg};
+            color: white;
+            padding: 16px 20px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 10001;
+            min-width: 250px;
+            max-width: 350px;
+            font-family: system-ui, -apple-system, sans-serif;
+            animation: toastSlideIn 0.3s ease;
+            cursor: pointer;
+        `;
+
+        const content = document.createElement('div');
+        content.style.cssText = 'display: flex; align-items: center; gap: 12px;';
+        
+        const icon = document.createElement('span');
+        icon.textContent = theme.icon;
+        icon.style.cssText = 'font-size: 20px; font-weight: bold;';
+        
+        const text = document.createElement('span');
+        text.textContent = message;
+        text.style.cssText = 'flex: 1;';
+        
+        content.appendChild(icon);
+        content.appendChild(text);
+        
+        if (closeButton) {
+            const closeBtn = document.createElement('span');
+            closeBtn.innerHTML = '×';
+            closeBtn.style.cssText = 'font-size: 24px; margin-left: 10px; cursor: pointer; opacity: 0.8;';
+            closeBtn.onclick = () => removeToast();
+            content.appendChild(closeBtn);
+        }
+        
+        toast.appendChild(content);
+        
+        if (progressBar) {
+            const progress = document.createElement('div');
+            progress.style.cssText = `
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                height: 4px;
+                background: rgba(255,255,255,0.7);
+                width: 100%;
+                animation: toastProgress ${duration}ms linear;
+            `;
+            toast.appendChild(progress);
+        }
+        
+        document.body.appendChild(toast);
+        
+        const removeToast = () => {
+            toast.style.animation = 'toastSlideOut 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        };
+        
+        toast.onclick = () => {
+            if (options.onClick) options.onClick();
+            removeToast();
+        };
+        
+        if (duration > 0) {
+            setTimeout(removeToast, duration);
+        }
+        
+        return { close: removeToast };
+    };
+
+    // NEW! SweetAlert-style Alert Boxes
+    Yaka.alert = function (options = {}) {
+        const title = options.title || '';
+        const text = options.text || '';
+        const type = options.type || 'info';
+        const confirmButtonText = options.confirmButtonText || 'OK';
+        const cancelButtonText = options.cancelButtonText || 'Cancel';
+        const showCancelButton = options.showCancelButton || false;
+        const input = options.input || null;
+        
+        const icons = {
+            success: { icon: '✓', color: '#4CAF50' },
+            error: { icon: '✕', color: '#F44336' },
+            warning: { icon: '⚠', color: '#FF9800' },
+            info: { icon: 'ℹ', color: '#2196F3' },
+            question: { icon: '?', color: '#9C27B0' }
+        };
+        
+        const theme = icons[type] || icons.info;
+        
+        return new Promise((resolve, reject) => {
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.6);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10002;
+                animation: fadeIn 0.2s ease;
+            `;
+            
+            const alertBox = document.createElement('div');
+            alertBox.style.cssText = `
+                background: white;
+                padding: 30px;
+                border-radius: 12px;
+                max-width: 500px;
+                min-width: 300px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                animation: scaleIn 0.3s ease;
+                text-align: center;
+            `;
+            
+            // Icon
+            if (theme) {
+                const iconElem = document.createElement('div');
+                iconElem.style.cssText = `
+                    width: 80px;
+                    height: 80px;
+                    border-radius: 50%;
+                    border: 4px solid ${theme.color};
+                    margin: 0 auto 20px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 48px;
+                    color: ${theme.color};
+                    animation: iconPulse 0.5s ease;
+                `;
+                iconElem.textContent = theme.icon;
+                alertBox.appendChild(iconElem);
+            }
+            
+            // Title
+            if (title) {
+                const titleElem = document.createElement('h2');
+                titleElem.textContent = title;
+                titleElem.style.cssText = 'margin: 0 0 15px 0; color: #333; font-size: 24px;';
+                alertBox.appendChild(titleElem);
+            }
+            
+            // Text
+            if (text) {
+                const textElem = document.createElement('p');
+                textElem.textContent = text;
+                textElem.style.cssText = 'margin: 0 0 25px 0; color: #666; font-size: 16px; line-height: 1.5;';
+                alertBox.appendChild(textElem);
+            }
+            
+            // Input field
+            let inputElem = null;
+            if (input) {
+                inputElem = document.createElement('input');
+                inputElem.type = input === 'password' ? 'password' : 'text';
+                inputElem.placeholder = options.inputPlaceholder || '';
+                inputElem.value = options.inputValue || '';
+                inputElem.style.cssText = `
+                    width: 100%;
+                    padding: 10px;
+                    border: 2px solid #ddd;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    margin-bottom: 20px;
+                    box-sizing: border-box;
+                `;
+                alertBox.appendChild(inputElem);
+            }
+            
+            // Buttons
+            const buttonContainer = document.createElement('div');
+            buttonContainer.style.cssText = 'display: flex; gap: 10px; justify-content: center;';
+            
+            if (showCancelButton) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.textContent = cancelButtonText;
+                cancelBtn.style.cssText = `
+                    padding: 12px 30px;
+                    border: 2px solid #ddd;
+                    background: white;
+                    color: #666;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    font-size: 14px;
+                    font-weight: 600;
+                    transition: all 0.2s;
+                `;
+                cancelBtn.onmouseover = () => cancelBtn.style.background = '#f5f5f5';
+                cancelBtn.onmouseout = () => cancelBtn.style.background = 'white';
+                cancelBtn.onclick = () => {
+                    overlay.remove();
+                    resolve({ isConfirmed: false, isDismissed: true });
+                };
+                buttonContainer.appendChild(cancelBtn);
+            }
+            
+            const confirmBtn = document.createElement('button');
+            confirmBtn.textContent = confirmButtonText;
+            confirmBtn.style.cssText = `
+                padding: 12px 30px;
+                border: none;
+                background: ${theme.color};
+                color: white;
+                border-radius: 6px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 600;
+                transition: all 0.2s;
+            `;
+            confirmBtn.onmouseover = () => confirmBtn.style.opacity = '0.9';
+            confirmBtn.onmouseout = () => confirmBtn.style.opacity = '1';
+            confirmBtn.onclick = () => {
+                const value = inputElem ? inputElem.value : null;
+                overlay.remove();
+                resolve({ isConfirmed: true, value });
+            };
+            buttonContainer.appendChild(confirmBtn);
+            
+            alertBox.appendChild(buttonContainer);
+            overlay.appendChild(alertBox);
+            document.body.appendChild(overlay);
+            
+            // Focus input if exists
+            if (inputElem) {
+                setTimeout(() => inputElem.focus(), 100);
+            }
+        });
+    };
+
+
     // NEW! Modal dialog
     Yaka.modal = function (content, options = {}) {
         const overlay = document.createElement('div');
@@ -2211,6 +2477,427 @@
                 elem.classList.remove('ui-menu', 'ui-widget');
                 delete elem._yaka_menu;
                 delete elem._yaka_menu_cleanup;
+            };
+        });
+    };
+
+    // NEW! Enhanced Select Box (Select2-style)
+    Yaka.prototype.selectbox = function (options = {}) {
+        return this.each((i, select) => {
+            if (select._yaka_selectbox) return;
+            if (select.tagName !== 'SELECT') return;
+            select._yaka_selectbox = true;
+
+            const multiple = select.multiple || options.multiple || false;
+            const searchable = options.searchable !== false;
+            const placeholder = options.placeholder || 'Select...';
+            const data = options.data || null;
+
+            // Hide original select
+            select.style.display = 'none';
+
+            // Create selectbox container
+            const container = document.createElement('div');
+            container.className = 'yaka-selectbox';
+            container.style.cssText = `
+                position: relative;
+                display: inline-block;
+                width: ${options.width || '100%'};
+            `;
+
+            // Create display element
+            const display = document.createElement('div');
+            display.className = 'yaka-selectbox-display';
+            display.style.cssText = `
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                padding: 10px 35px 10px 12px;
+                cursor: pointer;
+                background: white;
+                position: relative;
+                transition: border-color 0.2s;
+            `;
+
+            // Arrow icon
+            const arrow = document.createElement('span');
+            arrow.innerHTML = '▼';
+            arrow.style.cssText = `
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                font-size: 12px;
+                color: #666;
+                transition: transform 0.2s;
+            `;
+            display.appendChild(arrow);
+
+            const displayText = document.createElement('span');
+            displayText.textContent = placeholder;
+            displayText.style.color = '#999';
+            display.insertBefore(displayText, arrow);
+
+            // Create dropdown
+            const dropdown = document.createElement('div');
+            dropdown.className = 'yaka-selectbox-dropdown';
+            dropdown.style.cssText = `
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                margin-top: 4px;
+                background: white;
+                border: 2px solid #ddd;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                max-height: 250px;
+                overflow-y: auto;
+                z-index: 1000;
+                display: none;
+            `;
+
+            // Search box
+            if (searchable) {
+                const search = document.createElement('input');
+                search.type = 'text';
+                search.placeholder = 'Search...';
+                search.style.cssText = `
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: none;
+                    border-bottom: 2px solid #f0f0f0;
+                    outline: none;
+                    box-sizing: border-box;
+                `;
+                dropdown.appendChild(search);
+
+                search.addEventListener('input', (e) => {
+                    const query = e.target.value.toLowerCase();
+                    const items = dropdown.querySelectorAll('.yaka-selectbox-item');
+                    items.forEach(item => {
+                        const text = item.textContent.toLowerCase();
+                        item.style.display = text.includes(query) ? 'block' : 'none';
+                    });
+                });
+            }
+
+            // Create options list
+            const optionsList = document.createElement('div');
+            dropdown.appendChild(optionsList);
+
+            const updateOptions = () => {
+                optionsList.innerHTML = '';
+                const options = data || Array.from(select.options);
+
+                options.forEach((opt, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'yaka-selectbox-item';
+                    item.textContent = opt.text || opt.label || opt;
+                    item.setAttribute('data-value', opt.value || opt);
+                    item.style.cssText = `
+                        padding: 10px 12px;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                    `;
+
+                    item.addEventListener('mouseenter', () => {
+                        item.style.background = '#f5f5f5';
+                    });
+
+                    item.addEventListener('mouseleave', () => {
+                        item.style.background = 'white';
+                    });
+
+                    item.addEventListener('click', () => {
+                        if (multiple) {
+                            select.options[idx].selected = !select.options[idx].selected;
+                            updateDisplay();
+                        } else {
+                            select.selectedIndex = idx;
+                            displayText.textContent = item.textContent;
+                            displayText.style.color = '#333';
+                            dropdown.style.display = 'none';
+                            arrow.style.transform = 'translateY(-50%)';
+                        }
+                        if (options.onChange) options.onChange(select.value);
+                    });
+
+                    optionsList.appendChild(item);
+                });
+            };
+
+            const updateDisplay = () => {
+                if (multiple) {
+                    const selected = Array.from(select.options).filter(o => o.selected);
+                    displayText.textContent = selected.length > 0
+                        ? selected.map(o => o.text).join(', ')
+                        : placeholder;
+                    displayText.style.color = selected.length > 0 ? '#333' : '#999';
+                }
+            };
+
+            // Toggle dropdown
+            display.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = dropdown.style.display === 'block';
+                dropdown.style.display = isOpen ? 'none' : 'block';
+                arrow.style.transform = isOpen ? 'translateY(-50%)' : 'translateY(-50%) rotate(180deg)';
+                display.style.borderColor = isOpen ? '#ddd' : '#4285f4';
+            });
+
+            // Close on outside click
+            document.addEventListener('click', () => {
+                dropdown.style.display = 'none';
+                arrow.style.transform = 'translateY(-50%)';
+                display.style.borderColor = '#ddd';
+            });
+
+            container.appendChild(display);
+            container.appendChild(dropdown);
+            select.parentNode.insertBefore(container, select);
+
+            updateOptions();
+
+            select._yaka_selectbox_cleanup = () => {
+                if (container.parentNode) {
+                    container.remove();
+                }
+                select.style.display = '';
+                delete select._yaka_selectbox;
+                delete select._yaka_selectbox_cleanup;
+            };
+        });
+    };
+
+    // NEW! Time Picker (Pickadate enhancement)
+    Yaka.prototype.timepicker = function (options = {}) {
+        return this.each((i, input) => {
+            if (input._yaka_timepicker) return;
+            input._yaka_timepicker = true;
+
+            const format24 = options.format24 || false;
+            const minuteInterval = options.minuteInterval || 1;
+            const minTime = options.minTime || '00:00';
+            const maxTime = options.maxTime || '23:59';
+
+            input.setAttribute('readonly', 'true');
+            input.style.cursor = 'pointer';
+
+            const picker = document.createElement('div');
+            picker.className = 'yaka-timepicker';
+            picker.style.cssText = `
+                position: absolute;
+                background: white;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                padding: 15px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 1000;
+                display: none;
+            `;
+
+            const container = document.createElement('div');
+            container.style.cssText = 'display: flex; gap: 10px;';
+
+            // Hour selector
+            const hourSelect = document.createElement('select');
+            hourSelect.style.cssText = 'padding: 8px; border-radius: 4px; border: 2px solid #ddd; font-size: 16px;';
+            const maxHour = format24 ? 23 : 12;
+            for (let h = 0; h <= maxHour; h++) {
+                const opt = document.createElement('option');
+                opt.value = h;
+                opt.textContent = h.toString().padStart(2, '0');
+                hourSelect.appendChild(opt);
+            }
+
+            // Minute selector
+            const minuteSelect = document.createElement('select');
+            minuteSelect.style.cssText = 'padding: 8px; border-radius: 4px; border: 2px solid #ddd; font-size: 16px;';
+            for (let m = 0; m < 60; m += minuteInterval) {
+                const opt = document.createElement('option');
+                opt.value = m;
+                opt.textContent = m.toString().padStart(2, '0');
+                minuteSelect.appendChild(opt);
+            }
+
+            container.appendChild(hourSelect);
+            container.appendChild(minuteSelect);
+
+            // AM/PM selector
+            let ampmSelect = null;
+            if (!format24) {
+                ampmSelect = document.createElement('select');
+                ampmSelect.style.cssText = 'padding: 8px; border-radius: 4px; border: 2px solid #ddd; font-size: 16px;';
+                ['AM', 'PM'].forEach(period => {
+                    const opt = document.createElement('option');
+                    opt.value = period;
+                    opt.textContent = period;
+                    ampmSelect.appendChild(opt);
+                });
+                container.appendChild(ampmSelect);
+            }
+
+            picker.appendChild(container);
+
+            // OK button
+            const okBtn = document.createElement('button');
+            okBtn.textContent = 'OK';
+            okBtn.style.cssText = `
+                margin-top: 10px;
+                width: 100%;
+                padding: 8px;
+                background: #4285f4;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+                font-size: 14px;
+            `;
+            okBtn.onclick = () => {
+                let hour = parseInt(hourSelect.value);
+                const minute = parseInt(minuteSelect.value);
+
+                if (!format24 && ampmSelect) {
+                    if (ampmSelect.value === 'PM' && hour < 12) hour += 12;
+                    if (ampmSelect.value === 'AM' && hour === 12) hour = 0;
+                }
+
+                input.value = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+                picker.style.display = 'none';
+                if (options.onChange) options.onChange(input.value);
+            };
+            picker.appendChild(okBtn);
+
+            document.body.appendChild(picker);
+
+            input.addEventListener('click', () => {
+                const rect = input.getBoundingClientRect();
+                picker.style.left = rect.left + 'px';
+                picker.style.top = rect.bottom + 4 + 'px';
+                picker.style.display = 'block';
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!picker.contains(e.target) && e.target !== input) {
+                    picker.style.display = 'none';
+                }
+            });
+
+            input._yaka_timepicker_cleanup = () => {
+                if (picker.parentNode) picker.remove();
+                input.removeAttribute('readonly');
+                delete input._yaka_timepicker;
+                delete input._yaka_timepicker_cleanup;
+            };
+        });
+    };
+
+    // NEW! FullPage Scrolling (fullPage.js-style)
+    Yaka.prototype.fullpage = function (options = {}) {
+        return this.each((i, container) => {
+            if (container._yaka_fullpage) return;
+            container._yaka_fullpage = true;
+
+            const sections = Array.from(container.children);
+            const navigation = options.navigation !== false;
+            const scrollingSpeed = options.scrollingSpeed || 700;
+            const easing = options.easing || 'ease-in-out';
+            
+            let currentSection = 0;
+            let isScrolling = false;
+
+            // Setup sections
+            sections.forEach((section, idx) => {
+                section.style.cssText = `
+                    height: 100vh;
+                    width: 100%;
+                    scroll-snap-align: start;
+                    transition: opacity ${scrollingSpeed}ms ${easing};
+                `;
+            });
+
+            container.style.cssText = `
+                height: 100vh;
+                overflow-y: scroll;
+                scroll-snap-type: y mandatory;
+                scroll-behavior: smooth;
+            `;
+
+            // Create navigation dots
+            if (navigation) {
+                const nav = document.createElement('div');
+                nav.style.cssText = `
+                    position: fixed;
+                    right: 20px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    z-index: 100;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                `;
+
+                sections.forEach((section, idx) => {
+                    const dot = document.createElement('div');
+                    dot.style.cssText = `
+                        width: 12px;
+                        height: 12px;
+                        border-radius: 50%;
+                        border: 2px solid #333;
+                        background: ${idx === 0 ? '#333' : 'white'};
+                        cursor: pointer;
+                        transition: all 0.3s;
+                    `;
+                    dot.onclick = () => scrollToSection(idx);
+                    nav.appendChild(dot);
+                });
+
+                document.body.appendChild(nav);
+
+                container._yaka_fullpage_nav = nav;
+            }
+
+            const scrollToSection = (index) => {
+                if (isScrolling || index < 0 || index >= sections.length) return;
+                
+                isScrolling = true;
+                currentSection = index;
+                sections[index].scrollIntoView({ behavior: 'smooth' });
+
+                // Update navigation
+                if (navigation && container._yaka_fullpage_nav) {
+                    const dots = container._yaka_fullpage_nav.children;
+                    Array.from(dots).forEach((dot, i) => {
+                        dot.style.background = i === index ? '#333' : 'white';
+                    });
+                }
+
+                setTimeout(() => {
+                    isScrolling = false;
+                }, scrollingSpeed);
+            };
+
+            // Keyboard navigation
+            const handleKeydown = (e) => {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    scrollToSection(currentSection + 1);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    scrollToSection(currentSection - 1);
+                }
+            };
+
+            document.addEventListener('keydown', handleKeydown);
+
+            container._yaka_fullpage_cleanup = () => {
+                document.removeEventListener('keydown', handleKeydown);
+                if (container._yaka_fullpage_nav && container._yaka_fullpage_nav.parentNode) {
+                    container._yaka_fullpage_nav.remove();
+                }
+                delete container._yaka_fullpage;
+                delete container._yaka_fullpage_nav;
+                delete container._yaka_fullpage_cleanup;
             };
         });
     };
@@ -4646,6 +5333,9 @@
                 '_yaka_checkboxradio_cleanup',
                 '_yaka_controlgroup_cleanup',
                 '_yaka_menu_cleanup',
+                '_yaka_selectbox_cleanup',
+                '_yaka_timepicker_cleanup',
+                '_yaka_fullpage_cleanup',
                 '_yaka_colorpicker_cleanup',
                 '_yaka_datepicker_cleanup',
                 '_yaka_slider_cleanup',
@@ -6793,6 +7483,22 @@
             65% { transform: scaleX(0.95) scaleY(1.05); }
             75% { transform: scaleX(1.05) scaleY(0.95); }
             100% { transform: scale(1); }
+        }
+        @keyframes toastSlideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes toastSlideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+        @keyframes iconPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
         
         /* Validation styles */
