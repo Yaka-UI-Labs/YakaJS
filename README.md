@@ -21,10 +21,12 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 
 ### 🎨 Rich UI Components & Animations
 - **15+ Smooth Animations**: fadeIn/Out, slideIn/Out (all directions), zoomIn/Out, blurIn/Out, bounce, pulse, shake, swing, flip3D, rotateIn/Out, rubberBand
-- **Modern UI Components**: Dropdown with search, Modal, Tooltip, Popover, Tabs, Accordion, Carousel, Stepper/Wizard, Breadcrumb, Pagination, Badge/Tag, Button Widget, Checkboxradio, Controlgroup, Menu
+- **Modern UI Components**: Dropdown with search, Modal, Tooltip, Popover, Tabs, Accordion, Carousel, Stepper/Wizard, Breadcrumb, Pagination, Badge/Tag, Button Widget, Checkboxradio, Controlgroup, Menu, Enhanced SelectBox
 - **Progress Indicators**: Progress bars, loading spinners, skeleton loaders
-- **Interactive Elements**: Draggable, droppable, resizable, selectable, sortable, swipe gestures, infinite scroll
+- **Interactive Elements**: Draggable, droppable, resizable, selectable, sortable, swipe gestures, infinite scroll, fullpage scrolling
 - **Enhanced Animations**: Color animation, addClass/removeClass/toggleClass with duration, position utility
+- **Notifications & Alerts**: Toast notifications (Toastr-style), SweetAlert dialogs, notification system
+- **Advanced Pickers**: DatePicker, TimePicker (12/24hr), ColorPicker
 
 ### 🛡️ Smart "Auto-Fix" & Error Handling
 - **Safe-Mode Chaining**: Never crash on empty selectors with `_.safe()`
@@ -1123,6 +1125,124 @@ _('#panel').animate({
     borderColor: 'rgb(33, 150, 243)',
     width: '300px'
 }, 500);
+```
+
+**Toast Notifications (Toastr):**
+```javascript
+// Success toast
+_.toast('Operation successful!', {
+    type: 'success',
+    position: 'top-right',
+    duration: 5000,
+    progressBar: true
+});
+
+// Error toast with callback
+_.toast('An error occurred', {
+    type: 'error',
+    position: 'bottom-center',
+    onClick: () => console.log('Toast clicked'),
+    closeButton: true
+});
+
+// Info toast (no auto-dismiss)
+_.toast('Important information', {
+    type: 'info',
+    duration: 0  // Won't auto-dismiss
+});
+```
+
+**SweetAlert Dialogs:**
+```javascript
+// Simple alert
+_.alert({
+    title: 'Success!',
+    text: 'Your operation was completed',
+    type: 'success'
+});
+
+// Confirmation dialog
+_.alert({
+    title: 'Are you sure?',
+    text: 'This action cannot be undone',
+    type: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Yes, delete it!'
+}).then(result => {
+    if (result.isConfirmed) {
+        console.log('Confirmed!');
+    }
+});
+
+// Input prompt
+_.alert({
+    title: 'Enter your name',
+    input: 'text',
+    inputPlaceholder: 'Your name here...',
+    showCancelButton: true
+}).then(result => {
+    if (result.isConfirmed) {
+        console.log('Name:', result.value);
+    }
+});
+```
+
+**Enhanced SelectBox (Select2):**
+```javascript
+// Basic enhanced select
+_('select').selectbox({
+    searchable: true,
+    placeholder: 'Choose an option...'
+});
+
+// Multiple selection
+_('#tags').selectbox({
+    multiple: true,
+    searchable: true,
+    width: '100%',
+    onChange: (value) => console.log('Selected:', value)
+});
+
+// With custom data
+_('#custom-select').selectbox({
+    data: [
+        { value: '1', text: 'Option 1' },
+        { value: '2', text: 'Option 2' },
+        { value: '3', text: 'Option 3' }
+    ],
+    searchable: true
+});
+```
+
+**TimePicker:**
+```javascript
+// 24-hour format
+_('#time-input').timepicker({
+    format24: true,
+    minuteInterval: 15,
+    onChange: (time) => console.log('Selected time:', time)
+});
+
+// 12-hour format with AM/PM
+_('#time-12hr').timepicker({
+    format24: false,
+    minuteInterval: 5,
+    minTime: '09:00',
+    maxTime: '17:00'
+});
+```
+
+**FullPage Scrolling:**
+```javascript
+// Full-screen snap scrolling
+_('#fullpage-container').fullpage({
+    navigation: true,  // Show navigation dots
+    scrollingSpeed: 700,
+    easing: 'ease-in-out'
+});
+
+// Each child becomes a full-screen section with snap scrolling
+// Use arrow keys to navigate between sections
 ```
 
 ### Phase 4: Modern Browser Features
