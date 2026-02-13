@@ -16,6 +16,9 @@
             return new Yaka(selector, context);
         }
 
+        // Initialize elements array to prevent crashes
+        this.elements = [];
+
         // Handle function (DOM ready)
         if (typeof selector === 'function') {
             if (document.readyState !== 'loading') {
@@ -59,6 +62,7 @@
 
     // Prototype methods
     Yaka.prototype = {
+        constructor: Yaka, // Preserve constructor reference
         // ==================== BASIC METHODS ====================
 
         each: function (callback) {
@@ -134,7 +138,7 @@
 
         // ==================== CLASSES ====================
 
-        add: function (className, duration) {
+        addClass: function (className, duration) {
             // jQuery UI compatible: addClass with animation
             if (duration) {
                 return this.each((i, elem) => {
@@ -148,6 +152,9 @@
                     
                     // Add the class
                     classes.forEach(cls => elem.classList.add(cls));
+                    
+                    // Force reflow to ensure styles are recalculated
+                    void elem.offsetHeight;
                     
                     // Get new computed styles
                     const after = getComputedStyle(elem);
@@ -171,8 +178,11 @@
             });
         },
 
-        remove: function (className, duration) {
+        removeClass: function (className, duration) {
             if (!className) {
+                // When called with no arguments, this is now a deprecated behavior
+                // Use detach() instead
+                console.warn('removeClass() with no arguments is deprecated. Use detach() to remove element from DOM.');
                 return this.each((i, elem) => elem.remove());
             }
             
@@ -189,6 +199,9 @@
                     
                     // Remove the class
                     classes.forEach(cls => elem.classList.remove(cls));
+                    
+                    // Force reflow to ensure styles are recalculated
+                    void elem.offsetHeight;
                     
                     // Get new computed styles
                     const after = getComputedStyle(elem);
@@ -213,16 +226,16 @@
             });
         },
 
-        toggle: function (className, duration) {
+        toggleClass: function (className, duration) {
             // jQuery UI compatible: toggleClass with animation
             if (duration) {
                 return this.each((index, elem) => {
                     const hasClass = elem.classList.contains(className);
                     const yakaElem = new Yaka(elem);
                     if (hasClass) {
-                        yakaElem.remove(className, duration);
+                        yakaElem.removeClass(className, duration);
                     } else {
-                        yakaElem.add(className, duration);
+                        yakaElem.addClass(className, duration);
                     }
                 });
             }
@@ -232,8 +245,13 @@
             });
         },
 
-        has: function (className) {
+        hasClass: function (className) {
             return this.elements[0]?.classList.contains(className) || false;
+        },
+
+        // New separate method for removing elements from DOM
+        detach: function () {
+            return this.each((i, elem) => elem.remove());
         },
 
         // ==================== STYLES ====================
@@ -732,12 +750,18 @@
 
             return this.each((i, elem) => {
                 if (selector) {
-                    elem.addEventListener(event, e => {
+                    // Create wrapper function and store reference
+                    const wrapper = function(e) {
                         const target = e.target.closest(selector);
                         if (target && elem.contains(target)) {
                             handler.call(target, e);
                         }
-                    });
+                    };
+                    // Store wrapper on handler so off() can find it
+                    if (!handler._yakaWrapper) {
+                        handler._yakaWrapper = wrapper;
+                    }
+                    elem.addEventListener(event, wrapper);
                 } else {
                     elem.addEventListener(event, handler);
                 }
@@ -745,7 +769,11 @@
         },
 
         off: function (event, handler) {
-            return this.each((i, elem) => elem.removeEventListener(event, handler));
+            return this.each((i, elem) => {
+                // Use the wrapper if it exists, otherwise use handler directly
+                const listener = handler._yakaWrapper || handler;
+                elem.removeEventListener(event, listener);
+            });
         },
 
         // NEW! One-time event
@@ -868,8 +896,8 @@
         // NEW! Copy to clipboard
         copy: function () {
             const text = this.text();
-            navigator.clipboard.writeText(text);
-            return this;
+            return navigator.clipboard.writeText(text)
+                .catch(err => console.warn('Yaka copy: clipboard write failed', err));
         },
 
         // NEW! Serialize form data
@@ -888,22 +916,31 @@
         // NEW! Auto-save form
         autoSave: function (key, delay = 1000) {
             return this.debounce('input', function () {
-                const data = new Yaka(this).serialize();
-                localStorage.setItem(key, JSON.stringify(data));
+                try {
+                    const data = new Yaka(this).serialize();
+                    localStorage.setItem(key, JSON.stringify(data));
+                } catch (e) {
+                    console.warn('Yaka autoSave: localStorage unavailable', e);
+                }
             }, delay);
         },
 
         // NEW! Restore form data
         restore: function (key) {
-            const data = JSON.parse(localStorage.getItem(key) || '{}');
-            return this.each((i, elem) => {
-                if (elem.tagName === 'FORM') {
-                    Object.keys(data).forEach(name => {
-                        const input = elem.querySelector(`[name="${name}"]`);
-                        if (input) input.value = data[name];
-                    });
-                }
-            });
+            try {
+                const data = JSON.parse(localStorage.getItem(key) || '{}');
+                return this.each((i, elem) => {
+                    if (elem.tagName === 'FORM') {
+                        Object.keys(data).forEach(name => {
+                            const input = elem.querySelector(`[name="${name}"]`);
+                            if (input) input.value = data[name];
+                        });
+                    }
+                });
+            } catch (e) {
+                console.warn('Yaka restore: localStorage unavailable', e);
+                return this;
+            }
         },
 
         // NEW! Validate form
@@ -920,18 +957,24 @@
 
                 const rule = rules[name];
                 const value = input.value;
+                const fieldErrors = [];
 
+                // Check all rules independently
                 if (rule.required && !value) {
-                    errors[name] = rule.message || 'This field is required';
-                    valid = false;
-                } else if (rule.pattern && !rule.pattern.test(value)) {
-                    errors[name] = rule.message || 'Invalid format';
-                    valid = false;
-                } else if (rule.min && value.length < rule.min) {
-                    errors[name] = rule.message || `Minimum ${rule.min} characters`;
-                    valid = false;
-                } else if (rule.max && value.length > rule.max) {
-                    errors[name] = rule.message || `Maximum ${rule.max} characters`;
+                    fieldErrors.push(rule.requiredMessage || 'This field is required');
+                }
+                if (value && rule.pattern && !rule.pattern.test(value)) {
+                    fieldErrors.push(rule.patternMessage || 'Invalid format');
+                }
+                if (value && rule.min && value.length < rule.min) {
+                    fieldErrors.push(rule.minMessage || `Minimum ${rule.min} characters`);
+                }
+                if (value && rule.max && value.length > rule.max) {
+                    fieldErrors.push(rule.maxMessage || `Maximum ${rule.max} characters`);
+                }
+
+                if (fieldErrors.length > 0) {
+                    errors[name] = fieldErrors;
                     valid = false;
                 }
             });
@@ -960,20 +1003,19 @@
                 }
                 
                 const start = parseInt(elem.textContent) || 0;
-                const end = target;
-                const range = end - start;
-                const increment = range / (duration / 16);
-                let current = start;
+                const range = target - start;
+                const startTime = performance.now();
 
-                const timer = setInterval(() => {
-                    current += increment;
-                    if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-                        elem.textContent = Math.round(end);
-                        clearInterval(timer);
-                    } else {
-                        elem.textContent = Math.round(current);
+                const tick = (now) => {
+                    const elapsed = now - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    elem.textContent = Math.round(start + range * progress);
+                    if (progress < 1) {
+                        requestAnimationFrame(tick);
                     }
-                }, 16);
+                };
+
+                requestAnimationFrame(tick);
             });
         },
 
@@ -8037,6 +8079,8 @@
     document.head.appendChild(style);
 
     // Export to window
-    window._ = Yaka;
+    window.Yaka = Yaka;
+    // Only take _ if it's not already claimed (e.g., by lodash)
+    window._ = window._ || Yaka;
 
 })(window);
