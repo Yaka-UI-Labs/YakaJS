@@ -289,7 +289,7 @@
             return this.each((i, elem) => {
                 if (typeof content === 'string') {
                     elem.insertAdjacentHTML('afterend', content);
-                } else if (content.nodeType) {
+                } else if (content.nodeType && elem.parentNode) {
                     elem.parentNode.insertBefore(content, elem.nextSibling);
                 }
             });
@@ -299,7 +299,7 @@
             return this.each((i, elem) => {
                 if (typeof content === 'string') {
                     elem.insertAdjacentHTML('beforebegin', content);
-                } else if (content.nodeType) {
+                } else if (content.nodeType && elem.parentNode) {
                     elem.parentNode.insertBefore(content, elem);
                 }
             });
@@ -653,9 +653,10 @@
             return this.each((i, elem) => {
                 elem.textContent = '';
                 let index = 0;
+                const chars = text.split('');
                 const timer = setInterval(() => {
-                    if (index < text.length) {
-                        elem.textContent += text.charAt(index);
+                    if (index < chars.length) {
+                        elem.textContent += chars[index];
                         index++;
                     } else {
                         clearInterval(timer);
@@ -912,7 +913,7 @@
                 item.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     const afterElement = getDragAfterElement(container, e.clientY);
-                    if (afterElement == null) {
+                    if (afterElement === null) {
                         container.appendChild(draggedItem);
                     } else {
                         container.insertBefore(draggedItem, afterElement);
@@ -1150,14 +1151,16 @@
         if (!content) return this;
 
         const printWindow = window.open('', '', 'width=800,height=600');
-        printWindow.document.write(`
-            <html>
-                <head><title>Print</title></head>
-                <body>${content}</body>
-            </html>
-        `);
-        printWindow.document.close();
-        printWindow.print();
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                    <head><title>Print</title></head>
+                    <body>${content}</body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
         return this;
     };
 
@@ -1449,8 +1452,10 @@
         ctx.clearRect(0, 0, width, height);
 
         if (type === 'bar') {
+            if (data.length === 0) return this;
             const barWidth = width / data.length;
             const maxValue = Math.max(...data.map(d => d.value));
+            if (maxValue <= 0) return this;
 
             data.forEach((item, i) => {
                 const barHeight = (item.value / maxValue) * (height - 40);
@@ -1465,8 +1470,10 @@
                 ctx.fillText(item.label, x + barWidth / 2 - 10, height - 5);
             });
         } else if (type === 'line') {
+            if (data.length < 2) return this;
             const stepX = width / (data.length - 1);
             const maxValue = Math.max(...data.map(d => d.value));
+            if (maxValue <= 0) return this;
 
             ctx.strokeStyle = options.color || '#667eea';
             ctx.lineWidth = 2;
@@ -1659,7 +1666,10 @@
                     contents.forEach(c => c.style.display = 'none');
 
                     tab.classList.add('active');
-                    container.querySelector(`[data-tab-content="${target}"]`).style.display = 'block';
+                    const contentElement = container.querySelector(`[data-tab-content="${target}"]`);
+                    if (contentElement) {
+                        contentElement.style.display = 'block';
+                    }
                 });
             });
 
@@ -2246,7 +2256,10 @@
 
         decrypt: async function (encrypted, password) {
             const decoded = atob(encrypted);
-            const [text, pass] = decoded.split(':');
+            const parts = decoded.split(':');
+            if (parts.length < 2) return null;
+            const pass = parts.pop();
+            const text = parts.join(':');
             return pass === password ? text : null;
         }
     };
