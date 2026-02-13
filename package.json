@@ -13,7 +13,18 @@
     "type": "git",
     "url": "git+https://github.com/Yaka-UI-Labs/YakaJS.git"
   },
-  "keywords": [],
+  "keywords": [
+    "dom",
+    "jquery-alternative",
+    "dom-manipulation",
+    "reactive-state",
+    "spa-router",
+    "state-management",
+    "ui-components",
+    "validation",
+    "security",
+    "lightweight"
+  ],
   "author": "",
   "license": "MIT",
   "type": "commonjs",
