@@ -1,6 +1,6 @@
 # YakaJS 🚀
 
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Size](https://img.shields.io/badge/size-75%20KB%20minified-success.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/min.yaka.js)
@@ -14,10 +14,16 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 - 🚀 **58% smaller** than unminified version
 - 🗺️ **Source maps included** for debugging
 - 🔒 **Zero dependencies**
-- ✅ **100+ features** ready to use
+- ✅ **130+ features** ready to use (including 15+ animations & 20+ UI components)
 - 🎯 **Works in all modern browsers**
 
 ## ✨ Features
+
+### 🎨 Rich UI Components & Animations
+- **15+ Smooth Animations**: fadeIn/Out, slideIn/Out (all directions), zoomIn/Out, blurIn/Out, bounce, pulse, shake, swing, flip3D, rotateIn/Out, rubberBand
+- **Modern UI Components**: Dropdown with search, Modal, Tooltip, Popover, Tabs, Accordion, Carousel, Stepper/Wizard, Breadcrumb, Pagination, Badge/Tag
+- **Progress Indicators**: Progress bars, loading spinners, skeleton loaders
+- **Interactive Elements**: Draggable, sortable, swipe gestures, infinite scroll
 
 ### 🛡️ Smart "Auto-Fix" & Error Handling
 - **Safe-Mode Chaining**: Never crash on empty selectors with `_.safe()`
@@ -659,6 +665,289 @@ _.pageTransition('/next-page.html', {
 });
 ```
 
+### Phase 3.5: Animations & UI Components
+
+#### Enhanced Animations
+
+YakaJS now includes 15+ smooth animations for modern web experiences:
+
+**Basic Animations:**
+```javascript
+// Fade effects
+_('#element').fadeIn(300);
+_('#element').fadeOut(300);
+
+// Slide effects
+_('#element').slideDown(400);
+_('#element').slideUp(400);
+_('#element').slideInLeft(400);
+_('#element').slideInRight(400);
+_('#element').slideInUp(400);
+_('#element').slideOutLeft(400);
+_('#element').slideOutRight(400);
+
+// Zoom effects
+_('#element').zoomIn(400);
+_('#element').zoomOut(400);
+
+// Blur transitions
+_('#element').blurIn(400);
+_('#element').blurOut(400);
+```
+
+**Attention-Grabbing Animations:**
+```javascript
+// Bounce effect
+_('#notification').bounce(3); // Bounce 3 times
+
+// Pulse effect
+_('#button').pulse(3);
+
+// Shake effect
+_('#error-message').shake();
+
+// Swing effect
+_('#banner').swing();
+
+// Rubber band effect
+_('#logo').rubberBand();
+```
+
+**3D & Advanced Effects:**
+```javascript
+// 3D flip
+_('#card').flip('Y', 600); // Flip on Y-axis
+_('#card').flip('X', 600); // Flip on X-axis
+
+// Rotate animations
+_('#spinner').rotateIn(600);
+_('#spinner').rotateOut(600);
+
+// Custom animation (animate any CSS property)
+_('#box').animate({
+    width: '200px',
+    height: '200px',
+    transform: 'rotate(45deg)',
+    backgroundColor: '#ff6b6b'
+}, 600, 'ease-in-out');
+```
+
+#### UI Components
+
+**Dropdown/Select Menu:**
+```javascript
+// Basic dropdown
+_('#my-dropdown').dropdown({
+    items: ['Option 1', 'Option 2', 'Option 3'],
+    placeholder: 'Select an option',
+    onChange: (selected) => {
+        console.log('Selected:', selected);
+    }
+});
+
+// Multi-select dropdown with search
+_('#multi-select').dropdown({
+    items: ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry'],
+    multiSelect: true,
+    searchable: true,
+    placeholder: 'Choose fruits...',
+    onChange: (selectedItems) => {
+        console.log('Selected items:', selectedItems);
+    }
+});
+```
+
+**Modal Dialog:**
+```javascript
+// Simple modal
+_.modal('<h2>Hello!</h2><p>This is a modal.</p>');
+
+// Modal with options
+_.modal('<div>Custom content here</div>', {
+    width: '600px',
+    closeOnClick: true, // Close when clicking backdrop
+    onClose: () => {
+        console.log('Modal closed');
+    }
+});
+```
+
+**Tooltip:**
+```javascript
+// Basic tooltip
+_('#info-icon').tooltip('This is helpful information');
+
+// Positioned tooltip
+_('#button').tooltip('Click me!', 'bottom');
+```
+
+**Popover (Rich Content Tooltip):**
+```javascript
+// Popover with HTML content
+_('#details-btn').popover(
+    '<h3>Details</h3><p>More information here...</p><button>Action</button>',
+    {
+        position: 'right',  // top, bottom, left, right
+        trigger: 'click',   // click or hover
+        width: '300px'
+    }
+);
+```
+
+**Tabs System:**
+```javascript
+// HTML structure:
+// <div id="tabs-container">
+//   <button data-tab="tab1">Tab 1</button>
+//   <button data-tab="tab2">Tab 2</button>
+//   <div data-tab-content="tab1">Content 1</div>
+//   <div data-tab-content="tab2">Content 2</div>
+// </div>
+
+_('#tabs-container').tabs();
+```
+
+**Accordion:**
+```javascript
+// HTML structure:
+// <div id="accordion">
+//   <div data-accordion-header>Section 1</div>
+//   <div data-accordion-content>Content 1</div>
+//   <div data-accordion-header>Section 2</div>
+//   <div data-accordion-content>Content 2</div>
+// </div>
+
+_('#accordion').accordion();
+```
+
+**Carousel/Slider:**
+```javascript
+// Basic carousel
+_('#carousel').carousel();
+
+// Auto-play carousel
+_('#carousel').carousel({
+    auto: true,
+    interval: 5000  // 5 seconds
+});
+
+// Manual control
+const carousel = $('#carousel').carousel();
+carousel._carousel.next();  // Next slide
+carousel._carousel.prev();  // Previous slide
+```
+
+**Breadcrumb Navigation:**
+```javascript
+_('#breadcrumb').breadcrumb([
+    { label: 'Home', href: '/' },
+    { label: 'Products', href: '/products' },
+    { label: 'Details' }  // Current page (no href)
+], {
+    separator: '>'  // or '/', '»', etc.
+});
+```
+
+**Pagination:**
+```javascript
+_('#pagination').pagination({
+    currentPage: 1,
+    totalPages: 20,
+    maxVisible: 7,  // Max page numbers to show
+    onChange: (page) => {
+        console.log('Navigate to page:', page);
+        loadPage(page);
+    }
+});
+```
+
+**Badge/Tag Component:**
+```javascript
+// Simple badge
+_('#container').badge('New', { variant: 'primary' });
+
+// Badge with icon
+_('#status').badge('Active', { 
+    variant: 'success',
+    icon: '✓'
+});
+
+// Dismissible badge
+_('#tag').badge('Removable', {
+    variant: 'warning',
+    dismissible: true,
+    onDismiss: () => {
+        console.log('Badge removed');
+    }
+});
+
+// Available variants: primary, success, warning, danger, info, secondary
+```
+
+**Stepper/Wizard:**
+```javascript
+_('#wizard').stepper({
+    steps: [
+        { 
+            label: 'Account Info', 
+            content: '<form>...account form...</form>' 
+        },
+        { 
+            label: 'Personal Details', 
+            content: '<form>...personal form...</form>' 
+        },
+        { 
+            label: 'Confirmation', 
+            content: '<div>...review info...</div>' 
+        }
+    ],
+    onStepChange: (currentStep) => {
+        console.log('Now on step:', currentStep);
+    },
+    onFinish: () => {
+        console.log('Wizard completed!');
+        submitForm();
+    }
+});
+```
+
+**Progress Bar:**
+```javascript
+_('#progress').progress(75, {
+    color: '#4CAF50',
+    height: '20px',
+    showText: true
+});
+```
+
+**Loading Spinner:**
+```javascript
+// Show spinner
+const spinner = _.spinner({
+    size: '50px',
+    color: '#2196F3',
+    container: document.body
+});
+
+// Remove spinner
+spinner.remove();
+```
+
+**Notifications/Toasts:**
+```javascript
+// Info notification
+_.notify('Info message', 'info');
+
+// Success notification
+_.notify('Success!', 'success', 3000);
+
+// Warning notification
+_.notify('Warning!', 'warning');
+
+// Error notification
+_.notify('Error occurred', 'error', 5000);
+```
+
 ### Phase 4: Modern Browser Features
 
 #### Web Workers
@@ -1108,7 +1397,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 MIT License - see LICENSE file for details
 
-## 🌟 What's New in v2.1.0
+## 🌟 What's New in v2.2.0
+
+### 🎨 NEW! Enhanced Animations & UI Components
+- ✅ **15+ Smooth Animations**: bounce, swing, flip3D, zoomIn/Out, blurIn/Out, rotateIn/Out, slideIn/Out (all directions), rubberBand
+- ✅ **New UI Components**: Dropdown with search & multi-select, Popover (rich tooltips), Breadcrumb, Pagination, Badge/Tag, Stepper/Wizard
+- ✅ **Enhanced Component System**: All components now follow consistent API patterns
+- ✅ **Updated Documentation**: Comprehensive examples for all new features
 
 ### Build & Distribution
 - ✅ **Minified version** (`min.yaka.js`) - 58% smaller, production-ready
