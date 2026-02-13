@@ -679,6 +679,10 @@
         // NEW! Confetti effect
         confetti: function () {
             return this.each((i, elem) => {
+                if (!elem._yaka_confetti_timeouts) {
+                    elem._yaka_confetti_timeouts = [];
+                }
+                
                 const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
                 for (let i = 0; i < 50; i++) {
                     const confetti = document.createElement('div');
@@ -693,7 +697,20 @@
                     `;
                     elem.style.position = 'relative';
                     elem.appendChild(confetti);
-                    setTimeout(() => confetti.remove(), 5000);
+                    
+                    const timeoutId = setTimeout(() => confetti.remove(), 5000);
+                    elem._yaka_confetti_timeouts.push(timeoutId);
+                }
+                
+                // Store cleanup method
+                if (!elem._yaka_confetti_cleanup) {
+                    elem._yaka_confetti_cleanup = () => {
+                        if (elem._yaka_confetti_timeouts) {
+                            elem._yaka_confetti_timeouts.forEach(id => clearTimeout(id));
+                            elem._yaka_confetti_timeouts = [];
+                        }
+                        delete elem._yaka_confetti_cleanup;
+                    };
                 }
             });
         }
@@ -1102,6 +1119,9 @@
     // NEW! Tooltip
     Yaka.prototype.tooltip = function (text, position = 'top') {
         return this.each((i, elem) => {
+            if (elem._yaka_tooltip) return;
+            elem._yaka_tooltip = true;
+            
             const tooltip = document.createElement('div');
             tooltip.textContent = text;
             tooltip.style.cssText = `
@@ -1118,7 +1138,7 @@
                 transition: opacity 0.2s;
             `;
 
-            elem.addEventListener('mouseenter', () => {
+            const handleMouseEnter = () => {
                 document.body.appendChild(tooltip);
                 const rect = elem.getBoundingClientRect();
 
@@ -1131,12 +1151,26 @@
                 }
 
                 tooltip.style.opacity = '1';
-            });
+            };
 
-            elem.addEventListener('mouseleave', () => {
+            const handleMouseLeave = () => {
                 tooltip.style.opacity = '0';
-                setTimeout(() => tooltip.remove(), 200);
-            });
+                setTimeout(() => {
+                    if (tooltip.parentNode) tooltip.remove();
+                }, 200);
+            };
+
+            elem.addEventListener('mouseenter', handleMouseEnter);
+            elem.addEventListener('mouseleave', handleMouseLeave);
+            
+            // Store cleanup method
+            elem._yaka_tooltip_cleanup = () => {
+                elem.removeEventListener('mouseenter', handleMouseEnter);
+                elem.removeEventListener('mouseleave', handleMouseLeave);
+                if (tooltip.parentNode) tooltip.remove();
+                delete elem._yaka_tooltip;
+                delete elem._yaka_tooltip_cleanup;
+            };
         });
     };
 
@@ -1659,35 +1693,66 @@
     // NEW! Color Picker
     Yaka.prototype.colorPicker = function (callback) {
         return this.each((i, elem) => {
+            if (elem._yaka_colorpicker) return;
+            elem._yaka_colorpicker = true;
+            
             const input = document.createElement('input');
             input.type = 'color';
             input.style.display = 'none';
             elem.appendChild(input);
 
-            elem.addEventListener('click', () => input.click());
-            input.addEventListener('change', () => {
+            const handleClick = () => input.click();
+            const handleChange = () => {
                 callback.call(elem, input.value);
-            });
+            };
+
+            elem.addEventListener('click', handleClick);
+            input.addEventListener('change', handleChange);
+            
+            // Store cleanup method
+            elem._yaka_colorpicker_cleanup = () => {
+                elem.removeEventListener('click', handleClick);
+                input.removeEventListener('change', handleChange);
+                input.remove();
+                delete elem._yaka_colorpicker;
+                delete elem._yaka_colorpicker_cleanup;
+            };
         });
     };
 
     // NEW! Date Picker (Simple)
     Yaka.prototype.datePicker = function (callback) {
         return this.each((i, elem) => {
+            if (elem._yaka_datepicker) return;
+            elem._yaka_datepicker = true;
+            
             const input = document.createElement('input');
             input.type = 'date';
             input.style.cssText = 'width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;';
             elem.appendChild(input);
 
-            input.addEventListener('change', () => {
+            const handleChange = () => {
                 callback.call(elem, input.value);
-            });
+            };
+
+            input.addEventListener('change', handleChange);
+            
+            // Store cleanup method
+            elem._yaka_datepicker_cleanup = () => {
+                input.removeEventListener('change', handleChange);
+                input.remove();
+                delete elem._yaka_datepicker;
+                delete elem._yaka_datepicker_cleanup;
+            };
         });
     };
 
     // NEW! Range Slider
     Yaka.prototype.slider = function (options = {}) {
         return this.each((i, elem) => {
+            if (elem._yaka_slider) return;
+            elem._yaka_slider = true;
+            
             const slider = document.createElement('input');
             slider.type = 'range';
             slider.min = options.min || 0;
@@ -1702,21 +1767,36 @@
             elem.appendChild(slider);
             elem.appendChild(display);
 
-            slider.addEventListener('input', () => {
+            const handleInput = () => {
                 display.textContent = slider.value;
                 if (options.onChange) options.onChange(parseInt(slider.value));
-            });
+            };
+
+            slider.addEventListener('input', handleInput);
+            
+            // Store cleanup method
+            elem._yaka_slider_cleanup = () => {
+                slider.removeEventListener('input', handleInput);
+                slider.remove();
+                display.remove();
+                delete elem._yaka_slider;
+                delete elem._yaka_slider_cleanup;
+            };
         });
     };
 
     // NEW! Tabs System
     Yaka.prototype.tabs = function () {
         return this.each((i, container) => {
+            if (container._yaka_tabs) return;
+            container._yaka_tabs = true;
+            
             const tabs = container.querySelectorAll('[data-tab]');
             const contents = container.querySelectorAll('[data-tab-content]');
+            const handlers = [];
 
             tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
+                const handleClick = () => {
                     const target = tab.dataset.tab;
 
                     tabs.forEach(t => t.classList.remove('active'));
@@ -1727,37 +1807,68 @@
                     if (contentElement) {
                         contentElement.style.display = 'block';
                     }
-                });
+                };
+                
+                tab.addEventListener('click', handleClick);
+                handlers.push({ tab, handleClick });
             });
 
             if (tabs[0]) tabs[0].click();
+            
+            // Store cleanup method
+            container._yaka_tabs_cleanup = () => {
+                handlers.forEach(({ tab, handleClick }) => {
+                    tab.removeEventListener('click', handleClick);
+                });
+                delete container._yaka_tabs;
+                delete container._yaka_tabs_cleanup;
+            };
         });
     };
 
     // NEW! Accordion
     Yaka.prototype.accordion = function () {
         return this.each((i, container) => {
+            if (container._yaka_accordion) return;
+            container._yaka_accordion = true;
+            
             const headers = container.querySelectorAll('[data-accordion-header]');
+            const handlers = [];
 
             headers.forEach(header => {
                 header.style.cursor = 'pointer';
                 const content = header.nextElementSibling;
                 content.style.display = 'none';
 
-                header.addEventListener('click', () => {
+                const handleClick = () => {
                     const isOpen = content.style.display === 'block';
                     content.style.display = isOpen ? 'none' : 'block';
-                });
+                };
+
+                header.addEventListener('click', handleClick);
+                handlers.push({ header, handleClick });
             });
+            
+            // Store cleanup method
+            container._yaka_accordion_cleanup = () => {
+                handlers.forEach(({ header, handleClick }) => {
+                    header.removeEventListener('click', handleClick);
+                });
+                delete container._yaka_accordion;
+                delete container._yaka_accordion_cleanup;
+            };
         });
     };
 
     // NEW! Carousel/Slider
     Yaka.prototype.carousel = function (options = {}) {
         return this.each((i, container) => {
-            if (container._carousel && container._carousel.intervalId) {
-                clearInterval(container._carousel.intervalId);
+            // Clean up existing carousel if present
+            if (container._yaka_carousel_cleanup) {
+                container._yaka_carousel_cleanup();
             }
+            
+            container._yaka_carousel = true;
 
             const items = container.children;
             let currentIndex = 0;
@@ -1784,6 +1895,16 @@
             }
 
             container._carousel = { next, prev, intervalId };
+            
+            // Store cleanup method
+            container._yaka_carousel_cleanup = () => {
+                if (container._carousel && container._carousel.intervalId) {
+                    clearInterval(container._carousel.intervalId);
+                }
+                delete container._carousel;
+                delete container._yaka_carousel;
+                delete container._yaka_carousel_cleanup;
+            };
         });
     };
 
