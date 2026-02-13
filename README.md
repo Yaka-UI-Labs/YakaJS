@@ -21,9 +21,10 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 
 ### 🎨 Rich UI Components & Animations
 - **15+ Smooth Animations**: fadeIn/Out, slideIn/Out (all directions), zoomIn/Out, blurIn/Out, bounce, pulse, shake, swing, flip3D, rotateIn/Out, rubberBand
-- **Modern UI Components**: Dropdown with search, Modal, Tooltip, Popover, Tabs, Accordion, Carousel, Stepper/Wizard, Breadcrumb, Pagination, Badge/Tag
+- **Modern UI Components**: Dropdown with search, Modal, Tooltip, Popover, Tabs, Accordion, Carousel, Stepper/Wizard, Breadcrumb, Pagination, Badge/Tag, Button Widget, Checkboxradio, Controlgroup, Menu
 - **Progress Indicators**: Progress bars, loading spinners, skeleton loaders
-- **Interactive Elements**: Draggable, droppable, resizable, sortable, swipe gestures, infinite scroll
+- **Interactive Elements**: Draggable, droppable, resizable, selectable, sortable, swipe gestures, infinite scroll
+- **Enhanced Animations**: Color animation, addClass/removeClass/toggleClass with duration, position utility
 
 ### 🛡️ Smart "Auto-Fix" & Error Handling
 - **Safe-Mode Chaining**: Never crash on empty selectors with `_.safe()`
@@ -1016,6 +1017,112 @@ _('#sortable-list').sortable({
         console.log('New order:', newOrder);
     }
 });
+```
+
+**Selectable Elements:**
+```javascript
+// Make elements selectable with marquee
+_('#selectable-container').selectable({
+    filter: '.item',  // Which elements can be selected
+    tolerance: 'touch',  // 'touch' or 'fit'
+    onSelect: function() {
+        console.log('Item selected:', this);
+    },
+    onStop: function(event, selected) {
+        console.log('Selection complete:', selected.length, 'items selected');
+    }
+});
+```
+
+**Button Widget:**
+```javascript
+// Enhanced button with icon
+_('button').button({
+    icon: '🚀',
+    iconPosition: 'left'
+});
+
+// Button with enable/disable
+const btn = _('#myButton').button();
+btn.elements[0]._yaka_button_api.disable();
+btn.elements[0]._yaka_button_api.enable();
+```
+
+**Checkboxradio:**
+```javascript
+// Style checkbox
+_('input[type="checkbox"]').checkboxradio({
+    label: 'Accept terms'
+});
+
+// Style radio buttons
+_('input[type="radio"][name="choice"]').checkboxradio();
+```
+
+**Controlgroup:**
+```javascript
+// Group buttons horizontally
+_('#button-group').controlgroup();
+
+// Group buttons vertically
+_('#vertical-group').controlgroup({
+    direction: 'vertical'
+});
+```
+
+**Menu Widget:**
+```javascript
+// Create menu with keyboard navigation
+_('#menu').menu({
+    onSelect: function(text, index) {
+        console.log('Selected:', text);
+    }
+});
+```
+
+**Position Utility:**
+```javascript
+// Position dropdown below button
+_('#dropdown').position({
+    my: 'left top',
+    at: 'left bottom',
+    of: '#myButton',
+    collision: 'flip'
+});
+
+// Center dialog in window
+_('#dialog').position({
+    my: 'center',
+    at: 'center',
+    of: window
+});
+```
+
+**Enhanced Class Animations:**
+```javascript
+// Add class with animation
+_('#element').add('highlight', 300);
+
+// Remove class with animation
+_('#element').remove('active', 500);
+
+// Toggle class with animation
+_('#element').toggle('expanded', 400);
+```
+
+**Color Animation:**
+```javascript
+// Animate background color
+_('#box').animate({
+    backgroundColor: '#ff5722',
+    color: '#ffffff'
+}, 1000);
+
+// Animate border color
+_('#panel').animate({
+    borderColor: 'rgb(33, 150, 243)',
+    width: '300px'
+}, 500);
 ```
 
 ### Phase 4: Modern Browser Features
