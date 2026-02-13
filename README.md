@@ -1,6 +1,6 @@
 # YakaJS 🚀
 
-[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
+[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > Next-Gen JavaScript Library - More powerful than jQuery, simpler to write
@@ -14,23 +14,47 @@ YakaJS is a modern, lightweight JavaScript library that combines the simplicity 
 - **Debug Mode**: Global `_.debug = true` flag for helpful console hints
 - **Feature Detection**: Automatic polyfilling with `_.supports()`
 - **Graceful Degradation**: Clean error messages instead of browser crashes
+- **HTTP Error Handling**: Comprehensive timeout, retry, and error management
 
 ### ⚡ Performance & Lifecycle
 - **Signals-Based Reactivity**: SolidJS-inspired reactivity with `_.signal()`, `_.effect()`, `_.computed()`
 - **Intersection Observer**: Lazy loading and visibility detection
 - **Auto-Cleanup**: Prevent memory leaks with automatic cleanup methods
 - **Memory Leak Detection**: `_.detectLeaks()` to find potential issues
+- **Performance Monitoring**: FPS tracking, memory usage, long task detection
 
 ### 🎨 Advanced UI Interaction
 - **View Transitions API**: Smooth page transitions with `_.pageTransition()`
 - **Smart Forms**: 
   - Input masking (`_.mask('phone')`, `_.mask('creditCard')`, etc.)
   - Honeypot spam prevention (`_.honeypot()`)
+  - Advanced validation (15+ built-in rules)
 - **Keyboard Shortcuts**: Global hotkey manager with `_.hotkey('ctrl+s', handler)`
+
+### 🔐 Security Features
+- **XSS Protection**: HTML/URL sanitization
+- **CSRF Tokens**: Automatic token management
+- **Input Sanitization**: Prevent injection attacks
+- **CSP Support**: Nonce management for Content Security Policy
+
+### 🗺️ Advanced Routing
+- **SPA Router**: Full-featured routing with parameters and query strings
+- **Route Guards**: beforeEach, afterEach, beforeEnter hooks
+- **Named Routes**: Navigate by name with `navigateTo(name, params)`
+- **404 Handling**: Custom not-found handlers
+- **History Management**: back(), forward() support
+
+### 🏪 State Management
+- **Vuex/Redux-style Store**: State, getters, mutations, actions
+- **Time-Travel Debugging**: undo/redo state changes
+- **State Persistence**: Save/restore from localStorage
+- **Reactive State**: Automatic reactivity with Proxy
+- **Watch API**: Subscribe to specific state changes
 
 ### 🔮 Modern Browser "Superpowers"
 - **Web Worker Wrapper**: Run heavy computations without freezing UI
 - **Enhanced IndexedDB**: Batch operations, queries, and counting
+- **HTTP Caching**: TTL-based response caching
 - **AI Integration**: WebNN/Browser AI support for summarization and sentiment analysis
 - **Bluetooth API**: Connect to smart devices like heart rate monitors
 
@@ -59,6 +83,46 @@ _.debug = true;
 // Safe mode prevents crashes on empty selectors
 _('#non-existent').safe().hide().fadeIn();
 
+// HTTP with error handling, retry, timeout
+await _.get('/api/data', null, {
+    timeout: 5000,
+    retries: 3,
+    retryDelay: 1000,
+    onError: (err) => console.error(err)
+});
+
+// Advanced routing
+const router = _.createRouter();
+router.addRoute('/user/:id', {
+    component: (params) => `User ${params.id}`,
+    beforeEnter: async () => {
+        return checkAuth(); // Route guard
+    }
+});
+router.init();
+
+// Form validation
+_('#form').validateForm({
+    email: { required: true, email: true },
+    age: { number: true, min: 18 },
+    password: { minLength: 8 }
+}, { realTime: true, showErrors: true });
+
+// State management
+const store = _.createStore({
+    state: { count: 0 },
+    mutations: {
+        increment(state) { state.count++; }
+    }
+});
+store.commit('increment');
+store.undo(); // Time travel!
+
+// Performance monitoring
+_.performance.mark('start');
+// ... code ...
+_.performance.measure('operation', 'start');
+
 // Signals-based reactivity
 const [count, setCount] = _.signal(0);
 _.effect(() => {
@@ -66,30 +130,292 @@ _.effect(() => {
 });
 setCount(5); // Logs: "Count is: 5"
 
-// Input masking
-_('#phone').mask('phone'); // Auto-formats phone numbers
-
-// Keyboard shortcuts
-_.hotkey('ctrl+s', (e) => {
-    // Handle save action
-});
-
-// Web Worker for heavy computation
-_.worker((data) => {
-    // Heavy computation here
-    return data.map(x => x * 2);
-}, [1, 2, 3, 4, 5]).then(result => {
-    console.log(result); // [2, 4, 6, 8, 10]
-});
+// Security
+_.security.csrf.setToken('token-123');
+const safe = _.security.escapeHtml(userInput);
 
 // Theme switching
 _.theme.toggle(); // Toggle between dark and light
-_.theme.onChange((theme) => {
-    console.log('Theme changed to:', theme);
-});
 ```
 
 ## 📚 Documentation
+
+### jQuery-Beating Features
+
+#### 1. Enhanced HTTP with Error Handling
+
+YakaJS provides comprehensive HTTP error handling that goes far beyond jQuery's basic Ajax:
+
+```javascript
+// Timeout support
+await _.get(url, data, { timeout: 5000 });
+
+// Retry logic with exponential backoff
+await _.post(url, data, { 
+    retries: 3, 
+    retryDelay: 1000 
+});
+
+// Error callbacks
+await _.ajax({
+    url: '/api/data',
+    method: 'POST',
+    data: { key: 'value' },
+    onError: (err) => {
+        console.error('Request failed:', err);
+    }
+});
+
+// HTTP caching with TTL
+const data = await _.cache.request('/api/data', {
+    cache: true,
+    cacheTTL: 60000 // 1 minute
+});
+
+// Second call uses cache (instant)
+const cached = await _.cache.request('/api/data');
+```
+
+#### 2. Advanced Routing
+
+Full-featured SPA routing with parameters, guards, and more:
+
+```javascript
+const router = _.createRouter({
+    baseUrl: '/app',
+    notFoundHandler: (path) => {
+        console.log('404:', path);
+    }
+});
+
+// Route with parameters
+router.addRoute('/user/:id', {
+    name: 'user',
+    component: (params, query) => {
+        return `<h1>User ${params.id}</h1>
+                <p>Tab: ${query.tab || 'overview'}</p>`;
+    },
+    beforeEnter: async (to, from) => {
+        // Auth check
+        if (!isAuthenticated()) {
+            router.navigate('/login');
+            return false; // Cancel navigation
+        }
+        return true;
+    }
+});
+
+// Navigate programmatically
+router.navigate('/user/123?tab=posts');
+
+// Navigate by name
+router.navigateTo('user', { id: '456' }, { tab: 'settings' });
+
+// Global guards
+router.beforeEach((to, from) => {
+    console.log('Navigating to:', to.path);
+    return true; // or false to cancel
+});
+
+router.afterEach((to, from) => {
+    trackPageView(to.path);
+});
+
+// Initialize router
+router.init();
+```
+
+#### 3. Advanced Form Validation
+
+Comprehensive validation with 15+ built-in rules:
+
+```javascript
+// Basic validation
+const result = _('#form').validateForm({
+    email: { required: true, email: true },
+    website: { url: true },
+    age: { number: true, min: 18, max: 100 },
+    phone: { required: true, phone: true },
+    password: { required: true, minLength: 8 },
+    confirm: { match: 'password' },
+    creditCard: { creditCard: true },
+    username: { alphanumeric: true, minLength: 3 }
+}, {
+    realTime: true,    // Validate on blur
+    showErrors: true   // Auto-display errors
+});
+
+if (result.valid) {
+    // Form is valid
+} else {
+    console.log(result.errors);
+}
+
+// Custom validation rules
+_.validator.addRule('strongPassword', (value) => {
+    return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value);
+}, 'Password must contain uppercase, lowercase, number and special character');
+
+// Async validation
+const asyncResult = await _.validator.validateAsync(
+    value,
+    async (val) => {
+        const response = await _.get(`/check-username?name=${val}`);
+        return response.available ? true : 'Username already taken';
+    }
+);
+```
+
+**Available Validation Rules:**
+- `required`, `email`, `url`, `number`, `integer`
+- `min`, `max`, `minLength`, `maxLength`
+- `pattern`, `match`, `alpha`, `alphanumeric`
+- `phone`, `creditCard` (with Luhn algorithm)
+
+#### 4. Security Utilities
+
+Comprehensive security features for XSS, CSRF, and more:
+
+```javascript
+// XSS Protection
+const userInput = '<script>alert("xss")</script>';
+const safe = _.security.escapeHtml(userInput);
+// Output: "&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;"
+
+// CSRF Token Management
+_.security.csrf.setToken('your-csrf-token');
+// Token is automatically added to all HTTP requests
+
+// Get token
+const token = _.security.csrf.getToken();
+
+// URL Sanitization (prevents javascript: and data: protocols)
+const cleanUrl = _.security.sanitizeUrl(userInput);
+
+// Input Sanitization
+const clean = _.security.sanitizeInput(userInput);
+
+// CSP Nonce Support
+_.security.csp.setNonce('random-nonce-123');
+const nonce = _.security.csp.getNonce();
+```
+
+#### 5. State Management (Vuex/Redux-style)
+
+Powerful state management with time-travel debugging:
+
+```javascript
+const store = _.createStore({
+    state: {
+        count: 0,
+        todos: [],
+        user: null
+    },
+    
+    getters: {
+        todoCount: (state) => state.todos.length,
+        completedTodos: (state) => {
+            return state.todos.filter(t => t.completed);
+        }
+    },
+    
+    mutations: {
+        increment(state, amount = 1) {
+            state.count += amount;
+        },
+        addTodo(state, todo) {
+            state.todos.push(todo);
+        },
+        setUser(state, user) {
+            state.user = user;
+        }
+    },
+    
+    actions: {
+        async fetchUser(context, userId) {
+            const user = await _.get(`/api/users/${userId}`);
+            context.commit('setUser', user);
+        },
+        async fetchTodos(context) {
+            const todos = await _.get('/api/todos');
+            todos.forEach(todo => {
+                context.commit('addTodo', todo);
+            });
+        }
+    }
+});
+
+// Use mutations (synchronous)
+store.commit('increment', 5);
+
+// Use actions (can be async)
+await store.dispatch('fetchUser', 123);
+
+// Use getters
+const count = store.get('todoCount');
+
+// Subscribe to all changes
+store.subscribe((mutation, state) => {
+    console.log('State changed:', mutation);
+});
+
+// Watch specific property
+store.watch('count', (newValue, oldValue) => {
+    console.log(`Count changed from ${oldValue} to ${newValue}`);
+});
+
+// Time-travel debugging
+store.commit('increment');
+store.commit('increment');
+store.commit('increment');
+
+store.undo(); // Go back one step
+store.undo(); // Go back another step
+store.redo(); // Go forward one step
+
+// Persist state
+store.persist('my-app-state');
+
+// Restore state (e.g., on page load)
+store.restore('my-app-state');
+```
+
+#### 6. Performance Monitoring
+
+Track performance metrics and optimize your application:
+
+```javascript
+// Mark performance points
+_.performance.mark('operationStart');
+
+// ... do some work ...
+
+_.performance.mark('operationEnd');
+
+// Measure duration
+const duration = _.performance.measure('myOperation', 'operationStart', 'operationEnd');
+console.log(`Operation took ${duration}ms`);
+
+// Get FPS
+_.performance.getFPS((fps) => {
+    console.log(`Current FPS: ${fps}`);
+}, 2000); // Measure over 2 seconds
+
+// Monitor long tasks (>50ms)
+_.performance.observeLongTasks((task) => {
+    console.warn('Long task detected:', task);
+});
+
+// Get comprehensive performance report
+const report = _.performance.getReport();
+console.log('Memory:', report.memory);
+console.log('Navigation timing:', report.navigation);
+console.log('Marks:', report.marks);
+console.log('Measures:', report.measures);
+
+// Clear all performance data
+_.performance.clear();
+```
 
 ### Phase 1: Error Handling & Safety
 
