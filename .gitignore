@@ -2,6 +2,14 @@ node_modules/
 *.log
 .DS_Store
 
+# Build artifacts (dist folder contains official builds)
+dist/*.js
+dist/*.map
+!dist/min.yaka.js
+!dist/ultra.min.yaka.js
+!dist/hyper.min.yaka.js
+!dist/min.yaka.js.map
+
 # Custom builds from yakacli
 *-yaka.js
 custom-yaka.js
