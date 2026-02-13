@@ -1,0 +1,28 @@
+{
+  "name": "yakacli",
+  "version": "1.0.0",
+  "description": "Command-line tool for scaffolding YakaJS projects",
+  "main": "yakacli.js",
+  "bin": {
+    "yakacli": "./bin/yakacli"
+  },
+  "scripts": {
+    "test": "node yakacli.js analyze"
+  },
+  "keywords": [
+    "yakajs",
+    "cli",
+    "scaffolding",
+    "generator",
+    "templates"
+  ],
+  "author": "Yaka-UI-Labs",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Yaka-UI-Labs/YakaJS"
+  }
+}

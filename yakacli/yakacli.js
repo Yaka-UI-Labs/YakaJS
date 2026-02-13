@@ -1,0 +1,336 @@
+#!/usr/bin/env node
+
+/**
+ * YakaCLI - Command-line tool for scaffolding YakaJS projects
+ * @version 1.0.0
+ */
+
+const fs = require('fs');
+const path = require('path');
+const readline = require('readline');
+
+// CLI Colors for better UX
+const colors = {
+    reset: '\x1b[0m',
+    bright: '\x1b[1m',
+    cyan: '\x1b[36m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    red: '\x1b[31m',
+    blue: '\x1b[34m',
+    magenta: '\x1b[35m'
+};
+
+// Project templates
+const templates = {
+    basic: {
+        name: 'Basic Project',
+        description: 'Simple HTML page with YakaJS',
+        files: [
+            'index.html',
+            'css/style.css',
+            'js/app.js',
+            'README.md'
+        ]
+    },
+    spa: {
+        name: 'SPA (Single Page App)',
+        description: 'Full routing and state management',
+        files: [
+            'index.html',
+            'css/theme.css',
+            'css/components.css',
+            'js/router.js',
+            'js/store.js',
+            'js/components/navbar.js',
+            'js/components/home.js',
+            'js/components/404.js',
+            'js/app.js',
+            'README.md'
+        ]
+    },
+    dashboard: {
+        name: 'Dashboard',
+        description: 'Admin dashboard with charts and tables',
+        files: [
+            'index.html',
+            'css/dashboard.css',
+            'css/responsive.css',
+            'js/store.js',
+            'js/components.js',
+            'js/app.js',
+            'README.md'
+        ]
+    },
+    pwa: {
+        name: 'PWA (Progressive Web App)',
+        description: 'Offline-capable progressive web app',
+        files: [
+            'index.html',
+            'manifest.json',
+            'sw.js',
+            'css/style.css',
+            'js/app.js',
+            'js/offline.js',
+            'README.md'
+        ]
+    }
+};
+
+// Banner
+function showBanner() {
+    console.log(`${colors.cyan}${colors.bright}`);
+    console.log(`
+╔═══════════════════════════════════════╗
+║                                       ║
+║           YakaCLI v1.0.0             ║
+║    YakaJS Project Scaffolding Tool   ║
+║                                       ║
+╚═══════════════════════════════════════╝
+    `);
+    console.log(colors.reset);
+}
+
+// Show help
+function showHelp() {
+    showBanner();
+    console.log(`${colors.bright}USAGE:${colors.reset}`);
+    console.log(`  yakacli <command> [options]\n`);
+    
+    console.log(`${colors.bright}COMMANDS:${colors.reset}`);
+    console.log(`  ${colors.cyan}create <project-name>${colors.reset}  Create a new YakaJS project`);
+    console.log(`  ${colors.cyan}analyze${colors.reset}                 Analyze current codebase`);
+    console.log(`  ${colors.cyan}help${colors.reset}                    Show this help message`);
+    console.log(`  ${colors.cyan}version${colors.reset}                 Show version number\n`);
+    
+    console.log(`${colors.bright}PROJECT TEMPLATES:${colors.reset}`);
+    Object.keys(templates).forEach(key => {
+        const template = templates[key];
+        console.log(`  ${colors.green}${key.padEnd(12)}${colors.reset} ${template.name} - ${template.description}`);
+    });
+    console.log();
+    
+    console.log(`${colors.bright}EXAMPLES:${colors.reset}`);
+    console.log(`  yakacli create my-app`);
+    console.log(`  yakacli analyze`);
+    console.log();
+}
+
+// Show version
+function showVersion() {
+    console.log(`${colors.cyan}YakaCLI version 1.0.0${colors.reset}`);
+}
+
+// Prompt user for input
+function prompt(question) {
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    
+    return new Promise(resolve => {
+        rl.question(question, answer => {
+            rl.close();
+            resolve(answer.trim());
+        });
+    });
+}
+
+// Analyze codebase
+function analyzeCodebase() {
+    showBanner();
+    console.log(`${colors.bright}${colors.blue}📊 Analyzing YakaJS Codebase...${colors.reset}\n`);
+    
+    const yakaPath = path.join(process.cwd(), 'yaka.js');
+    
+    if (!fs.existsSync(yakaPath)) {
+        console.log(`${colors.red}❌ Error: yaka.js not found in current directory${colors.reset}`);
+        console.log(`${colors.yellow}💡 Tip: Run this command from the YakaJS repository root${colors.reset}`);
+        return;
+    }
+    
+    const content = fs.readFileSync(yakaPath, 'utf8');
+    const lines = content.split('\n');
+    
+    // Analyze file
+    const stats = {
+        totalLines: lines.length,
+        codeLines: lines.filter(l => l.trim() && !l.trim().startsWith('//')).length,
+        commentLines: lines.filter(l => l.trim().startsWith('//')).length,
+        functions: (content.match(/function\s+\w+\s*\(/g) || []).length,
+        methods: (content.match(/\w+\s*:\s*function\s*\(/g) || []).length,
+        arrowFunctions: (content.match(/=>\s*{/g) || []).length,
+        classes: (content.match(/class\s+\w+/g) || []).length
+    };
+    
+    // Feature detection
+    const features = {
+        'DOM Manipulation': /\.text\(|\.html\(|\.attr\(|\.css\(/g,
+        'HTTP/AJAX': /\.get\(|\.post\(|\.ajax\(/g,
+        'Routing': /createRouter|addRoute|navigateTo/g,
+        'State Management': /createStore|mutations|actions/g,
+        'Signals/Reactivity': /signal\(|effect\(|computed\(/g,
+        'UI Components': /modal|tooltip|carousel|datepicker/g,
+        'Security': /sanitize|escapeHtml|csrf/g,
+        'Performance': /memoize|debounce|throttle/g
+    };
+    
+    console.log(`${colors.bright}📁 File Statistics:${colors.reset}`);
+    console.log(`  Total Lines:      ${colors.cyan}${stats.totalLines.toLocaleString()}${colors.reset}`);
+    console.log(`  Code Lines:       ${colors.cyan}${stats.codeLines.toLocaleString()}${colors.reset}`);
+    console.log(`  Comment Lines:    ${colors.cyan}${stats.commentLines.toLocaleString()}${colors.reset}`);
+    console.log(`  Functions:        ${colors.cyan}${stats.functions}${colors.reset}`);
+    console.log(`  Methods:          ${colors.cyan}${stats.methods}${colors.reset}`);
+    console.log(`  Arrow Functions:  ${colors.cyan}${stats.arrowFunctions}${colors.reset}`);
+    console.log(`  Classes:          ${colors.cyan}${stats.classes}${colors.reset}`);
+    console.log();
+    
+    console.log(`${colors.bright}🎯 Feature Detection:${colors.reset}`);
+    Object.entries(features).forEach(([name, pattern]) => {
+        const matches = content.match(pattern) || [];
+        const status = matches.length > 0 ? `${colors.green}✓${colors.reset}` : `${colors.red}✗${colors.reset}`;
+        const count = matches.length > 0 ? `${colors.cyan}(${matches.length} references)${colors.reset}` : '';
+        console.log(`  ${status} ${name.padEnd(25)} ${count}`);
+    });
+    console.log();
+    
+    // File size
+    const stats_file = fs.statSync(yakaPath);
+    const sizeKB = (stats_file.size / 1024).toFixed(2);
+    console.log(`${colors.bright}📦 Bundle Size:${colors.reset}`);
+    console.log(`  Full Source:  ${colors.cyan}${sizeKB} KB${colors.reset}`);
+    
+    // Check for minified version
+    const minPath = path.join(process.cwd(), 'min.yaka.js');
+    if (fs.existsSync(minPath)) {
+        const minStats = fs.statSync(minPath);
+        const minSizeKB = (minStats.size / 1024).toFixed(2);
+        const reduction = (((stats_file.size - minStats.size) / stats_file.size) * 100).toFixed(1);
+        console.log(`  Minified:     ${colors.cyan}${minSizeKB} KB${colors.reset} ${colors.green}(${reduction}% smaller)${colors.reset}`);
+    }
+    console.log();
+    
+    console.log(`${colors.green}✅ Analysis complete!${colors.reset}\n`);
+}
+
+// Create project
+async function createProject(projectName) {
+    if (!projectName) {
+        console.log(`${colors.red}❌ Error: Project name is required${colors.reset}`);
+        console.log(`${colors.yellow}Usage: yakacli create <project-name>${colors.reset}`);
+        return;
+    }
+    
+    showBanner();
+    
+    console.log(`${colors.bright}🚀 Creating YakaJS Project: ${colors.cyan}${projectName}${colors.reset}\n`);
+    
+    // Show template options
+    console.log(`${colors.bright}Available Templates:${colors.reset}\n`);
+    const templateKeys = Object.keys(templates);
+    templateKeys.forEach((key, index) => {
+        const template = templates[key];
+        console.log(`  ${colors.cyan}${index + 1}${colors.reset}. ${colors.bright}${template.name}${colors.reset}`);
+        console.log(`     ${template.description}\n`);
+    });
+    
+    // Get user choice
+    const answer = await prompt(`${colors.bright}Select a template (1-${templateKeys.length}): ${colors.reset}`);
+    const templateIndex = parseInt(answer) - 1;
+    
+    if (isNaN(templateIndex) || templateIndex < 0 || templateIndex >= templateKeys.length) {
+        console.log(`${colors.red}❌ Invalid selection${colors.reset}`);
+        return;
+    }
+    
+    const templateType = templateKeys[templateIndex];
+    const template = templates[templateType];
+    
+    console.log(`\n${colors.green}✓${colors.reset} Selected: ${colors.bright}${template.name}${colors.reset}\n`);
+    
+    // Create project directory
+    const projectPath = path.join(process.cwd(), projectName);
+    
+    if (fs.existsSync(projectPath)) {
+        console.log(`${colors.red}❌ Error: Directory '${projectName}' already exists${colors.reset}`);
+        return;
+    }
+    
+    console.log(`${colors.bright}📁 Creating project structure...${colors.reset}\n`);
+    
+    // Create directories
+    const dirs = new Set();
+    template.files.forEach(file => {
+        const dir = path.dirname(file);
+        if (dir !== '.') {
+            dirs.add(dir);
+        }
+    });
+    
+    fs.mkdirSync(projectPath, { recursive: true });
+    dirs.forEach(dir => {
+        const dirPath = path.join(projectPath, dir);
+        fs.mkdirSync(dirPath, { recursive: true });
+        console.log(`  ${colors.cyan}+${colors.reset} ${dir}/`);
+    });
+    
+    // Load template generator
+    const templateGenerator = require('./templates/generator');
+    
+    // Generate files
+    console.log();
+    template.files.forEach(file => {
+        const filePath = path.join(projectPath, file);
+        const content = templateGenerator.generate(templateType, file, projectName);
+        fs.writeFileSync(filePath, content);
+        console.log(`  ${colors.green}+${colors.reset} ${file}`);
+    });
+    
+    console.log();
+    console.log(`${colors.green}${colors.bright}✅ Project created successfully!${colors.reset}\n`);
+    console.log(`${colors.bright}Next steps:${colors.reset}`);
+    console.log(`  ${colors.cyan}cd ${projectName}${colors.reset}`);
+    console.log(`  ${colors.cyan}# Open index.html in your browser${colors.reset}`);
+    console.log();
+    console.log(`${colors.yellow}💡 Tip: Use a local server for best results:${colors.reset}`);
+    console.log(`  ${colors.cyan}npx http-server${colors.reset}  ${colors.reset}(if you have Node.js)`);
+    console.log(`  ${colors.cyan}python -m http.server${colors.reset}  ${colors.reset}(if you have Python)`);
+    console.log();
+}
+
+// Main CLI handler
+async function main() {
+    const args = process.argv.slice(2);
+    const command = args[0];
+    
+    if (!command || command === 'help' || command === '--help' || command === '-h') {
+        showHelp();
+        return;
+    }
+    
+    switch (command) {
+        case 'version':
+        case '--version':
+        case '-v':
+            showVersion();
+            break;
+            
+        case 'create':
+            await createProject(args[1]);
+            break;
+            
+        case 'analyze':
+            analyzeCodebase();
+            break;
+            
+        default:
+            console.log(`${colors.red}❌ Unknown command: ${command}${colors.reset}`);
+            console.log(`${colors.yellow}Run 'yakacli help' for usage information${colors.reset}`);
+    }
+}
+
+// Run CLI
+main().catch(error => {
+    console.error(`${colors.red}❌ Error: ${error.message}${colors.reset}`);
+    process.exit(1);
+});

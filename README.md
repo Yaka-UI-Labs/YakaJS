@@ -1136,12 +1136,31 @@ MIT License - see LICENSE file for details
 - ✅ Security utilities (XSS, CSRF protection)
 - ✅ And much more!
 
+## 🛠️ YakaCLI - Project Scaffolding Tool
+
+**NEW!** YakaCLI is now available! Quickly scaffold new YakaJS projects with multiple templates.
+
+```bash
+# Install globally (when published)
+npm install -g yakacli
+
+# Or run directly from the repo
+node yakacli/yakacli.js create my-project
+```
+
+**Features:**
+- 🚀 4 project templates (Basic, SPA, Dashboard, PWA)
+- 📊 Codebase analysis tool
+- 🎨 Modern, production-ready designs
+- 📦 Zero configuration needed
+
+[📖 View YakaCLI Documentation](yakacli/README.md)
+
 ## 🔥 Coming Soon
 
 - Server-side rendering support
 - React/Vue integration
 - TypeScript definitions
-- CLI tool for scaffolding
 - Component library
 - More plugins and extensions
 
