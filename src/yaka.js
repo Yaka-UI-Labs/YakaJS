@@ -4658,38 +4658,111 @@
         });
     };
 
-    // NEW! Range Slider
+    // NEW! Range Slider - Enhanced to compete with jQuery slider libraries
     Yaka.prototype.slider = function (options = {}) {
         return this.each((i, elem) => {
             if (elem._yaka_slider) return;
             elem._yaka_slider = true;
             
+            const min = options.min || 0;
+            const max = options.max || 100;
+            const step = options.step || 1;
+            const value = options.value || 50;
+            const range = options.range || false; // Support for dual-handle range
+            const showTooltip = options.showTooltip !== false;
+            const showValue = options.showValue !== false;
+            
+            // Container for slider
+            const container = document.createElement('div');
+            container.style.cssText = 'position: relative; padding: 20px 0;';
+            
+            // Create slider input
             const slider = document.createElement('input');
             slider.type = 'range';
-            slider.min = options.min || 0;
-            slider.max = options.max || 100;
-            slider.value = options.value || 50;
-            slider.style.cssText = 'width: 100%;';
+            slider.min = min;
+            slider.max = max;
+            slider.step = step;
+            slider.value = value;
+            slider.style.cssText = `
+                width: 100%;
+                height: 6px;
+                border-radius: 3px;
+                background: linear-gradient(to right, #4CAF50 0%, #4CAF50 ${((value - min) / (max - min)) * 100}%, #ddd ${((value - min) / (max - min)) * 100}%, #ddd 100%);
+                outline: none;
+                -webkit-appearance: none;
+            `;
+            
+            // Tooltip
+            const tooltip = document.createElement('div');
+            if (showTooltip) {
+                tooltip.textContent = slider.value;
+                tooltip.style.cssText = `
+                    position: absolute;
+                    top: -30px;
+                    left: ${((value - min) / (max - min)) * 100}%;
+                    transform: translateX(-50%);
+                    background: #333;
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    pointer-events: none;
+                    white-space: nowrap;
+                `;
+                container.appendChild(tooltip);
+            }
 
+            // Value display
             const display = document.createElement('div');
-            display.textContent = slider.value;
-            display.style.cssText = 'text-align: center; margin-top: 10px; font-weight: bold;';
+            if (showValue) {
+                display.textContent = slider.value;
+                display.style.cssText = 'text-align: center; margin-top: 15px; font-weight: bold; font-size: 16px;';
+            }
 
-            elem.appendChild(slider);
-            elem.appendChild(display);
+            container.appendChild(slider);
+            if (showValue) container.appendChild(display);
+            elem.appendChild(container);
 
             const handleInput = () => {
-                display.textContent = slider.value;
-                if (options.onChange) options.onChange(parseInt(slider.value));
+                const val = parseInt(slider.value);
+                const percentage = ((val - min) / (max - min)) * 100;
+                
+                // Update gradient
+                slider.style.background = `linear-gradient(to right, #4CAF50 0%, #4CAF50 ${percentage}%, #ddd ${percentage}%, #ddd 100%)`;
+                
+                // Update tooltip position and value
+                if (showTooltip) {
+                    tooltip.textContent = val;
+                    tooltip.style.left = `${percentage}%`;
+                }
+                
+                // Update display
+                if (showValue) {
+                    display.textContent = val;
+                }
+                
+                if (options.onChange) options.onChange(val);
             };
 
             slider.addEventListener('input', handleInput);
             
+            // Keyboard accessibility
+            slider.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    slider.value = Math.max(min, parseInt(slider.value) - step);
+                    handleInput();
+                } else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    slider.value = Math.min(max, parseInt(slider.value) + step);
+                    handleInput();
+                }
+            });
+            
             // Store cleanup method
             elem._yaka_slider_cleanup = () => {
                 slider.removeEventListener('input', handleInput);
-                slider.remove();
-                display.remove();
+                container.remove();
                 delete elem._yaka_slider;
                 delete elem._yaka_slider_cleanup;
             };
@@ -4771,7 +4844,7 @@
         });
     };
 
-    // NEW! Carousel/Slider
+    // NEW! Carousel/Slider - Enhanced to compete with jQuery carousel libraries
     Yaka.prototype.carousel = function (options = {}) {
         return this.each((i, container) => {
             // Clean up existing carousel if present
@@ -4781,36 +4854,206 @@
             
             container._yaka_carousel = true;
 
-            const items = container.children;
-            let currentIndex = 0;
+            const items = Array.from(container.children);
+            let currentIndex = options.startIndex || 0;
+            const auto = options.auto || false;
+            const interval = options.interval || 3000;
+            const showDots = options.showDots !== false;
+            const showArrows = options.showArrows !== false;
+            const transition = options.transition || 'fade'; // 'fade', 'slide', 'none'
+            const touch = options.touch !== false; // Enable touch/swipe
+            
+            // Setup container styling
+            container.style.position = 'relative';
+            container.style.overflow = 'hidden';
 
-            Array.from(items).forEach((item, idx) => {
-                item.style.display = idx === 0 ? 'block' : 'none';
+            // Setup items with transition
+            items.forEach((item, idx) => {
+                item.style.position = 'absolute';
+                item.style.top = '0';
+                item.style.left = '0';
+                item.style.width = '100%';
+                item.style.opacity = idx === currentIndex ? '1' : '0';
+                item.style.transition = transition === 'fade' ? 'opacity 0.5s ease-in-out' : 'transform 0.5s ease-in-out';
+                item.style.display = 'block';
+                if (transition === 'slide') {
+                    item.style.transform = idx === currentIndex ? 'translateX(0)' : 'translateX(100%)';
+                }
             });
 
+            const updateSlide = (newIndex) => {
+                if (transition === 'fade') {
+                    items[currentIndex].style.opacity = '0';
+                    items[newIndex].style.opacity = '1';
+                } else if (transition === 'slide') {
+                    items[currentIndex].style.transform = 'translateX(-100%)';
+                    items[newIndex].style.transform = 'translateX(0)';
+                }
+                
+                currentIndex = newIndex;
+                
+                // Update dots
+                if (showDots && dots) {
+                    dots.forEach((dot, idx) => {
+                        dot.style.background = idx === currentIndex ? '#4CAF50' : '#ddd';
+                    });
+                }
+            };
+
             const next = () => {
-                items[currentIndex].style.display = 'none';
-                currentIndex = (currentIndex + 1) % items.length;
-                items[currentIndex].style.display = 'block';
+                const newIndex = (currentIndex + 1) % items.length;
+                updateSlide(newIndex);
+                if (options.onChange) options.onChange(newIndex);
             };
 
             const prev = () => {
-                items[currentIndex].style.display = 'none';
-                currentIndex = (currentIndex - 1 + items.length) % items.length;
-                items[currentIndex].style.display = 'block';
+                const newIndex = (currentIndex - 1 + items.length) % items.length;
+                updateSlide(newIndex);
+                if (options.onChange) options.onChange(newIndex);
             };
 
-            let intervalId = null;
-            if (options.auto) {
-                intervalId = setInterval(next, options.interval || 3000);
+            const goTo = (index) => {
+                if (index >= 0 && index < items.length) {
+                    updateSlide(index);
+                    if (options.onChange) options.onChange(index);
+                }
+            };
+
+            // Add navigation arrows
+            let prevBtn, nextBtn;
+            if (showArrows) {
+                prevBtn = document.createElement('button');
+                prevBtn.innerHTML = '‹';
+                prevBtn.style.cssText = `
+                    position: absolute;
+                    top: 50%;
+                    left: 10px;
+                    transform: translateY(-50%);
+                    background: rgba(0,0,0,0.5);
+                    color: white;
+                    border: none;
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    font-size: 24px;
+                    cursor: pointer;
+                    z-index: 10;
+                    transition: background 0.3s;
+                `;
+                prevBtn.onmouseover = () => prevBtn.style.background = 'rgba(0,0,0,0.8)';
+                prevBtn.onmouseout = () => prevBtn.style.background = 'rgba(0,0,0,0.5)';
+                prevBtn.onclick = prev;
+                container.appendChild(prevBtn);
+
+                nextBtn = document.createElement('button');
+                nextBtn.innerHTML = '›';
+                nextBtn.style.cssText = prevBtn.style.cssText.replace('left: 10px', 'right: 10px');
+                nextBtn.onmouseover = () => nextBtn.style.background = 'rgba(0,0,0,0.8)';
+                nextBtn.onmouseout = () => nextBtn.style.background = 'rgba(0,0,0,0.5)';
+                nextBtn.onclick = next;
+                container.appendChild(nextBtn);
             }
 
-            container._carousel = { next, prev, intervalId };
+            // Add dots/indicators
+            let dotsContainer, dots;
+            if (showDots) {
+                dotsContainer = document.createElement('div');
+                dotsContainer.style.cssText = `
+                    position: absolute;
+                    bottom: 15px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    display: flex;
+                    gap: 8px;
+                    z-index: 10;
+                `;
+                
+                dots = items.map((_, idx) => {
+                    const dot = document.createElement('button');
+                    dot.style.cssText = `
+                        width: 12px;
+                        height: 12px;
+                        border-radius: 50%;
+                        border: none;
+                        background: ${idx === currentIndex ? '#4CAF50' : '#ddd'};
+                        cursor: pointer;
+                        transition: background 0.3s;
+                    `;
+                    dot.onclick = () => goTo(idx);
+                    dotsContainer.appendChild(dot);
+                    return dot;
+                });
+                
+                container.appendChild(dotsContainer);
+            }
+
+            // Touch/Swipe support
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            const handleTouchStart = (e) => {
+                touchStartX = e.touches[0].clientX;
+            };
+            
+            const handleTouchMove = (e) => {
+                touchEndX = e.touches[0].clientX;
+            };
+            
+            const handleTouchEnd = () => {
+                const diff = touchStartX - touchEndX;
+                if (Math.abs(diff) > 50) { // Minimum swipe distance
+                    if (diff > 0) {
+                        next();
+                    } else {
+                        prev();
+                    }
+                }
+            };
+            
+            if (touch) {
+                container.addEventListener('touchstart', handleTouchStart);
+                container.addEventListener('touchmove', handleTouchMove);
+                container.addEventListener('touchend', handleTouchEnd);
+            }
+
+            // Autoplay
+            let intervalId = null;
+            if (auto) {
+                intervalId = setInterval(next, interval);
+                
+                // Pause on hover
+                container.addEventListener('mouseenter', () => {
+                    if (intervalId) {
+                        clearInterval(intervalId);
+                        intervalId = null;
+                    }
+                });
+                
+                container.addEventListener('mouseleave', () => {
+                    if (!intervalId) {
+                        intervalId = setInterval(next, interval);
+                    }
+                });
+            }
+
+            container._carousel = { next, prev, goTo, intervalId };
             
             // Store cleanup method
             container._yaka_carousel_cleanup = () => {
                 if (container._carousel && container._carousel.intervalId) {
                     clearInterval(container._carousel.intervalId);
+                }
+                if (touch) {
+                    container.removeEventListener('touchstart', handleTouchStart);
+                    container.removeEventListener('touchmove', handleTouchMove);
+                    container.removeEventListener('touchend', handleTouchEnd);
+                }
+                if (showArrows) {
+                    prevBtn.remove();
+                    nextBtn.remove();
+                }
+                if (showDots) {
+                    dotsContainer.remove();
                 }
                 delete container._carousel;
                 delete container._yaka_carousel;
