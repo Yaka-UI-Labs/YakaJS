@@ -619,6 +619,19 @@ Or just add this to your HTML and start coding:
 
 **Oh, and by the way** - we're always looking for talented, passionate developers to contribute. Got ideas? Found a bug? Want to add a feature? [Join us!](https://github.com/Yaka-UI-Labs/YakaJS/issues) 🙌
 
-Made with ❤️ and lots of ☕ by [Yaka UI Labs](https://github.com/Yaka-UI-Labs)
+## 📚 Documentation
+
+Want to dive deeper? We've got comprehensive docs:
+
+- **[📖 Complete API Reference](docs/API_REFERENCE.md)** - Every method, parameter, and example (by [@dill-lk](https://github.com/dill-lk))
+- **[🚀 Advanced Guide](docs/ADVANCED_GUIDE.md)** - Performance optimization, advanced patterns, architecture
+- **[✅ Best Practices](docs/BEST_PRACTICES.md)** - Security, performance, and code quality tips
+- **[🔄 Migration Guide](docs/MIGRATION_GUIDE.md)** - Moving from jQuery to YakaJS
+- **[💡 Examples](docs/EXAMPLES.md)** - Real-world code examples and patterns
+- **[🤝 Contributing](docs/CONTRIBUTING.md)** - How to contribute to YakaJS
+
+---
+
+Made with ❤️ and lots of ☕ by [@dill-lk](https://github.com/dill-lk) and [Yaka UI Labs](https://github.com/Yaka-UI-Labs)
 
 ⭐ **Star us on GitHub if you like YakaJS!** ⭐
