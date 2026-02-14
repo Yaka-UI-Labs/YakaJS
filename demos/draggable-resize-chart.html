@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draggable, Resizable & Charts - YakaJS</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="../dist/min.yaka.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Outfit', system-ui, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .draggable-box {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            cursor: move;
+            user-select: none;
+        }
+        
+        .resizable-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        
+        .container-area {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 20px;
+            min-height: 400px;
+            position: relative;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        
+        .section-title {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        canvas {
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .demo-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(240, 147, 251, 0.4);
+        }
+        
+        .info-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 20px;
+            color: #667eea;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-5xl font-bold text-white text-center mb-4">
+            ✨ Draggable, Resizable & Beautiful Charts
+        </h1>
+        <p class="text-white text-center text-xl mb-12 opacity-90">
+            Showcase of YakaJS's powerful interactive features
+        </p>
+
+        <!-- Draggable Demo -->
+        <div class="mb-12">
+            <h2 class="section-title">🎯 Draggable Elements</h2>
+            <div class="container-area" id="drag-container">
+                <div class="draggable-box" id="box1" style="width: 200px; position: absolute; left: 50px; top: 50px;">
+                    <h3 class="font-bold text-xl mb-2">Drag Me! 🎨</h3>
+                    <p class="text-gray-600">I can be dragged anywhere in this container</p>
+                </div>
+                
+                <div class="draggable-box" id="box2" style="width: 220px; position: absolute; left: 300px; top: 50px; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                    <h3 class="font-bold text-xl mb-2">Me Too! 🚀</h3>
+                    <p class="text-gray-600">With containment support</p>
+                </div>
+                
+                <div class="draggable-box" id="box3" style="width: 200px; position: absolute; left: 570px; top: 50px; background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);">
+                    <h3 class="font-bold text-xl mb-2">And Me! ⭐</h3>
+                    <p class="text-gray-600">Smooth dragging experience</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resizable Demo -->
+        <div class="mb-12">
+            <h2 class="section-title">📐 Resizable Elements</h2>
+            <div class="container-area" style="min-height: 500px;">
+                <div class="resizable-box" id="resize1" style="width: 250px; height: 150px; position: absolute; left: 50px; top: 50px;">
+                    Resize Me!<br>
+                    <span style="font-size: 14px; opacity: 0.8;">Drag any edge or corner</span>
+                </div>
+                
+                <div class="resizable-box" id="resize2" style="width: 200px; height: 200px; position: absolute; left: 350px; top: 50px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    Aspect Ratio<br>
+                    <span style="font-size: 14px; opacity: 0.8;">Maintains proportions</span>
+                </div>
+                
+                <div class="resizable-box" id="resize3" style="width: 280px; height: 120px; position: absolute; left: 50px; top: 280px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    Min/Max Constraints<br>
+                    <span style="font-size: 14px; opacity: 0.8;">Try resizing!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Demos -->
+        <div class="mb-12">
+            <h2 class="section-title">📊 Beautiful Charts</h2>
+            
+            <!-- Bar Chart -->
+            <div class="card mb-6">
+                <h3 class="text-2xl font-bold mb-4">Bar Chart <span class="info-badge">NEW & IMPROVED</span></h3>
+                <div class="demo-controls">
+                    <button class="btn btn-primary" id="updateBar">Update Data</button>
+                    <button class="btn btn-secondary" id="randomBar">Random Data</button>
+                </div>
+                <canvas id="barChart" width="800" height="400"></canvas>
+            </div>
+
+            <!-- Line Chart -->
+            <div class="card mb-6">
+                <h3 class="text-2xl font-bold mb-4">Line Chart <span class="info-badge">WITH GRADIENTS</span></h3>
+                <div class="demo-controls">
+                    <button class="btn btn-primary" id="updateLine">Update Data</button>
+                    <button class="btn btn-secondary" id="randomLine">Random Data</button>
+                </div>
+                <canvas id="lineChart" width="800" height="400"></canvas>
+            </div>
+
+            <!-- Pie Chart -->
+            <div class="card">
+                <h3 class="text-2xl font-bold mb-4">Pie Chart <span class="info-badge">BRAND NEW</span></h3>
+                <div class="demo-controls">
+                    <button class="btn btn-primary" id="updatePie">Update Data</button>
+                    <button class="btn btn-secondary" id="toggleDonut">Toggle Donut Mode</button>
+                </div>
+                <canvas id="pieChart" width="600" height="400"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize YakaJS
+        const _ = Yaka;
+
+        // ============= DRAGGABLE DEMO =============
+        _('#box1').draggable({
+            containment: '#drag-container',
+            onStart: function() {
+                console.log('Started dragging box 1');
+            },
+            onEnd: function() {
+                console.log('Stopped dragging box 1');
+            }
+        });
+
+        _('#box2').draggable({
+            containment: '#drag-container',
+            onDrag: function() {
+                // You can track position changes here
+            }
+        });
+
+        _('#box3').draggable({
+            containment: '#drag-container'
+        });
+
+        // ============= RESIZABLE DEMO =============
+        _('#resize1').resizable({
+            handles: ['se', 'e', 's', 'sw', 'ne', 'nw', 'n', 'w'],
+            minWidth: 150,
+            minHeight: 100,
+            onResize: function(e, dimensions) {
+                console.log('Resizing:', dimensions);
+            }
+        });
+
+        _('#resize2').resizable({
+            handles: ['se', 'ne', 'sw', 'nw'],
+            aspectRatio: true,
+            minWidth: 150,
+            minHeight: 150
+        });
+
+        _('#resize3').resizable({
+            handles: ['se', 'e', 's'],
+            minWidth: 200,
+            minHeight: 100,
+            maxWidth: 500,
+            maxHeight: 200
+        });
+
+        // ============= CHART DEMOS =============
+        
+        // Bar Chart
+        let barData = [
+            { label: 'Jan', value: 65 },
+            { label: 'Feb', value: 59 },
+            { label: 'Mar', value: 80 },
+            { label: 'Apr', value: 81 },
+            { label: 'May', value: 56 },
+            { label: 'Jun', value: 95 }
+        ];
+
+        function drawBarChart() {
+            const canvas = document.getElementById('barChart');
+            _.chart(canvas, barData, {
+                type: 'bar',
+                title: 'Monthly Sales Performance',
+                showGrid: true,
+                showValues: true
+            });
+        }
+
+        _('#updateBar').click(function() {
+            barData = barData.map(item => ({
+                ...item,
+                value: item.value + Math.floor(Math.random() * 20) - 10
+            }));
+            drawBarChart();
+        });
+
+        _('#randomBar').click(function() {
+            barData = barData.map(item => ({
+                ...item,
+                value: Math.floor(Math.random() * 100) + 20
+            }));
+            drawBarChart();
+        });
+
+        drawBarChart();
+
+        // Line Chart
+        let lineData = [
+            { label: 'Week 1', value: 45 },
+            { label: 'Week 2', value: 62 },
+            { label: 'Week 3', value: 58 },
+            { label: 'Week 4', value: 75 },
+            { label: 'Week 5', value: 82 },
+            { label: 'Week 6', value: 90 }
+        ];
+
+        function drawLineChart() {
+            const canvas = document.getElementById('lineChart');
+            _.chart(canvas, lineData, {
+                type: 'line',
+                title: 'User Growth Trend',
+                showGrid: true,
+                showValues: true,
+                color: '#764ba2'
+            });
+        }
+
+        _('#updateLine').click(function() {
+            lineData = lineData.map(item => ({
+                ...item,
+                value: Math.max(20, item.value + Math.floor(Math.random() * 30) - 15)
+            }));
+            drawLineChart();
+        });
+
+        _('#randomLine').click(function() {
+            lineData = lineData.map(item => ({
+                ...item,
+                value: Math.floor(Math.random() * 100) + 20
+            }));
+            drawLineChart();
+        });
+
+        drawLineChart();
+
+        // Pie Chart
+        let pieData = [
+            { label: 'Product A', value: 35 },
+            { label: 'Product B', value: 25 },
+            { label: 'Product C', value: 20 },
+            { label: 'Product D', value: 15 },
+            { label: 'Product E', value: 5 }
+        ];
+
+        let isDonut = false;
+
+        function drawPieChart() {
+            const canvas = document.getElementById('pieChart');
+            _.chart(canvas, pieData, {
+                type: 'pie',
+                title: 'Market Share Distribution',
+                donut: isDonut,
+                showTotal: isDonut
+            });
+        }
+
+        _('#updatePie').click(function() {
+            pieData = pieData.map(item => ({
+                ...item,
+                value: Math.max(5, item.value + Math.floor(Math.random() * 20) - 10)
+            }));
+            drawPieChart();
+        });
+
+        _('#toggleDonut').click(function() {
+            isDonut = !isDonut;
+            this.textContent = isDonut ? 'Show Pie Mode' : 'Toggle Donut Mode';
+            drawPieChart();
+        });
+
+        drawPieChart();
+
+        console.log('✨ YakaJS Draggable, Resizable & Charts Demo Loaded!');
+        console.log('Try dragging the boxes, resizing elements, and updating charts!');
+    </script>
+</body>
+</html>
