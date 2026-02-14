@@ -1089,7 +1089,7 @@ const throttledFn = _.throttle(() => console.log('Throttled!'), 1000);</code></p
             _('nav a[href^="#"]').on('click', function(e) {
                 e.preventDefault();
                 const target = _(this.getAttribute('href'));
-                if (target.elements.length) {
+                if (target && target.elements && target.elements.length) {
                     target.get(0).scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });

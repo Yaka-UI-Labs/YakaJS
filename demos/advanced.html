@@ -470,7 +470,13 @@ const value = await _.db.get('key');</code></pre>
                 `;
                 
                 const blob = new Blob([workerCode], { type: 'application/javascript' });
-                const worker = new Worker(URL.createObjectURL(blob));
+                let worker;
+                try {
+                    worker = new Worker(URL.createObjectURL(blob));
+                } catch (err) {
+                    document.getElementById('fibTime').textContent = `Worker error: ${err.message}`;
+                    return;
+                }
                 
                 const start = performance.now();
                 worker.onmessage = function(e) {
@@ -514,8 +520,11 @@ const value = await _.db.get('key');</code></pre>
 
             // Load time
             window.addEventListener('load', () => {
-                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-                document.getElementById('loadTime').textContent = loadTime;
+                const perfData = performance.getEntriesByType('navigation')[0];
+                if (perfData) {
+                    const loadTime = Math.round(perfData.loadEventEnd - perfData.fetchStart);
+                    document.getElementById('loadTime').textContent = loadTime;
+                }
             });
 
             window.startStressTest = function() {
@@ -578,7 +587,10 @@ const value = await _.db.get('key');</code></pre>
                     }
                     
                     store.put(parsedValue, key);
-                    await tx.complete;
+                    await new Promise((resolve, reject) => {
+                        tx.oncomplete = resolve;
+                        tx.onerror = () => reject(tx.error);
+                    });
                     
                     document.getElementById('dbResult').innerHTML = `<div class="text-green-300">✓ Saved: ${key}</div>`;
                 } catch (err) {
@@ -604,7 +616,9 @@ const value = await _.db.get('key');</code></pre>
                         const value = request.result;
                         if (value !== undefined) {
                             const display = typeof value === 'object' ? JSON.stringify(value, null, 2) : value;
-                            document.getElementById('dbResult').innerHTML = `<div class="text-white"><strong>Value:</strong><pre class="mt-2">${display}</pre></div>`;
+                            const resultDiv = document.getElementById('dbResult');
+                            resultDiv.innerHTML = '<div class="text-white"><strong>Value:</strong><pre class="mt-2"></pre></div>';
+                            resultDiv.querySelector('pre').textContent = display;
                         } else {
                             document.getElementById('dbResult').innerHTML = '<div class="text-yellow-300">Key not found</div>';
                         }
@@ -627,7 +641,10 @@ const value = await _.db.get('key');</code></pre>
                     const tx = db.transaction(STORE_NAME, 'readwrite');
                     const store = tx.objectStore(STORE_NAME);
                     store.delete(key);
-                    await tx.complete;
+                    await new Promise((resolve, reject) => {
+                        tx.oncomplete = resolve;
+                        tx.onerror = () => reject(tx.error);
+                    });
                     
                     document.getElementById('dbResult').innerHTML = `<div class="text-green-300">✓ Deleted: ${key}</div>`;
                 } catch (err) {
