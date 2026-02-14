@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core Features - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="../dist/min.yaka.js"></script>
+    
+    <style>
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        /* Animated gradient background */
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .transition-glass {
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        code {
+            color: #ffd700;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .demo-result {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 100px;
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #6b21a8;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body class="font-sans text-white">
+    
+    <!-- Header -->
+    <header class="glass-dark sticky top-0 z-50 py-4">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl hover:text-yellow-300 transition">←</a>
+                    <h1 class="text-2xl font-bold">Core Features Demo</h1>
+                </div>
+                <a href="index.html" class="glass px-4 py-2 rounded-full text-sm hover:bg-white/25 transition">
+                    Back to Demos
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Introduction -->
+        <div class="glass-card rounded-2xl p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">🎯 DOM Manipulation & Core Features</h2>
+            <p class="text-lg text-gray-100">
+                Explore YakaJS's powerful DOM manipulation capabilities with interactive examples.
+                Each example shows the code and provides an interactive demo you can try.
+            </p>
+        </div>
+
+        <!-- 1. Selectors -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">1. Selector Methods</h3>
+            <p class="text-gray-100 mb-4">Select elements using .get(), .first(), .last(), .eq()</p>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <h4 class="font-semibold mb-2">Code:</h4>
+                    <pre class="text-sm"><code>// Select elements
+_('.item').get(0)     // First element (DOM)
+_('.item').first()    // First element (YakaJS)
+_('.item').last()     // Last element (YakaJS)
+_('.item').eq(1)      // Element at index 1</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Demo:</h4>
+                    <div class="demo-result">
+                        <div class="item mb-2 p-2 rounded bg-white/10">Item 0</div>
+                        <div class="item mb-2 p-2 rounded bg-white/10">Item 1</div>
+                        <div class="item mb-2 p-2 rounded bg-white/10">Item 2</div>
+                        <div class="item mb-2 p-2 rounded bg-white/10">Item 3</div>
+                    </div>
+                    <div class="mt-2 space-x-2">
+                        <button class="btn btn-secondary text-sm" onclick="selectFirst()">Highlight First</button>
+                        <button class="btn btn-secondary text-sm" onclick="selectLast()">Highlight Last</button>
+                        <button class="btn btn-secondary text-sm" onclick="selectEq()">Highlight Index 1</button>
+                        <button class="btn btn-secondary text-sm" onclick="resetItems()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Content Manipulation -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">2. Content Manipulation</h3>
+            <p class="text-gray-100 mb-4">Modify content with .text(), .html(), .val()</p>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <h4 class="font-semibold mb-2">Code:</h4>
+                    <pre class="text-sm"><code>// Get/Set text
+_('#output').text('Hello World');
+
+// Get/Set HTML
+_('#output').html('&lt;b&gt;Bold&lt;/b&gt;');
+
+// Get/Set input value
+_('#myInput').val('New value');</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Demo:</h4>
+                    <div class="demo-result">
+                        <div id="content-output" class="mb-4 p-4 rounded bg-white/10">Original text</div>
+                        <input type="text" id="content-input" class="w-full px-4 py-2 rounded bg-white/20 border border-white/30 mb-2" value="Original value">
+                    </div>
+                    <div class="mt-2 space-x-2">
+                        <button class="btn btn-secondary text-sm" onclick="changeText()">Change Text</button>
+                        <button class="btn btn-secondary text-sm" onclick="changeHTML()">Change HTML</button>
+                        <button class="btn btn-secondary text-sm" onclick="changeValue()">Change Input</button>
+                        <button class="btn btn-secondary text-sm" onclick="resetContent()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Class Manipulation -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">3. Class Manipulation</h3>
+            <p class="text-gray-100 mb-4">Control element classes with .addClass(), .removeClass(), .toggleClass()</p>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <h4 class="font-semibold mb-2">Code:</h4>
+                    <pre class="text-sm"><code>// Add class
+_('#box').addClass('active');
+
+// Remove class
+_('#box').removeClass('active');
+
+// Toggle class
+_('#box').toggleClass('active');</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Demo:</h4>
+                    <div class="demo-result">
+                        <div id="class-box" class="p-8 rounded bg-white/10 text-center transition-all">
+                            Box Element
+                        </div>
+                        <p class="text-sm mt-2">Classes: <span id="class-display">none</span></p>
+                    </div>
+                    <div class="mt-2 space-x-2">
+                        <button class="btn btn-secondary text-sm" onclick="addActive()">Add 'active'</button>
+                        <button class="btn btn-secondary text-sm" onclick="removeClass()">Remove 'active'</button>
+                        <button class="btn btn-secondary text-sm" onclick="toggleClass()">Toggle 'highlight'</button>
+                    </div>
+                    <style>
+                        .active { background: rgba(34, 197, 94, 0.4) !important; }
+                        .highlight { transform: scale(1.1); box-shadow: 0 0 20px rgba(255, 255, 0, 0.5); }
+                    </style>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Attributes & Data -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">4. Attributes & Data</h3>
+            <p class="text-gray-100 mb-4">Manage attributes with .attr() and data attributes with .data()</p>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <h4 class="font-semibold mb-2">Code:</h4>
+                    <pre class="text-sm"><code>// Set attribute
+_('#link').attr('href', 'https://...');
+
+// Get attribute
+const href = _('#link').attr('href');
+
+// Set data attribute
+_('#box').data('count', 5);
+
+// Get data attribute
+const count = _('#box').data('count');</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Demo:</h4>
+                    <div class="demo-result">
+                        <a id="demo-link" href="#" class="text-yellow-300 underline mb-2 block">Demo Link</a>
+                        <div id="data-box" class="p-4 rounded bg-white/10" data-count="0">
+                            Counter: <span id="counter">0</span>
+                        </div>
+                    </div>
+                    <div class="mt-2 space-x-2">
+                        <button class="btn btn-secondary text-sm" onclick="changeHref()">Change Link</button>
+                        <button class="btn btn-secondary text-sm" onclick="incrementData()">Increment Counter</button>
+                        <button class="btn btn-secondary text-sm" onclick="showData()">Show Data</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Event Handling -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">5. Event Handling</h3>
+            <p class="text-gray-100 mb-4">Attach events with .on(), .click(), .hover()</p>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <h4 class="font-semibold mb-2">Code:</h4>
+                    <pre class="text-sm"><code>// Click event
+_('#btn').on('click', () => {
+    alert('Clicked!');
+});
+
+// Multiple events
+_('#btn').click(() => {
+    console.log('Click handler');
+});
+
+// Hover events
+_('#box').hover(
+    () => console.log('Enter'),
+    () => console.log('Leave')
+);</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Demo:</h4>
+                    <div class="demo-result space-y-3">
+                        <button id="click-btn" class="btn btn-primary w-full">Click Me!</button>
+                        <div id="hover-box" class="p-4 rounded bg-white/10 text-center cursor-pointer transition-all">
+                            Hover Over Me
+                        </div>
+                        <div id="event-log" class="p-3 rounded bg-black/30 text-sm font-mono max-h-32 overflow-y-auto">
+                            Event log will appear here...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. Show/Hide Elements -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">6. Show/Hide Elements</h3>
+            <p class="text-gray-100 mb-4">Control element visibility with .show(), .hide(), .toggle()</p>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <h4 class="font-semibold mb-2">Code:</h4>
+                    <pre class="text-sm"><code>// Show element
+_('#element').show();
+
+// Hide element
+_('#element').hide();
+
+// Toggle visibility
+_('#element').toggle();
+
+// Check if visible
+if (_('#element').is(':visible')) {
+    console.log('Visible!');
+}</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Demo:</h4>
+                    <div class="demo-result">
+                        <div id="toggle-element" class="p-6 rounded bg-gradient-to-r from-purple-500/30 to-pink-500/30 text-center mb-3">
+                            <p class="text-lg font-bold">✨ I can be shown or hidden!</p>
+                        </div>
+                        <p class="text-sm">Status: <span id="visibility-status" class="font-bold text-green-300">Visible</span></p>
+                    </div>
+                    <div class="mt-2 space-x-2">
+                        <button class="btn btn-secondary text-sm" onclick="showElement()">Show</button>
+                        <button class="btn btn-secondary text-sm" onclick="hideElement()">Hide</button>
+                        <button class="btn btn-secondary text-sm" onclick="toggleElement()">Toggle</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. Chaining -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">7. Method Chaining</h3>
+            <p class="text-gray-100 mb-4">Chain multiple operations together for clean, efficient code</p>
+            
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <h4 class="font-semibold mb-2">Code:</h4>
+                    <pre class="text-sm"><code>// Chain multiple operations
+_('#element')
+    .addClass('active')
+    .text('Updated!')
+    .attr('data-state', 'changed')
+    .fadeIn(500);</code></pre>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-2">Demo:</h4>
+                    <div class="demo-result">
+                        <div id="chain-element" class="p-6 rounded bg-white/10 text-center">
+                            Original State
+                        </div>
+                    </div>
+                    <div class="mt-2 space-x-2">
+                        <button class="btn btn-primary text-sm" onclick="chainDemo()">Execute Chain</button>
+                        <button class="btn btn-secondary text-sm" onclick="resetChain()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Wait for DOM ready
+        _(() => {
+            console.log('YakaJS Core Features Demo Ready!');
+            
+            // Setup event handlers
+            setupEventDemo();
+        });
+
+        // 1. Selector Methods
+        function selectFirst() {
+            resetItems();
+            _('.item').first().addClass('bg-green-500/50');
+        }
+
+        function selectLast() {
+            resetItems();
+            _('.item').last().addClass('bg-blue-500/50');
+        }
+
+        function selectEq() {
+            resetItems();
+            _('.item').eq(1).addClass('bg-purple-500/50');
+        }
+
+        function resetItems() {
+            _('.item').removeClass('bg-green-500/50 bg-blue-500/50 bg-purple-500/50');
+        }
+
+        // 2. Content Manipulation
+        function changeText() {
+            _('#content-output').text('Text changed using .text() method! 🎉');
+        }
+
+        function changeHTML() {
+            _('#content-output').html('<strong style="color: #ffd700;">HTML</strong> changed using .html() method! <em>With formatting!</em>');
+        }
+
+        function changeValue() {
+            _('#content-input').val('Value changed using .val() method!');
+        }
+
+        function resetContent() {
+            _('#content-output').text('Original text');
+            _('#content-input').val('Original value');
+        }
+
+        // 3. Class Manipulation
+        function addActive() {
+            _('#class-box').addClass('active');
+            updateClassDisplay();
+        }
+
+        function removeClass() {
+            _('#class-box').removeClass('active');
+            updateClassDisplay();
+        }
+
+        function toggleClass() {
+            _('#class-box').toggleClass('highlight');
+            updateClassDisplay();
+        }
+
+        function updateClassDisplay() {
+            const classes = _('#class-box').attr('class') || 'none';
+            _('#class-display').text(classes);
+        }
+
+        // 4. Attributes & Data
+        function changeHref() {
+            _('#demo-link').attr('href', 'https://github.com/Yaka-UI-Labs/YakaJS');
+            _('#demo-link').text('Link changed! (https://github.com/...)');
+        }
+
+        function incrementData() {
+            const current = parseInt(_('#data-box').data('count') || 0);
+            const newCount = current + 1;
+            _('#data-box').data('count', newCount);
+            _('#counter').text(newCount);
+        }
+
+        function showData() {
+            const count = _('#data-box').data('count');
+            alert(`Current data-count value: ${count}`);
+        }
+
+        // 5. Event Handling
+        function setupEventDemo() {
+            let clickCount = 0;
+            
+            _('#click-btn').on('click', function() {
+                clickCount++;
+                logEvent(`Button clicked! (${clickCount} times)`);
+            });
+
+            _('#hover-box').hover(
+                function() {
+                    _(this).addClass('bg-yellow-500/30 scale-105');
+                    logEvent('Mouse entered hover box');
+                },
+                function() {
+                    _(this).removeClass('bg-yellow-500/30 scale-105');
+                    logEvent('Mouse left hover box');
+                }
+            );
+        }
+
+        function logEvent(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const log = _('#event-log');
+            const currentLog = log.html();
+            
+            if (currentLog.includes('Event log will appear')) {
+                log.html(`[${timestamp}] ${message}`);
+            } else {
+                log.html(`${currentLog}<br>[${timestamp}] ${message}`);
+            }
+            
+            // Scroll to bottom
+            const logElement = log.get(0);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        // 6. Show/Hide Elements
+        function showElement() {
+            _('#toggle-element').show();
+            _('#visibility-status').text('Visible').removeClass('text-red-300').addClass('text-green-300');
+        }
+
+        function hideElement() {
+            _('#toggle-element').hide();
+            _('#visibility-status').text('Hidden').removeClass('text-green-300').addClass('text-red-300');
+        }
+
+        function toggleElement() {
+            _('#toggle-element').toggle();
+            const isVisible = _('#toggle-element').is(':visible');
+            _('#visibility-status')
+                .text(isVisible ? 'Visible' : 'Hidden')
+                .removeClass(isVisible ? 'text-red-300' : 'text-green-300')
+                .addClass(isVisible ? 'text-green-300' : 'text-red-300');
+        }
+
+        // 7. Chaining
+        function chainDemo() {
+            _('#chain-element')
+                .addClass('bg-gradient-to-r from-green-500/40 to-blue-500/40')
+                .text('✅ All operations chained together!')
+                .attr('data-state', 'changed');
+        }
+
+        function resetChain() {
+            _('#chain-element')
+                .removeClass('bg-gradient-to-r from-green-500/40 to-blue-500/40')
+                .text('Original State')
+                .attr('data-state', '');
+        }
+    </script>
+
+</body>
+</html>
