@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "YakaJS - A modern JavaScript library",
   "main": "dist/min.yaka.js",
+  "types": "yaka.d.ts",
   "scripts": {
     "build": "npm run build:min && npm run build:ultra && npm run build:hyper",
     "build:min": "terser src/yaka.js -o dist/min.yaka.js -c -m --comments /^!/ --source-map \"url=min.yaka.js.map\"",
