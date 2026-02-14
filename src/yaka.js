@@ -383,8 +383,8 @@
                         };
                     }
                     if (color.startsWith('rgb')) {
-                        // Parse rgb() or rgba() format with specific pattern
-                        const match = color.match(/rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)(?:\s*,\s*(\d+(?:\.\d+)?))?\s*\)/);
+                        // Parse rgb() or rgba() format - RGB values must be integers, alpha can be decimal
+                        const match = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*(\d+(?:\.\d+)?))?\s*\)/);
                         if (!match) return null;
                         return {
                             r: +match[1],
@@ -9558,7 +9558,7 @@
         return this.hasClass(className);
     };
 
-    // Export to window
+    // Export to global object (window in browsers, globalThis in other environments)
     window.Yaka = Yaka;
     // Only take _ if it's not already claimed (e.g., by lodash)
     window._ = window._ || Yaka;
@@ -9570,4 +9570,4 @@
         module.exports.default = Yaka;
     }
 
-})(typeof window !== 'undefined' ? window : globalThis);
+})(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : globalThis));
