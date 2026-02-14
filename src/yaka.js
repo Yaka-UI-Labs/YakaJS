@@ -102,11 +102,21 @@
             return this.each((i, elem) => elem.textContent = value);
         },
 
-        html: function (value) {
+        html: function (value, sanitize = false) {
             if (value === undefined) {
                 return this.elements[0]?.innerHTML || '';
             }
-            return this.each((i, elem) => elem.innerHTML = value);
+            return this.each((i, elem) => {
+                // Use sanitizer if requested and available
+                if (sanitize && Yaka.security && typeof Yaka.security.sanitizeHtml === 'function') {
+                    elem.innerHTML = Yaka.security.sanitizeHtml(value);
+                } else if (sanitize) {
+                    // Fallback: render as plain text (no HTML) to prevent XSS
+                    elem.textContent = value;
+                } else {
+                    elem.innerHTML = value;
+                }
+            });
         },
 
         val: function (value) {
@@ -120,8 +130,10 @@
 
         attr: function (name, value) {
             if (typeof name === 'object') {
+                // Compute keys once outside the loop for better performance
+                const keys = Object.keys(name);
                 return this.each((i, elem) => {
-                    Object.keys(name).forEach(key => elem.setAttribute(key, name[key]));
+                    keys.forEach(key => elem.setAttribute(key, name[key]));
                 });
             }
             if (value === undefined) {
@@ -146,29 +158,35 @@
         addClass: function (className, duration) {
             // jQuery UI compatible: addClass with animation
             if (duration) {
-                return this.each((i, elem) => {
+                // Batch all reads first, then all writes to avoid layout thrashing
+                const elementsData = [];
+                
+                this.elements.forEach((elem) => {
                     const classes = className.split(' ');
-                    // Get current computed styles before adding class
                     const before = {};
                     const computed = getComputedStyle(elem);
                     ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
                         before[prop] = computed[prop];
                     });
-                    
-                    // Add the class
+                    elementsData.push({ elem, classes, before });
+                });
+                
+                // Now perform all writes (adding classes)
+                elementsData.forEach(({ elem, classes }) => {
                     classes.forEach(cls => elem.classList.add(cls));
-                    
-                    // Force reflow - reading offsetHeight triggers layout recalculation
-                    // This ensures the browser applies the new class styles before we read them
-                    // Note: Forcing reflow has performance implications. Avoid calling
-                    // addClass with duration in loops or high-frequency scenarios
-                    void elem.offsetHeight;
-                    
-                    // Get new computed styles
+                });
+                
+                // Force a single reflow for all elements instead of one per element
+                // This significantly improves performance when animating multiple elements
+                if (elementsData.length > 0) {
+                    void elementsData[0].elem.offsetHeight;
+                }
+                
+                // Read new styles and apply transitions
+                elementsData.forEach(({ elem, before }) => {
                     const after = getComputedStyle(elem);
                     const transitions = [];
                     
-                    // Find what changed and animate it
                     Object.keys(before).forEach(prop => {
                         if (before[prop] !== after[prop]) {
                             transitions.push(`${prop} ${duration}ms ease`);
@@ -180,6 +198,8 @@
                         setTimeout(() => elem.style.transition = '', duration);
                     }
                 });
+                
+                return this;
             }
             return this.each((i, elem) => {
                 className.split(' ').forEach(cls => elem.classList.add(cls));
@@ -196,29 +216,35 @@
             
             // jQuery UI compatible: removeClass with animation
             if (duration) {
-                return this.each((i, elem) => {
+                // Batch all reads first, then all writes to avoid layout thrashing
+                const elementsData = [];
+                
+                this.elements.forEach((elem) => {
                     const classes = className.split(' ');
-                    // Get current computed styles before removing class
                     const before = {};
                     const computed = getComputedStyle(elem);
                     ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
                         before[prop] = computed[prop];
                     });
-                    
-                    // Remove the class
+                    elementsData.push({ elem, classes, before });
+                });
+                
+                // Now perform all writes (removing classes)
+                elementsData.forEach(({ elem, classes }) => {
                     classes.forEach(cls => elem.classList.remove(cls));
-                    
-                    // Force reflow - reading offsetHeight triggers layout recalculation
-                    // This ensures the browser applies the removed class styles before we read them
-                    // Note: Forcing reflow has performance implications. Avoid calling
-                    // removeClass with duration in loops or high-frequency scenarios
-                    void elem.offsetHeight;
-                    
-                    // Get new computed styles
+                });
+                
+                // Force a single reflow for all elements instead of one per element
+                // This significantly improves performance when animating multiple elements
+                if (elementsData.length > 0) {
+                    void elementsData[0].elem.offsetHeight;
+                }
+                
+                // Read new styles and apply transitions
+                elementsData.forEach(({ elem, before }) => {
                     const after = getComputedStyle(elem);
                     const transitions = [];
                     
-                    // Find what changed and animate it
                     Object.keys(before).forEach(prop => {
                         if (before[prop] !== after[prop]) {
                             transitions.push(`${prop} ${duration}ms ease`);
@@ -230,6 +256,8 @@
                         setTimeout(() => elem.style.transition = '', duration);
                     }
                 });
+                
+                return this;
             }
             
             return this.each((i, elem) => {
@@ -334,7 +362,7 @@
         // NEW! Animate any CSS property (with color support)
         animate: function (props, duration = 400, easing = 'ease') {
             return this.each((i, elem) => {
-                // Helper to parse color
+                // Helper to parse color (supports hex, rgb, and rgba)
                 const parseColor = (color) => {
                     if (!color) return null;
                     if (color.startsWith('#')) {
@@ -343,18 +371,27 @@
                             return {
                                 r: parseInt(hex[0] + hex[0], 16),
                                 g: parseInt(hex[1] + hex[1], 16),
-                                b: parseInt(hex[2] + hex[2], 16)
+                                b: parseInt(hex[2] + hex[2], 16),
+                                a: 1
                             };
                         }
                         return {
                             r: parseInt(hex.substring(0, 2), 16),
                             g: parseInt(hex.substring(2, 4), 16),
-                            b: parseInt(hex.substring(4, 6), 16)
+                            b: parseInt(hex.substring(4, 6), 16),
+                            a: 1
                         };
                     }
                     if (color.startsWith('rgb')) {
-                        const match = color.match(/\d+/g);
-                        return { r: +match[0], g: +match[1], b: +match[2] };
+                        // Parse rgb() or rgba() format - RGB values must be integers, alpha can be decimal
+                        const match = color.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*(\d+(?:\.\d+)?))?\s*\)/);
+                        if (!match) return null;
+                        return {
+                            r: +match[1],
+                            g: +match[2],
+                            b: +match[3],
+                            a: match[4] !== undefined ? +match[4] : 1
+                        };
                     }
                     return null;
                 };
@@ -386,7 +423,8 @@
                                 const r = Math.round(startColors[key].r + (endColors[key].r - startColors[key].r) * progress);
                                 const g = Math.round(startColors[key].g + (endColors[key].g - startColors[key].g) * progress);
                                 const b = Math.round(startColors[key].b + (endColors[key].b - startColors[key].b) * progress);
-                                elem.style[key] = `rgb(${r}, ${g}, ${b})`;
+                                const a = startColors[key].a + (endColors[key].a - startColors[key].a) * progress;
+                                elem.style[key] = a < 1 ? `rgba(${r}, ${g}, ${b}, ${a})` : `rgb(${r}, ${g}, ${b})`;
                             }
                         });
                         
@@ -753,6 +791,29 @@
 
         // ==================== EVENTS ====================
 
+        /**
+         * Attach an event handler to elements
+         * @param {string} event - Event type (e.g., 'click', 'mouseenter')
+         * @param {string|function} selector - Optional selector for event delegation, or handler function
+         * @param {function} handler - Event handler function
+         * @returns {Yaka} - Returns this for chaining
+         * 
+         * @warning For proper memory management and the ability to remove listeners with .off(),
+         * use named functions or store references to your handler functions.
+         * Anonymous functions (e.g., .on('click', () => {...})) cannot be removed later
+         * because .off() needs a reference to the exact same function object.
+         * 
+         * @example
+         * // Good - can be removed later
+         * const handleClick = () => console.log('clicked');
+         * _('.btn').on('click', handleClick);
+         * _('.btn').off('click', handleClick); // Works!
+         * 
+         * @example
+         * // Bad - cannot be removed
+         * _('.btn').on('click', () => console.log('clicked'));
+         * _('.btn').off('click', () => console.log('clicked')); // Won't work - different function
+         */
         on: function (event, selector, handler) {
             if (typeof selector === 'function') {
                 handler = selector;
@@ -9497,9 +9558,16 @@
         return this.hasClass(className);
     };
 
-    // Export to window
+    // Export to global object (window in browsers, globalThis in other environments)
     window.Yaka = Yaka;
     // Only take _ if it's not already claimed (e.g., by lodash)
     window._ = window._ || Yaka;
 
-})(window);
+    // ES6 Module support - Export Yaka for modern bundlers (Webpack, Vite, Rollup)
+    // This allows: import Yaka from 'yakajs' or import _ from 'yakajs'
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = Yaka;
+        module.exports.default = Yaka;
+    }
+
+})(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : globalThis));
