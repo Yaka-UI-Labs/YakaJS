@@ -1916,24 +1916,70 @@
             let startX, startY, initialX, initialY;
 
             elem.style.cursor = 'move';
-            elem.style.position = 'relative';
+            elem.style.userSelect = 'none'; // Prevent text selection
+            
+            // Ensure element has proper positioning
+            const computedStyle = getComputedStyle(elem);
+            if (computedStyle.position === 'static') {
+                elem.style.position = 'absolute';
+            }
 
-            elem.addEventListener('mousedown', (e) => {
+            const handleMouseDown = (e) => {
+                // Prevent default to avoid text selection and other issues
+                e.preventDefault();
                 isDragging = true;
                 startX = e.clientX;
                 startY = e.clientY;
-                initialX = elem.offsetLeft;
-                initialY = elem.offsetTop;
+                
+                // Get current position considering transform
+                const rect = elem.getBoundingClientRect();
+                const parentRect = elem.offsetParent ? elem.offsetParent.getBoundingClientRect() : { left: 0, top: 0 };
+                initialX = rect.left - parentRect.left;
+                initialY = rect.top - parentRect.top;
+                
                 elem.style.zIndex = 1000;
                 if (options.onStart) options.onStart.call(elem, e);
-            });
+            };
 
             const handleMouseMove = (e) => {
                 if (!isDragging) return;
+                e.preventDefault();
+                
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
-                elem.style.left = (initialX + dx) + 'px';
-                elem.style.top = (initialY + dy) + 'px';
+                let newLeft = initialX + dx;
+                let newTop = initialY + dy;
+                
+                // Apply containment if specified
+                if (options.containment) {
+                    const rect = elem.getBoundingClientRect();
+                    let container;
+                    
+                    if (options.containment === 'parent') {
+                        container = elem.offsetParent || document.body;
+                    } else if (typeof options.containment === 'string') {
+                        container = document.querySelector(options.containment);
+                    } else if (options.containment instanceof Element) {
+                        container = options.containment;
+                    }
+                    
+                    if (container) {
+                        const containerRect = container.getBoundingClientRect();
+                        const parentRect = elem.offsetParent ? elem.offsetParent.getBoundingClientRect() : { left: 0, top: 0 };
+                        
+                        // Calculate boundaries
+                        const minLeft = containerRect.left - parentRect.left;
+                        const minTop = containerRect.top - parentRect.top;
+                        const maxLeft = minLeft + containerRect.width - rect.width;
+                        const maxTop = minTop + containerRect.height - rect.height;
+                        
+                        newLeft = Math.max(minLeft, Math.min(maxLeft, newLeft));
+                        newTop = Math.max(minTop, Math.min(maxTop, newTop));
+                    }
+                }
+                
+                elem.style.left = newLeft + 'px';
+                elem.style.top = newTop + 'px';
                 if (options.onDrag) options.onDrag.call(elem, e);
             };
 
@@ -1945,11 +1991,13 @@
                 }
             };
 
+            elem.addEventListener('mousedown', handleMouseDown);
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
             
             // Store handlers for cleanup
             elem._yaka_draggable_cleanup = () => {
+                elem.removeEventListener('mousedown', handleMouseDown);
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
                 delete elem._yaka_draggable;
@@ -2016,20 +2064,29 @@
             const maxHeight = options.maxHeight || Infinity;
             const aspectRatio = options.aspectRatio || false;
 
-            // Ensure element has position
-            if (getComputedStyle(elem).position === 'static') {
-                elem.style.position = 'relative';
+            // Ensure element has position and explicit dimensions
+            const computedStyle = getComputedStyle(elem);
+            if (computedStyle.position === 'static') {
+                elem.style.position = 'absolute';
+            }
+            
+            // Set initial width/height if not set
+            if (!elem.style.width) {
+                elem.style.width = elem.offsetWidth + 'px';
+            }
+            if (!elem.style.height) {
+                elem.style.height = elem.offsetHeight + 'px';
             }
 
             const handleStyles = {
-                'se': { cursor: 'nwse-resize', right: '0', bottom: '0' },
-                'e': { cursor: 'ew-resize', right: '0', top: '50%', transform: 'translateY(-50%)' },
-                's': { cursor: 'ns-resize', bottom: '0', left: '50%', transform: 'translateX(-50%)' },
-                'sw': { cursor: 'nesw-resize', left: '0', bottom: '0' },
-                'ne': { cursor: 'nesw-resize', right: '0', top: '0' },
-                'nw': { cursor: 'nwse-resize', left: '0', top: '0' },
-                'n': { cursor: 'ns-resize', top: '0', left: '50%', transform: 'translateX(-50%)' },
-                'w': { cursor: 'ew-resize', left: '0', top: '50%', transform: 'translateY(-50%)' }
+                'se': { cursor: 'nwse-resize', right: '-4px', bottom: '-4px' },
+                'e': { cursor: 'ew-resize', right: '-4px', top: '50%', transform: 'translateY(-50%)' },
+                's': { cursor: 'ns-resize', bottom: '-4px', left: '50%', transform: 'translateX(-50%)' },
+                'sw': { cursor: 'nesw-resize', left: '-4px', bottom: '-4px' },
+                'ne': { cursor: 'nesw-resize', right: '-4px', top: '-4px' },
+                'nw': { cursor: 'nwse-resize', left: '-4px', top: '-4px' },
+                'n': { cursor: 'ns-resize', top: '-4px', left: '50%', transform: 'translateX(-50%)' },
+                'w': { cursor: 'ew-resize', left: '-4px', top: '50%', transform: 'translateY(-50%)' }
             };
 
             const resizeHandles = [];
@@ -2039,12 +2096,14 @@
                 handleElem.className = `yaka-resize-handle yaka-resize-${handle}`;
                 handleElem.style.cssText = `
                     position: absolute;
-                    width: 8px;
-                    height: 8px;
+                    width: 10px;
+                    height: 10px;
                     background: #4285f4;
-                    border: 1px solid white;
+                    border: 2px solid white;
+                    border-radius: 50%;
                     box-sizing: border-box;
                     z-index: 1000;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
                 `;
 
                 Object.assign(handleElem.style, handleStyles[handle]);
@@ -2062,13 +2121,17 @@
                     startY = e.clientY;
                     startWidth = elem.offsetWidth;
                     startHeight = elem.offsetHeight;
-                    startLeft = elem.offsetLeft;
-                    startTop = elem.offsetTop;
+                    startLeft = parseFloat(elem.style.left) || elem.offsetLeft;
+                    startTop = parseFloat(elem.style.top) || elem.offsetTop;
+
+                    // Prevent text selection during resize
+                    document.body.style.userSelect = 'none';
 
                     if (options.onStart) options.onStart.call(elem, e);
 
                     const handleMouseMove = (e) => {
                         if (!isResizing) return;
+                        e.preventDefault();
 
                         const dx = e.clientX - startX;
                         const dy = e.clientY - startY;
@@ -2078,29 +2141,60 @@
                         let newTop = startTop;
 
                         // Calculate new dimensions based on handle direction
-                        if (handle.includes('e')) newWidth = startWidth + dx;
+                        if (handle.includes('e')) {
+                            newWidth = startWidth + dx;
+                        }
                         if (handle.includes('w')) {
                             newWidth = startWidth - dx;
-                            newLeft = startLeft + dx;
                         }
-                        if (handle.includes('s')) newHeight = startHeight + dy;
+                        if (handle.includes('s')) {
+                            newHeight = startHeight + dy;
+                        }
                         if (handle.includes('n')) {
                             newHeight = startHeight - dy;
-                            newTop = startTop + dy;
                         }
 
-                        // Apply constraints
-                        newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-                        newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+                        // Apply constraints before adjusting position
+                        const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+                        const constrainedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+
+                        // Calculate actual change after constraints
+                        const actualWidthChange = constrainedWidth - startWidth;
+                        const actualHeightChange = constrainedHeight - startHeight;
 
                         // Maintain aspect ratio if enabled
                         if (aspectRatio) {
                             const ratio = startWidth / startHeight;
                             if (handle.includes('e') || handle.includes('w')) {
-                                newHeight = newWidth / ratio;
+                                newHeight = constrainedWidth / ratio;
+                                newWidth = constrainedWidth;
+                            } else if (handle.includes('n') || handle.includes('s')) {
+                                newWidth = constrainedHeight * ratio;
+                                newHeight = constrainedHeight;
                             } else {
-                                newWidth = newHeight * ratio;
+                                // Corner handles - maintain aspect ratio from larger dimension
+                                if (Math.abs(dx) > Math.abs(dy)) {
+                                    newHeight = constrainedWidth / ratio;
+                                    newWidth = constrainedWidth;
+                                } else {
+                                    newWidth = constrainedHeight * ratio;
+                                    newHeight = constrainedHeight;
+                                }
                             }
+                            // Re-apply constraints after aspect ratio
+                            newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+                            newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+                        } else {
+                            newWidth = constrainedWidth;
+                            newHeight = constrainedHeight;
+                        }
+
+                        // Adjust position when resizing from west or north
+                        if (handle.includes('w')) {
+                            newLeft = startLeft - (newWidth - startWidth);
+                        }
+                        if (handle.includes('n')) {
+                            newTop = startTop - (newHeight - startHeight);
                         }
 
                         // Apply new dimensions
@@ -2108,9 +2202,11 @@
                         elem.style.height = newHeight + 'px';
 
                         // Update position for handles that affect left/top
-                        if (handle.includes('w') || handle.includes('n')) {
-                            if (handle.includes('w')) elem.style.left = newLeft + 'px';
-                            if (handle.includes('n')) elem.style.top = newTop + 'px';
+                        if (handle.includes('w')) {
+                            elem.style.left = newLeft + 'px';
+                        }
+                        if (handle.includes('n')) {
+                            elem.style.top = newTop + 'px';
                         }
 
                         if (options.onResize) options.onResize.call(elem, e, { width: newWidth, height: newHeight });
@@ -2119,6 +2215,7 @@
                     const handleMouseUp = (e) => {
                         if (isResizing) {
                             isResizing = false;
+                            document.body.style.userSelect = '';
                             document.removeEventListener('mousemove', handleMouseMove);
                             document.removeEventListener('mouseup', handleMouseUp);
                             if (options.onStop) options.onStop.call(elem, e);
@@ -3968,52 +4065,330 @@
         const width = canvas.width;
         const height = canvas.height;
         const type = options.type || 'bar';
+        const padding = options.padding || { top: 40, right: 40, bottom: 60, left: 60 };
+        const showGrid = options.showGrid !== false;
+        const showValues = options.showValues !== false;
+        const animate = options.animate !== false;
+        const colors = options.colors || ['#667eea', '#764ba2', '#f093fb', '#4facfe', '#43e97b', '#fa709a'];
+
+        // Polyfill for roundRect if not available
+        if (!ctx.roundRect) {
+            ctx.roundRect = function(x, y, w, h, radii) {
+                const r = Array.isArray(radii) ? radii : [radii, radii, radii, radii];
+                this.beginPath();
+                this.moveTo(x + r[0], y);
+                this.lineTo(x + w - r[1], y);
+                this.quadraticCurveTo(x + w, y, x + w, y + r[1]);
+                this.lineTo(x + w, y + h - r[2]);
+                this.quadraticCurveTo(x + w, y + h, x + w - r[2], y + h);
+                this.lineTo(x + r[3], y + h);
+                this.quadraticCurveTo(x, y + h, x, y + h - r[3]);
+                this.lineTo(x, y + r[0]);
+                this.quadraticCurveTo(x, y, x + r[0], y);
+                this.closePath();
+            };
+        }
 
         ctx.clearRect(0, 0, width, height);
 
+        // Calculate chart area
+        const chartWidth = width - padding.left - padding.right;
+        const chartHeight = height - padding.top - padding.bottom;
+
         if (type === 'bar') {
-            if (data.length === 0) return this;
-            const barWidth = width / data.length;
+            if (data.length === 0) return;
             const maxValue = Math.max(...data.map(d => d.value));
-            if (maxValue <= 0) return this;
+            if (maxValue <= 0) return;
+            const minValue = Math.min(0, ...data.map(d => d.value));
+            const valueRange = maxValue - minValue;
 
-            data.forEach((item, i) => {
-                const barHeight = (item.value / maxValue) * (height - 40);
-                const x = i * barWidth;
-                const y = height - barHeight - 20;
+            // Draw grid and axes
+            if (showGrid) {
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                
+                // Horizontal grid lines
+                for (let i = 0; i <= 5; i++) {
+                    const y = padding.top + (chartHeight / 5) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(padding.left, y);
+                    ctx.lineTo(width - padding.right, y);
+                    ctx.stroke();
+                    
+                    // Y-axis labels
+                    const value = Math.round(maxValue - (maxValue / 5) * i);
+                    ctx.fillStyle = '#666';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(value.toString(), padding.left - 10, y + 4);
+                }
+                
+                ctx.setLineDash([]);
+            }
 
-                ctx.fillStyle = options.color || '#667eea';
-                ctx.fillRect(x + 5, y, barWidth - 10, barHeight);
-
-                ctx.fillStyle = '#333';
-                ctx.font = '12px Arial';
-                ctx.fillText(item.label, x + barWidth / 2 - 10, height - 5);
-            });
-        } else if (type === 'line') {
-            if (data.length < 2) return this;
-            const stepX = width / (data.length - 1);
-            const maxValue = Math.max(...data.map(d => d.value));
-            if (maxValue <= 0) return this;
-
-            ctx.strokeStyle = options.color || '#667eea';
+            // Draw axes
+            ctx.strokeStyle = '#333';
             ctx.lineWidth = 2;
             ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, height - padding.bottom);
+            ctx.lineTo(width - padding.right, height - padding.bottom);
+            ctx.stroke();
+
+            // Draw bars
+            const barWidth = chartWidth / data.length;
+            const barPadding = barWidth * 0.2;
+            const actualBarWidth = barWidth - barPadding;
 
             data.forEach((item, i) => {
-                const x = i * stepX;
-                const y = height - (item.value / maxValue) * (height - 40) - 20;
-
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
+                const barHeight = (item.value / maxValue) * chartHeight;
+                const x = padding.left + i * barWidth + barPadding / 2;
+                const y = height - padding.bottom - barHeight;
+                
+                // Create gradient
+                const gradient = ctx.createLinearGradient(x, y, x, height - padding.bottom);
+                const color = item.color || colors[i % colors.length];
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, color + '80'); // Add transparency
+                
+                // Draw bar with rounded top
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.roundRect(x, y, actualBarWidth, barHeight, [8, 8, 0, 0]);
+                ctx.fill();
+                
+                // Add shadow
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetY = 5;
+                ctx.fill();
+                ctx.shadowColor = 'transparent';
+                
+                // Draw value on top of bar
+                if (showValues) {
+                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold 14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(item.value.toString(), x + actualBarWidth / 2, y - 8);
                 }
-
-                ctx.fillStyle = options.color || '#667eea';
-                ctx.fillRect(x - 3, y - 3, 6, 6);
+                
+                // Draw label
+                ctx.fillStyle = '#666';
+                ctx.font = '13px Arial';
+                ctx.textAlign = 'center';
+                ctx.save();
+                ctx.translate(x + actualBarWidth / 2, height - padding.bottom + 15);
+                if (item.label && item.label.length > 10) {
+                    ctx.rotate(-Math.PI / 6);
+                }
+                ctx.fillText(item.label || '', 0, 0);
+                ctx.restore();
             });
 
+        } else if (type === 'line') {
+            if (data.length < 2) return;
+            const maxValue = Math.max(...data.map(d => d.value));
+            if (maxValue <= 0) return;
+            const minValue = Math.min(0, ...data.map(d => d.value));
+
+            // Draw grid and axes
+            if (showGrid) {
+                ctx.strokeStyle = '#e0e0e0';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                
+                for (let i = 0; i <= 5; i++) {
+                    const y = padding.top + (chartHeight / 5) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(padding.left, y);
+                    ctx.lineTo(width - padding.right, y);
+                    ctx.stroke();
+                    
+                    const value = Math.round(maxValue - (maxValue / 5) * i);
+                    ctx.fillStyle = '#666';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(value.toString(), padding.left - 10, y + 4);
+                }
+                
+                ctx.setLineDash([]);
+            }
+
+            // Draw axes
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding.left, padding.top);
+            ctx.lineTo(padding.left, height - padding.bottom);
+            ctx.lineTo(width - padding.right, height - padding.bottom);
             ctx.stroke();
+
+            // Calculate points
+            const stepX = chartWidth / (data.length - 1);
+            const points = data.map((item, i) => ({
+                x: padding.left + i * stepX,
+                y: height - padding.bottom - (item.value / maxValue) * chartHeight,
+                value: item.value,
+                label: item.label
+            }));
+
+            // Draw area under line with gradient
+            const gradient = ctx.createLinearGradient(0, padding.top, 0, height - padding.bottom);
+            const color = options.color || colors[0];
+            gradient.addColorStop(0, color + '40');
+            gradient.addColorStop(1, color + '00');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, height - padding.bottom);
+            points.forEach(point => ctx.lineTo(point.x, point.y));
+            ctx.lineTo(points[points.length - 1].x, height - padding.bottom);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw line
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            points.forEach((point, i) => {
+                if (i === 0) {
+                    ctx.moveTo(point.x, point.y);
+                } else {
+                    ctx.lineTo(point.x, point.y);
+                }
+            });
+            ctx.stroke();
+
+            // Draw points and values
+            points.forEach((point, i) => {
+                // Point shadow
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 3;
+                
+                // Outer circle
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Inner circle
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.shadowColor = 'transparent';
+                
+                // Value label
+                if (showValues) {
+                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(point.value.toString(), point.x, point.y - 15);
+                }
+                
+                // X-axis label
+                ctx.fillStyle = '#666';
+                ctx.font = '12px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(point.label || '', point.x, height - padding.bottom + 20);
+            });
+
+        } else if (type === 'pie') {
+            if (data.length === 0) return;
+            const total = data.reduce((sum, item) => sum + item.value, 0);
+            if (total <= 0) return;
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = Math.min(chartWidth, chartHeight) / 2.5;
+            
+            let currentAngle = -Math.PI / 2; // Start at top
+
+            data.forEach((item, i) => {
+                const sliceAngle = (item.value / total) * Math.PI * 2;
+                const color = item.color || colors[i % colors.length];
+                
+                // Draw slice with gradient
+                const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius);
+                gradient.addColorStop(0, color);
+                gradient.addColorStop(1, color + 'cc');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Add stroke
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Add shadow
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+                ctx.shadowBlur = 10;
+                ctx.shadowOffsetX = 2;
+                ctx.shadowOffsetY = 2;
+                ctx.fill();
+                ctx.stroke();
+                ctx.shadowColor = 'transparent';
+                
+                // Draw label and percentage
+                const labelAngle = currentAngle + sliceAngle / 2;
+                const labelRadius = radius * 0.7;
+                const labelX = centerX + Math.cos(labelAngle) * labelRadius;
+                const labelY = centerY + Math.sin(labelAngle) * labelRadius;
+                
+                const percentage = ((item.value / total) * 100).toFixed(1);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`${percentage}%`, labelX, labelY);
+                
+                if (item.label) {
+                    ctx.font = '12px Arial';
+                    ctx.fillText(item.label, labelX, labelY + 18);
+                }
+                
+                currentAngle += sliceAngle;
+            });
+
+            // Draw center circle for donut effect (optional)
+            if (options.donut) {
+                const donutRadius = radius * 0.5;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, donutRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Draw total in center
+                if (options.showTotal) {
+                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold 24px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(total.toString(), centerX, centerY);
+                    ctx.font = '14px Arial';
+                    ctx.fillStyle = '#666';
+                    ctx.fillText('Total', centerX, centerY + 25);
+                }
+            }
+        }
+
+        // Add title if provided
+        if (options.title) {
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 18px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(options.title, width / 2, 20);
         }
     };
 
