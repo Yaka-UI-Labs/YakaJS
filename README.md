@@ -2,11 +2,26 @@
 
 ![YakaJS Header](https://via.placeholder.com/1200x400/6366f1/ffffff?text=YakaJS+%F0%9F%9A%80+Next-Gen+JavaScript+Library)
 
+[![npm](https://img.shields.io/badge/npm-yakajs-red.svg)](https://www.npmjs.com/package/yakajs)
 [![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Size](https://img.shields.io/badge/size-151%20KB%20minified-success.svg)](dist/min.yaka.js)
 [![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js)
 [![Documentation](https://img.shields.io/badge/📚-Documentation-brightgreen.svg)](DOCUMENTATION.md)
+
+## 🎉 YakaJS is now on npm!
+
+**February 14, 2026. Valentine's Day.** 💝
+
+The day yakajs appeared in `node_modules` for the first time. While everyone else was getting flowers, we shipped an npm package. 😂🔥
+
+```bash
+npm install yakajs
+```
+
+Yes, **[YakaJS is officially published on npm](https://www.npmjs.com/package/yakajs)**! You can now install it with one command and import it in your projects. Full TypeScript support included!
+
+---
 
 Yes, we're building a JavaScript library **on GitHub**. In fact, we've been doing this since we made our first commit and pushed **9,504 lines** of pure JavaScript magic 🪄. We've implemented **150+ features**, compressed our code by **56%**, and even added **voice commands** 🎤 (because why not?). But that's just us. We are proud to be building a library for developers, designers, and yes, even robots 🤖 across the internet. Yes, Robots!
 
