@@ -17,6 +17,7 @@ custom-yaka.js
 # Test files
 test-*.html
 test_*.js
+test-*.ts
 visual_*.html
 CHANGES.md
 README_OLD.md
