@@ -19,6 +19,7 @@
   "author": "Yaka-UI-Labs",
   "license": "MIT",
   "devDependencies": {
-    "terser": "^5.27.0"
+    "terser": "^5.27.0",
+    "typescript": "^5.9.3"
   }
 }

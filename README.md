@@ -21,6 +21,7 @@ Think jQuery meets modern JavaScript. But with superpowers 🦸. YakaJS is a nex
 - **📦 Tiny** - Just 151 KB minified (that's 56% smaller than the source!)
 - **🛡️ Never Crashes** - Safe-mode chaining with `_.safe()` prevents those annoying "Cannot read property of undefined" errors
 - **💎 Developer-Friendly** - If jQuery and modern frameworks had a baby, it would be YakaJS
+- **📘 TypeScript Ready** - Full TypeScript definitions included for type safety and IntelliSense support
 
 Now that we are talking about the important things, ☝️ are you tired of jQuery being outdated? Yes? Want something modern but simple? Okay, you rock! 🎸
 
@@ -162,6 +163,41 @@ npm run build  # Builds all 3 optimized versions!
 ```
 
 Run this and say **"change color"** into your microphone. Mind. Blown. 🤯
+
+## 📘 TypeScript Support
+
+YakaJS now comes with **full TypeScript definitions**! Get autocomplete, type checking, and IntelliSense in your IDE:
+
+```typescript
+import Yaka from 'yakajs';
+
+// Full type safety and autocomplete
+Yaka('#button')
+    .addClass('active')
+    .on('click', (e: Event) => {
+        Yaka.notify('Clicked!', 'success');
+    })
+    .fadeIn(300);
+
+// Type-safe utilities
+const chunks = Yaka.chunk([1, 2, 3, 4, 5], 2);  // number[][]
+const unique = Yaka.uniq([1, 1, 2, 3]);         // number[]
+
+// Form validation with proper types
+const result = Yaka('#form').validate({
+    email: {
+        required: true,
+        pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        requiredMessage: 'Email is required'
+    }
+});
+
+if (result.valid) {
+    console.log('Valid!');
+}
+```
+
+📖 **[Read the full TypeScript guide →](TYPESCRIPT.md)**
 
 ## 🎯 Why YakaJS?
 

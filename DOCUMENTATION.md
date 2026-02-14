@@ -29,6 +29,29 @@ New to YakaJS? Start here:
 <tr>
 <td width="50%">
 
+#### 📘 [TypeScript Guide](TYPESCRIPT.md)
+**6 KB | 187 lines**
+
+Full TypeScript support with definitions:
+- ✅ Complete type definitions (.d.ts)
+- ✅ Autocomplete & IntelliSense
+- ✅ Type-safe API usage
+- ✅ Generic types for utilities
+- ✅ Interface exports
+- ✅ JSDoc documentation
+- ✅ IDE integration examples
+- ✅ JavaScript compatibility
+
+Includes examples for:
+- Basic usage with types
+- Form validation
+- AJAX with type safety
+- Interactive features
+- Reactive programming
+
+</td>
+<td width="50%">
+
 #### 📘 [API Reference](docs/API_REFERENCE.md)
 **31 KB | 1,598 lines**
 
@@ -206,6 +229,7 @@ Join the team:
 
 ### By Topic
 
+- **TypeScript** → [TypeScript Guide](TYPESCRIPT.md)
 - **DOM Manipulation** → [API Reference - DOM](docs/API_REFERENCE.md#dom-manipulation)
 - **Events** → [API Reference - Events](docs/API_REFERENCE.md#events)
 - **AJAX** → [API Reference - AJAX](docs/API_REFERENCE.md#ajax--http)

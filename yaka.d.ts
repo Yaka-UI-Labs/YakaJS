@@ -1437,7 +1437,7 @@ export interface YakaStatic {
     /**
      * Merge objects
      */
-    merge<T>(...sources: Partial<T>[]): T;
+    merge(...sources: any[]): any;
 
     /**
      * Deep equality check
@@ -1937,13 +1937,10 @@ declare global {
         Yaka: YakaStatic;
         _: YakaStatic;
     }
-
-    const Yaka: YakaStatic;
-    const _: YakaStatic;
 }
 
 // ==================== EXPORTS ====================
 
 declare const yaka: YakaStatic;
 export default yaka;
-export { YakaStatic, Yaka };
+export as namespace Yaka;
