@@ -8070,6 +8070,1077 @@
         }
     };
 
+    // ==================== PHASE 6: NEW HIGH-IMPACT FEATURES ====================
+
+    // 1. OFFLINE DETECTION
+    Yaka.onOffline = function(callback) {
+        window.addEventListener('offline', callback);
+        return () => window.removeEventListener('offline', callback);
+    };
+
+    Yaka.onOnline = function(callback) {
+        window.addEventListener('online', callback);
+        return () => window.removeEventListener('online', callback);
+    };
+
+    Yaka.isOnline = function() {
+        return navigator.onLine;
+    };
+
+    // 2. CLIPBOARD READ
+    Yaka.paste = async function() {
+        try {
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                return await navigator.clipboard.readText();
+            }
+            throw new Error('Clipboard API not available');
+        } catch (error) {
+            console.warn('Yaka.paste: Failed to read clipboard', error);
+            return null;
+        }
+    };
+
+    // 3. WEBSOCKET WRAPPER
+    Yaka.socket = function(url, options = {}) {
+        const ws = new WebSocket(url);
+        const handlers = {};
+        
+        const socket = {
+            on(event, callback) {
+                if (!handlers[event]) handlers[event] = [];
+                handlers[event].push(callback);
+                
+                if (event === 'open') ws.addEventListener('open', callback);
+                else if (event === 'close') ws.addEventListener('close', callback);
+                else if (event === 'error') ws.addEventListener('error', callback);
+                else if (event === 'message') {
+                    ws.addEventListener('message', (e) => {
+                        try {
+                            const data = options.json !== false ? JSON.parse(e.data) : e.data;
+                            callback(data, e);
+                        } catch {
+                            callback(e.data, e);
+                        }
+                    });
+                }
+                return this;
+            },
+            
+            send(data) {
+                if (ws.readyState === WebSocket.OPEN) {
+                    ws.send(typeof data === 'object' ? JSON.stringify(data) : data);
+                } else {
+                    console.warn('WebSocket not open. ReadyState:', ws.readyState);
+                }
+                return this;
+            },
+            
+            close(code, reason) {
+                ws.close(code, reason);
+                return this;
+            },
+            
+            get readyState() {
+                return ws.readyState;
+            },
+            
+            get raw() {
+                return ws;
+            }
+        };
+        
+        // Auto-reconnect if enabled
+        if (options.autoReconnect) {
+            let reconnectTimeout;
+            ws.addEventListener('close', () => {
+                clearTimeout(reconnectTimeout);
+                reconnectTimeout = setTimeout(() => {
+                    console.log('Reconnecting WebSocket...');
+                    Yaka.socket(url, options);
+                }, options.reconnectDelay || 3000);
+            });
+        }
+        
+        return socket;
+    };
+
+    // 4. PROMISE CHAIN UI (Loading State)
+    Yaka.prototype.loadingState = function(promise, options = {}) {
+        const defaults = {
+            loading: 'Loading...',
+            success: 'Success!',
+            error: 'Error!',
+            successDuration: 2000,
+            errorDuration: 3000
+        };
+        const opts = { ...defaults, ...options };
+        
+        return this.each((i, elem) => {
+            const originalText = elem.textContent;
+            const originalDisabled = elem.disabled;
+            
+            // Set loading state
+            elem.textContent = opts.loading;
+            elem.disabled = true;
+            elem.classList.add('yaka-loading');
+            
+            promise
+                .then(result => {
+                    elem.textContent = opts.success;
+                    elem.classList.remove('yaka-loading');
+                    elem.classList.add('yaka-success');
+                    
+                    setTimeout(() => {
+                        elem.textContent = originalText;
+                        elem.disabled = originalDisabled;
+                        elem.classList.remove('yaka-success');
+                    }, opts.successDuration);
+                    
+                    return result;
+                })
+                .catch(error => {
+                    elem.textContent = opts.error;
+                    elem.classList.remove('yaka-loading');
+                    elem.classList.add('yaka-error');
+                    
+                    setTimeout(() => {
+                        elem.textContent = originalText;
+                        elem.disabled = originalDisabled;
+                        elem.classList.remove('yaka-error');
+                    }, opts.errorDuration);
+                    
+                    throw error;
+                });
+        });
+    };
+
+    // 5. SHARE API
+    Yaka.share = async function(data = {}) {
+        if (!navigator.share) {
+            console.warn('Web Share API not supported');
+            return false;
+        }
+        
+        try {
+            await navigator.share({
+                title: data.title || document.title,
+                text: data.text || '',
+                url: data.url || window.location.href
+            });
+            return true;
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.warn('Share failed:', error);
+            }
+            return false;
+        }
+    };
+
+    // 6. BATCH DOM UPDATES (Prevent layout thrashing)
+    Yaka.batch = function(callback) {
+        requestAnimationFrame(() => {
+            callback();
+        });
+    };
+
+    // 7. RESOURCE PRELOADER
+    Yaka.preload = function(resources) {
+        const promises = [];
+        const resourceArray = Array.isArray(resources) ? resources : [resources];
+        
+        resourceArray.forEach(url => {
+            const ext = url.split('.').pop().toLowerCase();
+            let promise;
+            
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext)) {
+                // Preload image
+                promise = new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(url);
+                    img.onerror = reject;
+                    img.src = url;
+                });
+            } else if (['woff', 'woff2', 'ttf', 'otf'].includes(ext)) {
+                // Preload font
+                promise = new Promise((resolve, reject) => {
+                    const link = document.createElement('link');
+                    link.rel = 'preload';
+                    link.as = 'font';
+                    link.type = `font/${ext}`;
+                    link.crossOrigin = 'anonymous';
+                    link.href = url;
+                    link.onload = () => resolve(url);
+                    link.onerror = reject;
+                    document.head.appendChild(link);
+                });
+            } else {
+                // Preload other resources via fetch
+                promise = fetch(url).then(() => url);
+            }
+            
+            promises.push(promise);
+        });
+        
+        return Promise.all(promises);
+    };
+
+    // 8. TIME AGO with live updates
+    Yaka.prototype.timeAgo = function(options = {}) {
+        const defaults = { live: false, updateInterval: 60000 }; // Update every minute
+        const opts = { ...defaults, ...options };
+        
+        const formatTimeAgo = (date) => {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            const intervals = {
+                year: 31536000,
+                month: 2592000,
+                week: 604800,
+                day: 86400,
+                hour: 3600,
+                minute: 60,
+                second: 1
+            };
+            
+            for (const [unit, secondsInUnit] of Object.entries(intervals)) {
+                const interval = Math.floor(seconds / secondsInUnit);
+                if (interval >= 1) {
+                    return interval === 1 ? `1 ${unit} ago` : `${interval} ${unit}s ago`;
+                }
+            }
+            
+            return 'just now';
+        };
+        
+        return this.each((i, elem) => {
+            const timestamp = elem.getAttribute('data-timestamp') || elem.getAttribute('datetime');
+            if (!timestamp) return;
+            
+            const date = new Date(timestamp);
+            elem.textContent = formatTimeAgo(date);
+            
+            if (opts.live) {
+                const intervalId = setInterval(() => {
+                    elem.textContent = formatTimeAgo(date);
+                }, opts.updateInterval);
+                
+                // Store interval ID for cleanup
+                elem._yaka_timeago_interval = intervalId;
+            }
+        });
+    };
+
+    // 9. DOM DIFF & PATCH (Smart updates)
+    Yaka.prototype.patch = function(newHTML) {
+        return this.each((i, elem) => {
+            const temp = document.createElement('div');
+            temp.innerHTML = newHTML;
+            const newNode = temp.firstElementChild;
+            
+            if (!newNode) {
+                elem.innerHTML = newHTML;
+                return;
+            }
+            
+            // Simple diff algorithm
+            const patchNode = (oldNode, newNode) => {
+                // Update text content
+                if (oldNode.nodeType === 3 && newNode.nodeType === 3) {
+                    if (oldNode.textContent !== newNode.textContent) {
+                        oldNode.textContent = newNode.textContent;
+                    }
+                    return;
+                }
+                
+                // Update attributes
+                if (oldNode.nodeType === 1 && newNode.nodeType === 1) {
+                    const oldAttrs = oldNode.attributes;
+                    const newAttrs = newNode.attributes;
+                    
+                    // Update/add new attributes
+                    for (let attr of newAttrs) {
+                        if (oldNode.getAttribute(attr.name) !== attr.value) {
+                            oldNode.setAttribute(attr.name, attr.value);
+                        }
+                    }
+                    
+                    // Remove old attributes
+                    for (let attr of oldAttrs) {
+                        if (!newNode.hasAttribute(attr.name)) {
+                            oldNode.removeAttribute(attr.name);
+                        }
+                    }
+                }
+                
+                // Patch children
+                const oldChildren = Array.from(oldNode.childNodes);
+                const newChildren = Array.from(newNode.childNodes);
+                
+                const maxLength = Math.max(oldChildren.length, newChildren.length);
+                for (let i = 0; i < maxLength; i++) {
+                    const oldChild = oldChildren[i];
+                    const newChild = newChildren[i];
+                    
+                    if (!oldChild && newChild) {
+                        oldNode.appendChild(newChild.cloneNode(true));
+                    } else if (oldChild && !newChild) {
+                        oldNode.removeChild(oldChild);
+                    } else if (oldChild && newChild) {
+                        if (oldChild.nodeName !== newChild.nodeName) {
+                            oldNode.replaceChild(newChild.cloneNode(true), oldChild);
+                        } else {
+                            patchNode(oldChild, newChild);
+                        }
+                    }
+                }
+            };
+            
+            patchNode(elem, newNode);
+        });
+    };
+
+    // 10. COMMAND PALETTE
+    Yaka.commandPalette = function(options = {}) {
+        const defaults = {
+            commands: [],
+            placeholder: 'Type a command...',
+            hotkey: 'k',
+            hotkeyModifier: 'ctrl'
+        };
+        const opts = { ...defaults, ...options };
+        
+        let isOpen = false;
+        let overlay, input, results;
+        
+        const createPalette = () => {
+            overlay = document.createElement('div');
+            overlay.className = 'yaka-command-palette-overlay';
+            overlay.innerHTML = `
+                <div class="yaka-command-palette">
+                    <input type="text" class="yaka-command-input" placeholder="${opts.placeholder}">
+                    <div class="yaka-command-results"></div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            
+            input = overlay.querySelector('.yaka-command-input');
+            results = overlay.querySelector('.yaka-command-results');
+            
+            // Close on overlay click
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) close();
+            });
+            
+            // Close on Escape
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') close();
+                if (e.key === 'Enter') {
+                    const selected = results.querySelector('.yaka-command-item.selected');
+                    if (selected) selected.click();
+                }
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    selectNext();
+                }
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    selectPrev();
+                }
+            });
+            
+            // Search on input
+            input.addEventListener('input', () => {
+                const query = input.value.toLowerCase();
+                const filtered = opts.commands.filter(cmd => 
+                    cmd.name.toLowerCase().includes(query)
+                );
+                renderResults(filtered);
+            });
+            
+            renderResults(opts.commands);
+        };
+        
+        const renderResults = (commands) => {
+            results.innerHTML = '';
+            commands.forEach((cmd, index) => {
+                const item = document.createElement('div');
+                item.className = 'yaka-command-item' + (index === 0 ? ' selected' : '');
+                item.textContent = cmd.name;
+                item.addEventListener('click', () => {
+                    cmd.action();
+                    close();
+                });
+                results.appendChild(item);
+            });
+        };
+        
+        const selectNext = () => {
+            const items = results.querySelectorAll('.yaka-command-item');
+            const current = results.querySelector('.selected');
+            const currentIndex = Array.from(items).indexOf(current);
+            const next = items[currentIndex + 1] || items[0];
+            current.classList.remove('selected');
+            next.classList.add('selected');
+            next.scrollIntoView({ block: 'nearest' });
+        };
+        
+        const selectPrev = () => {
+            const items = results.querySelectorAll('.yaka-command-item');
+            const current = results.querySelector('.selected');
+            const currentIndex = Array.from(items).indexOf(current);
+            const prev = items[currentIndex - 1] || items[items.length - 1];
+            current.classList.remove('selected');
+            prev.classList.add('selected');
+            prev.scrollIntoView({ block: 'nearest' });
+        };
+        
+        const open = () => {
+            if (!overlay) createPalette();
+            overlay.style.display = 'flex';
+            input.value = '';
+            input.focus();
+            renderResults(opts.commands);
+            isOpen = true;
+        };
+        
+        const close = () => {
+            if (overlay) overlay.style.display = 'none';
+            isOpen = false;
+        };
+        
+        // Hotkey listener
+        document.addEventListener('keydown', (e) => {
+            const modifier = opts.hotkeyModifier === 'ctrl' ? e.ctrlKey : 
+                            opts.hotkeyModifier === 'meta' ? e.metaKey :
+                            opts.hotkeyModifier === 'alt' ? e.altKey : false;
+            
+            if (modifier && e.key.toLowerCase() === opts.hotkey) {
+                e.preventDefault();
+                if (isOpen) close();
+                else open();
+            }
+        });
+        
+        return { open, close };
+    };
+
+    // 11. VIRTUAL SCROLL
+    Yaka.prototype.virtualScroll = function(options = {}) {
+        const defaults = {
+            items: [],
+            itemHeight: 50,
+            buffer: 5,
+            render: (item) => `<div>${item}</div>`
+        };
+        const opts = { ...defaults, ...options };
+        
+        return this.each((i, container) => {
+            const scrollHeight = opts.items.length * opts.itemHeight;
+            const viewport = document.createElement('div');
+            viewport.style.cssText = `
+                height: ${container.clientHeight || 400}px;
+                overflow-y: auto;
+                position: relative;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                height: ${scrollHeight}px;
+                position: relative;
+            `;
+            
+            viewport.appendChild(content);
+            container.innerHTML = '';
+            container.appendChild(viewport);
+            
+            const renderVisibleItems = () => {
+                const scrollTop = viewport.scrollTop;
+                const viewportHeight = viewport.clientHeight;
+                
+                const startIndex = Math.max(0, Math.floor(scrollTop / opts.itemHeight) - opts.buffer);
+                const endIndex = Math.min(
+                    opts.items.length,
+                    Math.ceil((scrollTop + viewportHeight) / opts.itemHeight) + opts.buffer
+                );
+                
+                content.innerHTML = '';
+                for (let i = startIndex; i < endIndex; i++) {
+                    const itemEl = document.createElement('div');
+                    itemEl.style.cssText = `
+                        position: absolute;
+                        top: ${i * opts.itemHeight}px;
+                        width: 100%;
+                        height: ${opts.itemHeight}px;
+                    `;
+                    itemEl.innerHTML = opts.render(opts.items[i]);
+                    content.appendChild(itemEl);
+                }
+            };
+            
+            viewport.addEventListener('scroll', renderVisibleItems);
+            renderVisibleItems();
+        });
+    };
+
+    // 12. ONBOARDING TOUR
+    Yaka.tour = function(steps = []) {
+        let currentStep = 0;
+        let overlay, tooltip;
+        
+        const createOverlay = () => {
+            overlay = document.createElement('div');
+            overlay.className = 'yaka-tour-overlay';
+            document.body.appendChild(overlay);
+            
+            tooltip = document.createElement('div');
+            tooltip.className = 'yaka-tour-tooltip';
+            document.body.appendChild(tooltip);
+        };
+        
+        const showStep = (index) => {
+            if (index >= steps.length) {
+                end();
+                return;
+            }
+            
+            currentStep = index;
+            const step = steps[index];
+            const element = document.querySelector(step.element);
+            
+            if (!element) {
+                console.warn(`Tour: Element not found: ${step.element}`);
+                return;
+            }
+            
+            // Highlight element
+            const rect = element.getBoundingClientRect();
+            overlay.style.cssText = `
+                clip-path: polygon(
+                    0 0, 0 100%, 
+                    ${rect.left - 5}px 100%, 
+                    ${rect.left - 5}px ${rect.top - 5}px, 
+                    ${rect.right + 5}px ${rect.top - 5}px, 
+                    ${rect.right + 5}px ${rect.bottom + 5}px, 
+                    ${rect.left - 5}px ${rect.bottom + 5}px, 
+                    ${rect.left - 5}px 100%, 
+                    100% 100%, 100% 0
+                );
+            `;
+            
+            // Position tooltip
+            tooltip.innerHTML = `
+                <div class="yaka-tour-content">
+                    <div class="yaka-tour-text">${step.text}</div>
+                    <div class="yaka-tour-buttons">
+                        ${index > 0 ? '<button class="yaka-tour-prev">Previous</button>' : ''}
+                        ${index < steps.length - 1 ? '<button class="yaka-tour-next">Next</button>' : '<button class="yaka-tour-finish">Finish</button>'}
+                        <button class="yaka-tour-skip">Skip Tour</button>
+                    </div>
+                    <div class="yaka-tour-progress">${index + 1} / ${steps.length}</div>
+                </div>
+            `;
+            
+            tooltip.style.cssText = `
+                top: ${rect.bottom + 15}px;
+                left: ${rect.left}px;
+            `;
+            
+            // Attach event listeners
+            const nextBtn = tooltip.querySelector('.yaka-tour-next, .yaka-tour-finish');
+            const prevBtn = tooltip.querySelector('.yaka-tour-prev');
+            const skipBtn = tooltip.querySelector('.yaka-tour-skip');
+            
+            if (nextBtn) nextBtn.addEventListener('click', () => showStep(currentStep + 1));
+            if (prevBtn) prevBtn.addEventListener('click', () => showStep(currentStep - 1));
+            if (skipBtn) skipBtn.addEventListener('click', end);
+        };
+        
+        const end = () => {
+            if (overlay) overlay.remove();
+            if (tooltip) tooltip.remove();
+        };
+        
+        const start = () => {
+            if (!overlay) createOverlay();
+            showStep(0);
+        };
+        
+        start();
+        return { next: () => showStep(currentStep + 1), prev: () => showStep(currentStep - 1), end };
+    };
+
+    // 13. IMAGE LAZY LOAD with blur-up
+    Yaka.prototype.blurLazyLoad = function(options = {}) {
+        const defaults = {
+            placeholder: null,
+            rootMargin: '50px'
+        };
+        const opts = { ...defaults, ...options };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.getAttribute('data-src');
+                    
+                    if (src) {
+                        // Load full image
+                        const fullImg = new Image();
+                        fullImg.onload = () => {
+                            img.src = src;
+                            img.classList.add('yaka-lazy-loaded');
+                            img.classList.remove('yaka-lazy-loading');
+                        };
+                        fullImg.src = src;
+                        img.classList.add('yaka-lazy-loading');
+                    }
+                    
+                    observer.unobserve(img);
+                }
+            });
+        }, { rootMargin: opts.rootMargin });
+        
+        return this.each((i, img) => {
+            if (opts.placeholder) {
+                img.src = opts.placeholder;
+                img.classList.add('yaka-lazy-blur');
+            }
+            observer.observe(img);
+        });
+    };
+
+    // 14. PULL TO REFRESH
+    Yaka.pullToRefresh = function(options = {}) {
+        const defaults = {
+            threshold: 60,
+            onRefresh: async () => {},
+            element: document.body
+        };
+        const opts = { ...defaults, ...options };
+        
+        let startY = 0;
+        let currentY = 0;
+        let pulling = false;
+        
+        const refreshEl = document.createElement('div');
+        refreshEl.className = 'yaka-pull-refresh';
+        refreshEl.textContent = 'Pull to refresh';
+        opts.element.insertBefore(refreshEl, opts.element.firstChild);
+        
+        opts.element.addEventListener('touchstart', (e) => {
+            if (window.scrollY === 0) {
+                startY = e.touches[0].pageY;
+                pulling = true;
+            }
+        });
+        
+        opts.element.addEventListener('touchmove', (e) => {
+            if (!pulling) return;
+            
+            currentY = e.touches[0].pageY;
+            const diff = currentY - startY;
+            
+            if (diff > 0) {
+                e.preventDefault();
+                refreshEl.style.height = Math.min(diff, opts.threshold) + 'px';
+                
+                if (diff >= opts.threshold) {
+                    refreshEl.textContent = 'Release to refresh';
+                    refreshEl.classList.add('ready');
+                } else {
+                    refreshEl.textContent = 'Pull to refresh';
+                    refreshEl.classList.remove('ready');
+                }
+            }
+        });
+        
+        opts.element.addEventListener('touchend', async () => {
+            if (!pulling) return;
+            
+            const diff = currentY - startY;
+            if (diff >= opts.threshold) {
+                refreshEl.textContent = 'Refreshing...';
+                refreshEl.classList.add('refreshing');
+                
+                await opts.onRefresh();
+                
+                refreshEl.classList.remove('refreshing', 'ready');
+            }
+            
+            refreshEl.style.height = '0';
+            pulling = false;
+        });
+    };
+
+    // 15. PWA INSTALL
+    Yaka.pwa = {
+        deferredPrompt: null,
+        
+        onInstallable(callback) {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                this.deferredPrompt = e;
+                callback(e);
+            });
+        },
+        
+        async install() {
+            if (!this.deferredPrompt) {
+                console.warn('PWA install prompt not available');
+                return false;
+            }
+            
+            this.deferredPrompt.prompt();
+            const result = await this.deferredPrompt.userChoice;
+            this.deferredPrompt = null;
+            
+            return result.outcome === 'accepted';
+        },
+        
+        isInstalled() {
+            return window.matchMedia('(display-mode: standalone)').matches ||
+                   window.navigator.standalone === true;
+        }
+    };
+
+    // 16. SHAKE DETECTION
+    Yaka.onShake = function(callback, options = {}) {
+        const defaults = {
+            threshold: 15,
+            timeout: 1000
+        };
+        const opts = { ...defaults, ...options };
+        
+        let lastTime = Date.now();
+        let lastX = 0, lastY = 0, lastZ = 0;
+        
+        const handleMotion = (e) => {
+            const current = Date.now();
+            if (current - lastTime < opts.timeout) return;
+            
+            const deltaX = Math.abs(e.accelerationIncludingGravity.x - lastX);
+            const deltaY = Math.abs(e.accelerationIncludingGravity.y - lastY);
+            const deltaZ = Math.abs(e.accelerationIncludingGravity.z - lastZ);
+            
+            if (deltaX > opts.threshold || deltaY > opts.threshold || deltaZ > opts.threshold) {
+                callback();
+                lastTime = current;
+            }
+            
+            lastX = e.accelerationIncludingGravity.x;
+            lastY = e.accelerationIncludingGravity.y;
+            lastZ = e.accelerationIncludingGravity.z;
+        };
+        
+        window.addEventListener('devicemotion', handleMotion);
+        return () => window.removeEventListener('devicemotion', handleMotion);
+    };
+
+    // 17. VOICE COMMANDS
+    Yaka.voice = {
+        recognition: null,
+        commands: {},
+        isListening: false,
+        
+        listen(commandMap = {}) {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                console.warn('Speech recognition not supported');
+                return;
+            }
+            
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
+            this.recognition.continuous = true;
+            this.recognition.interimResults = false;
+            
+            this.commands = commandMap;
+            
+            this.recognition.onresult = (event) => {
+                const last = event.results.length - 1;
+                const command = event.results[last][0].transcript.toLowerCase().trim();
+                
+                console.log('Voice command:', command);
+                
+                // Check for exact match
+                if (this.commands[command]) {
+                    this.commands[command]();
+                } else {
+                    // Check for partial matches
+                    for (const [key, action] of Object.entries(this.commands)) {
+                        if (command.includes(key.toLowerCase())) {
+                            action();
+                            break;
+                        }
+                    }
+                }
+            };
+            
+            this.recognition.onerror = (event) => {
+                console.warn('Voice recognition error:', event.error);
+            };
+            
+            this.start();
+        },
+        
+        start() {
+            if (this.recognition && !this.isListening) {
+                this.recognition.start();
+                this.isListening = true;
+            }
+        },
+        
+        stop() {
+            if (this.recognition && this.isListening) {
+                this.recognition.stop();
+                this.isListening = false;
+            }
+        }
+    };
+
+    // 18. IMAGE CROPPER
+    Yaka.prototype.cropper = function(options = {}) {
+        const defaults = {
+            ratio: 1,
+            onCrop: (blob) => {}
+        };
+        const opts = { ...defaults, ...options };
+        
+        return this.each((i, img) => {
+            const overlay = document.createElement('div');
+            overlay.className = 'yaka-cropper-overlay';
+            overlay.innerHTML = `
+                <div class="yaka-cropper-container">
+                    <img src="${img.src}" class="yaka-cropper-image">
+                    <div class="yaka-cropper-box"></div>
+                    <div class="yaka-cropper-controls">
+                        <button class="yaka-cropper-crop">Crop</button>
+                        <button class="yaka-cropper-cancel">Cancel</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            
+            const cropImg = overlay.querySelector('.yaka-cropper-image');
+            const cropBox = overlay.querySelector('.yaka-cropper-box');
+            const cropBtn = overlay.querySelector('.yaka-cropper-crop');
+            const cancelBtn = overlay.querySelector('.yaka-cropper-cancel');
+            
+            // Simple crop box positioning
+            cropBox.style.cssText = `
+                width: 200px;
+                height: ${200 / opts.ratio}px;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            `;
+            
+            cropBtn.addEventListener('click', () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                const boxRect = cropBox.getBoundingClientRect();
+                const imgRect = cropImg.getBoundingClientRect();
+                
+                canvas.width = boxRect.width;
+                canvas.height = boxRect.height;
+                
+                ctx.drawImage(
+                    cropImg,
+                    boxRect.left - imgRect.left,
+                    boxRect.top - imgRect.top,
+                    boxRect.width,
+                    boxRect.height,
+                    0,
+                    0,
+                    boxRect.width,
+                    boxRect.height
+                );
+                
+                canvas.toBlob(opts.onCrop);
+                overlay.remove();
+            });
+            
+            cancelBtn.addEventListener('click', () => {
+                overlay.remove();
+            });
+        });
+    };
+
+    // 19. RICH TEXT EDITOR
+    Yaka.prototype.richEditor = function(options = {}) {
+        const defaults = {
+            toolbar: ['bold', 'italic', 'underline', 'link', 'image']
+        };
+        const opts = { ...defaults, ...options };
+        
+        return this.each((i, elem) => {
+            const editor = document.createElement('div');
+            editor.className = 'yaka-rich-editor';
+            
+            const toolbar = document.createElement('div');
+            toolbar.className = 'yaka-rich-toolbar';
+            
+            const content = document.createElement('div');
+            content.className = 'yaka-rich-content';
+            content.contentEditable = true;
+            content.innerHTML = elem.value || elem.innerHTML;
+            
+            opts.toolbar.forEach(cmd => {
+                const btn = document.createElement('button');
+                btn.textContent = cmd;
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    if (cmd === 'link') {
+                        const url = prompt('Enter URL:');
+                        if (url) document.execCommand('createLink', false, url);
+                    } else if (cmd === 'image') {
+                        const url = prompt('Enter image URL:');
+                        if (url) document.execCommand('insertImage', false, url);
+                    } else {
+                        document.execCommand(cmd, false, null);
+                    }
+                });
+                toolbar.appendChild(btn);
+            });
+            
+            editor.appendChild(toolbar);
+            editor.appendChild(content);
+            
+            elem.style.display = 'none';
+            elem.parentNode.insertBefore(editor, elem);
+            
+            // Sync content back to original element
+            content.addEventListener('input', () => {
+                if (elem.tagName === 'TEXTAREA' || elem.tagName === 'INPUT') {
+                    elem.value = content.innerHTML;
+                } else {
+                    elem.innerHTML = content.innerHTML;
+                }
+            });
+        });
+    };
+
+    // 20. ELEMENT INSPECTOR
+    Yaka.inspect = {
+        enabled: false,
+        overlay: null,
+        
+        enable() {
+            if (this.enabled) return;
+            this.enabled = true;
+            
+            this.overlay = document.createElement('div');
+            this.overlay.className = 'yaka-inspect-overlay';
+            document.body.appendChild(this.overlay);
+            
+            document.addEventListener('mousemove', this.handleMouseMove);
+            document.addEventListener('click', this.handleClick);
+        },
+        
+        disable() {
+            if (!this.enabled) return;
+            this.enabled = false;
+            
+            if (this.overlay) this.overlay.remove();
+            document.removeEventListener('mousemove', this.handleMouseMove);
+            document.removeEventListener('click', this.handleClick);
+        },
+        
+        handleMouseMove(e) {
+            if (!Yaka.inspect.enabled) return;
+            
+            const elem = e.target;
+            const rect = elem.getBoundingClientRect();
+            
+            Yaka.inspect.overlay.style.cssText = `
+                top: ${rect.top}px;
+                left: ${rect.left}px;
+                width: ${rect.width}px;
+                height: ${rect.height}px;
+            `;
+        },
+        
+        handleClick(e) {
+            if (!Yaka.inspect.enabled) return;
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const elem = e.target;
+            const info = {
+                tag: elem.tagName,
+                id: elem.id,
+                classes: Array.from(elem.classList),
+                attributes: Array.from(elem.attributes).map(a => ({ name: a.name, value: a.value })),
+                yakaMethods: Object.keys(Yaka.prototype).slice(0, 10)
+            };
+            
+            console.group('🔍 Yaka Element Inspector');
+            console.log('Element:', elem);
+            console.log('Tag:', info.tag);
+            console.log('ID:', info.id || '(none)');
+            console.log('Classes:', info.classes);
+            console.log('Attributes:', info.attributes);
+            console.log('Available Yaka methods:', info.yakaMethods.join(', '), '...');
+            console.groupEnd();
+            
+            alert(`Element: ${info.tag}${info.id ? '#' + info.id : ''}\nClasses: ${info.classes.join(', ')}\n\nCheck console for more details.`);
+        }
+    };
+
+    // 21. EYE TRACKING (Experimental)
+    Yaka.eyeTrack = {
+        tracking: false,
+        callback: null,
+        
+        async start(callback) {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                console.warn('getUserMedia not supported');
+                return false;
+            }
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                this.tracking = true;
+                this.callback = callback;
+                
+                // Create video element for tracking
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.style.display = 'none';
+                document.body.appendChild(video);
+                video.play();
+                
+                // Simulate eye tracking (real implementation would use ML model)
+                const trackLoop = () => {
+                    if (!this.tracking) {
+                        stream.getTracks().forEach(track => track.stop());
+                        video.remove();
+                        return;
+                    }
+                    
+                    // Simulate gaze position (in real implementation, use face detection)
+                    const x = Math.random() * window.innerWidth;
+                    const y = Math.random() * window.innerHeight;
+                    
+                    if (this.callback) this.callback(x, y);
+                    
+                    requestAnimationFrame(trackLoop);
+                };
+                
+                trackLoop();
+                return true;
+            } catch (error) {
+                console.warn('Eye tracking failed:', error);
+                return false;
+            }
+        },
+        
+        stop() {
+            this.tracking = false;
+        }
+    };
+
     // Add CSS animations
     const style = document.createElement('style');
     style.textContent = `
@@ -8162,6 +9233,240 @@
             color: #e74c3c;
             font-size: 0.875em;
             margin-top: 0.25rem;
+        }
+        
+        /* Loading state styles */
+        .yaka-loading {
+            opacity: 0.6;
+            cursor: wait;
+            pointer-events: none;
+        }
+        .yaka-success {
+            background-color: #2ecc71 !important;
+            color: white !important;
+        }
+        .yaka-error {
+            background-color: #e74c3c !important;
+            color: white !important;
+        }
+        
+        /* Command Palette */
+        .yaka-command-palette-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 100px;
+            z-index: 10000;
+        }
+        .yaka-command-palette {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            width: 600px;
+            max-width: 90%;
+            overflow: hidden;
+        }
+        .yaka-command-input {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            font-size: 18px;
+            outline: none;
+            border-bottom: 1px solid #eee;
+        }
+        .yaka-command-results {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .yaka-command-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .yaka-command-item:hover,
+        .yaka-command-item.selected {
+            background: #f0f0f0;
+        }
+        
+        /* Tour styles */
+        .yaka-tour-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+        }
+        .yaka-tour-tooltip {
+            position: fixed;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 350px;
+            z-index: 10000;
+        }
+        .yaka-tour-text {
+            margin-bottom: 15px;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        .yaka-tour-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .yaka-tour-buttons button {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .yaka-tour-next,
+        .yaka-tour-finish {
+            background: #3498db;
+            color: white;
+        }
+        .yaka-tour-prev,
+        .yaka-tour-skip {
+            background: #ecf0f1;
+            color: #34495e;
+        }
+        .yaka-tour-progress {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        
+        /* Lazy load blur effect */
+        .yaka-lazy-blur {
+            filter: blur(10px);
+            transition: filter 0.3s;
+        }
+        .yaka-lazy-loaded {
+            filter: blur(0);
+        }
+        .yaka-lazy-loading {
+            opacity: 0.7;
+        }
+        
+        /* Pull to refresh */
+        .yaka-pull-refresh {
+            height: 0;
+            overflow: hidden;
+            text-align: center;
+            padding: 10px;
+            background: #f0f0f0;
+            transition: height 0.3s;
+            font-size: 14px;
+        }
+        .yaka-pull-refresh.ready {
+            background: #3498db;
+            color: white;
+        }
+        .yaka-pull-refresh.refreshing {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        /* Cropper styles */
+        .yaka-cropper-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .yaka-cropper-container {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .yaka-cropper-image {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+        .yaka-cropper-box {
+            position: absolute;
+            border: 2px solid #3498db;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            cursor: move;
+        }
+        .yaka-cropper-controls {
+            position: absolute;
+            bottom: -60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .yaka-cropper-controls button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .yaka-cropper-crop {
+            background: #3498db;
+            color: white;
+        }
+        .yaka-cropper-cancel {
+            background: #ecf0f1;
+            color: #34495e;
+        }
+        
+        /* Rich text editor */
+        .yaka-rich-editor {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .yaka-rich-toolbar {
+            background: #f5f5f5;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            gap: 5px;
+        }
+        .yaka-rich-toolbar button {
+            padding: 6px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .yaka-rich-toolbar button:hover {
+            background: #e0e0e0;
+        }
+        .yaka-rich-content {
+            padding: 15px;
+            min-height: 200px;
+            outline: none;
+        }
+        
+        /* Element inspector */
+        .yaka-inspect-overlay {
+            position: fixed;
+            border: 2px solid #3498db;
+            background: rgba(52, 152, 219, 0.1);
+            pointer-events: none;
+            z-index: 9999;
         }
     `;
     document.head.appendChild(style);
