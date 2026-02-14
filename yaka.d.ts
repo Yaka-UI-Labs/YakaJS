@@ -142,14 +142,17 @@ export interface ModalOptions {
 }
 
 /**
- * Carousel options
+ * Carousel options - Enhanced carousel with touch support and transitions
  */
 export interface CarouselOptions {
-    autoplay?: boolean;
+    auto?: boolean;
     interval?: number;
-    indicators?: boolean;
-    controls?: boolean;
-    pause?: 'hover' | false;
+    showDots?: boolean;
+    showArrows?: boolean;
+    startIndex?: number;
+    transition?: 'fade' | 'slide' | 'none';
+    touch?: boolean;
+    onChange?: (index: number) => void;
 }
 
 /**
@@ -426,7 +429,7 @@ export interface StepperOptions {
 }
 
 /**
- * Slider options
+ * Slider options - Enhanced range slider with advanced features
  */
 export interface SliderOptions {
     min?: number;
@@ -434,6 +437,8 @@ export interface SliderOptions {
     step?: number;
     value?: number;
     range?: boolean;
+    showTooltip?: boolean;
+    showValue?: boolean;
     onChange?: (value: number | number[]) => void;
 }
 

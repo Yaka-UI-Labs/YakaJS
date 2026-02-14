@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sliders & Carousels - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="../dist/min.yaka.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Outfit', system-ui, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, 
+                rgba(99, 102, 241, 0.05) 0%,
+                rgba(139, 92, 246, 0.03) 25%,
+                rgba(168, 85, 247, 0.05) 50%,
+                rgba(217, 70, 239, 0.03) 75%,
+                rgba(99, 102, 241, 0.05) 100%
+            ), #000000;
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            min-height: 100vh;
+            color: white;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.7);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 16px 48px 0 rgba(139, 92, 246, 0.2);
+        }
+        
+        pre {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            overflow-x: auto;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        
+        code {
+            color: #a78bfa;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Carousel Slide Styles */
+        .carousel-slide-item {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(168, 85, 247, 0.2));
+            padding: 60px 40px;
+            border-radius: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-12 max-w-6xl">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Sliders & Carousels
+            </h1>
+            <p class="text-xl text-gray-300">
+                Compete with jQuery slider libraries - YakaJS style! 🎢
+            </p>
+            <p class="text-gray-400 mt-2">
+                Enhanced with touch support, transitions, tooltips, and more
+            </p>
+        </div>
+
+        <!-- Range Slider Examples -->
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold mb-6">📊 Range Sliders</h2>
+            
+            <!-- Basic Slider -->
+            <div class="glass-card rounded-2xl p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-4">1. Basic Slider</h3>
+                <p class="text-gray-300 mb-6">Simple range slider with value display</p>
+                
+                <div id="slider1" class="mb-4"></div>
+                
+                <pre><code>_('#slider1').slider({
+    min: 0,
+    max: 100,
+    value: 50,
+    onChange: (val) => console.log(val)
+});</code></pre>
+            </div>
+
+            <!-- Slider with Custom Range -->
+            <div class="glass-card rounded-2xl p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-4">2. Custom Range & Step</h3>
+                <p class="text-gray-300 mb-6">Slider with custom min/max and step values</p>
+                
+                <div id="slider2" class="mb-4"></div>
+                <p class="text-center text-gray-400">Range: 0-500, Step: 25</p>
+                
+                <pre><code>_('#slider2').slider({
+    min: 0,
+    max: 500,
+    value: 100,
+    step: 25,
+    onChange: (val) => console.log('Value:', val)
+});</code></pre>
+            </div>
+
+            <!-- Slider with Tooltip -->
+            <div class="glass-card rounded-2xl p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-4">3. Slider with Tooltip</h3>
+                <p class="text-gray-300 mb-6">Enhanced visual feedback with dynamic tooltip</p>
+                
+                <div id="slider3" class="mb-4"></div>
+                
+                <pre><code>_('#slider3').slider({
+    min: 0,
+    max: 100,
+    value: 75,
+    showTooltip: true,
+    showValue: true
+});</code></pre>
+            </div>
+
+            <!-- Volume Control Slider -->
+            <div class="glass-card rounded-2xl p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-4">4. Volume Control</h3>
+                <p class="text-gray-300 mb-6">Perfect for audio/video controls</p>
+                
+                <div id="slider4" class="mb-4"></div>
+                <p class="text-center" id="volumeDisplay">🔊 Volume: 80%</p>
+                
+                <pre><code>_('#slider4').slider({
+    min: 0,
+    max: 100,
+    value: 80,
+    step: 5,
+    onChange: (val) => {
+        _('#volumeDisplay').text(`🔊 Volume: ${val}%`);
+    }
+});</code></pre>
+            </div>
+        </div>
+
+        <!-- Carousel Examples -->
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold mb-6">🎠 Carousels</h2>
+            
+            <!-- Basic Carousel -->
+            <div class="glass-card rounded-2xl p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-4">1. Basic Carousel with Fade</h3>
+                <p class="text-gray-300 mb-6">Smooth fade transition between slides</p>
+                
+                <div id="carousel1" style="height: 250px; position: relative;">
+                    <div class="carousel-slide-item">
+                        <h4 class="text-3xl font-bold mb-3">🌅 Slide 1</h4>
+                        <p class="text-lg">Welcome to YakaJS carousels!</p>
+                    </div>
+                    <div class="carousel-slide-item">
+                        <h4 class="text-3xl font-bold mb-3">🌄 Slide 2</h4>
+                        <p class="text-lg">Smooth fade transitions</p>
+                    </div>
+                    <div class="carousel-slide-item">
+                        <h4 class="text-3xl font-bold mb-3">🌠 Slide 3</h4>
+                        <p class="text-lg">Touch/swipe enabled!</p>
+                    </div>
+                </div>
+                
+                <pre class="mt-6"><code>_('#carousel1').carousel({
+    transition: 'fade',
+    showDots: true,
+    showArrows: true,
+    touch: true
+});</code></pre>
+            </div>
+
+            <!-- Autoplay Carousel -->
+            <div class="glass-card rounded-2xl p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-4">2. Autoplay Carousel</h3>
+                <p class="text-gray-300 mb-6">Automatically cycles through slides (hover to pause)</p>
+                
+                <div id="carousel2" style="height: 250px; position: relative;">
+                    <div class="carousel-slide-item" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.2));">
+                        <h4 class="text-3xl font-bold mb-3">🚀 Feature 1</h4>
+                        <p class="text-lg">Auto-advancing slides</p>
+                    </div>
+                    <div class="carousel-slide-item" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(5, 150, 105, 0.2));">
+                        <h4 class="text-3xl font-bold mb-3">⚡ Feature 2</h4>
+                        <p class="text-lg">Pause on hover</p>
+                    </div>
+                    <div class="carousel-slide-item" style="background: linear-gradient(135deg, rgba(251, 146, 60, 0.3), rgba(249, 115, 22, 0.2));">
+                        <h4 class="text-3xl font-bold mb-3">🎯 Feature 3</h4>
+                        <p class="text-lg">Customizable interval</p>
+                    </div>
+                </div>
+                
+                <pre class="mt-6"><code>_('#carousel2').carousel({
+    auto: true,
+    interval: 3000,
+    transition: 'fade',
+    showDots: true,
+    showArrows: true
+});</code></pre>
+            </div>
+
+            <!-- Slide Transition Carousel -->
+            <div class="glass-card rounded-2xl p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-4">3. Slide Transition</h3>
+                <p class="text-gray-300 mb-6">Horizontal slide animation</p>
+                
+                <div id="carousel3" style="height: 250px; position: relative;">
+                    <div class="carousel-slide-item" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.3), rgba(219, 39, 119, 0.2));">
+                        <h4 class="text-3xl font-bold mb-3">💜 Slide Animation</h4>
+                        <p class="text-lg">Smooth horizontal transitions</p>
+                    </div>
+                    <div class="carousel-slide-item" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(147, 51, 234, 0.2));">
+                        <h4 class="text-3xl font-bold mb-3">✨ Beautiful</h4>
+                        <p class="text-lg">Professional animations</p>
+                    </div>
+                    <div class="carousel-slide-item" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(79, 70, 229, 0.2));">
+                        <h4 class="text-3xl font-bold mb-3">🎨 Customizable</h4>
+                        <p class="text-lg">Choose your transition style</p>
+                    </div>
+                </div>
+                
+                <pre class="mt-6"><code>_('#carousel3').carousel({
+    transition: 'slide',
+    showDots: true,
+    showArrows: true,
+    touch: true
+});</code></pre>
+            </div>
+
+            <!-- Image Gallery Carousel -->
+            <div class="glass-card rounded-2xl p-8 mb-6">
+                <h3 class="text-2xl font-bold mb-4">4. Image Gallery</h3>
+                <p class="text-gray-300 mb-6">Perfect for showcasing images or products</p>
+                
+                <div id="carousel4" style="height: 300px; position: relative;">
+                    <div style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(220, 38, 38, 0.2)); padding: 80px 40px; border-radius: 12px; text-align: center; height: 100%;">
+                        <div style="font-size: 80px;">🖼️</div>
+                        <h4 class="text-2xl font-bold mt-4">Gallery Image 1</h4>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.2)); padding: 80px 40px; border-radius: 12px; text-align: center; height: 100%;">
+                        <div style="font-size: 80px;">🎨</div>
+                        <h4 class="text-2xl font-bold mt-4">Gallery Image 2</h4>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.2)); padding: 80px 40px; border-radius: 12px; text-align: center; height: 100%;">
+                        <div style="font-size: 80px;">📸</div>
+                        <h4 class="text-2xl font-bold mt-4">Gallery Image 3</h4>
+                    </div>
+                    <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.3), rgba(2, 132, 199, 0.2)); padding: 80px 40px; border-radius: 12px; text-align: center; height: 100%;">
+                        <div style="font-size: 80px;">🌟</div>
+                        <h4 class="text-2xl font-bold mt-4">Gallery Image 4</h4>
+                    </div>
+                </div>
+                
+                <pre class="mt-6"><code>_('#carousel4').carousel({
+    auto: true,
+    interval: 4000,
+    transition: 'fade',
+    showDots: true,
+    showArrows: true,
+    onChange: (index) => console.log('Current slide:', index)
+});</code></pre>
+            </div>
+        </div>
+
+        <!-- Comparison Section -->
+        <div class="glass-card rounded-2xl p-8 mb-6">
+            <h2 class="text-3xl font-bold mb-6">🆚 Competing with jQuery Libraries</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-xl font-bold mb-3 text-purple-400">jQuery Libraries</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li>✓ slick - Touch carousel</li>
+                        <li>✓ jQuery UI Slider - Range slider</li>
+                        <li>✓ noUiSlider - Customizable</li>
+                        <li>✓ Ion.RangeSlider - Many options</li>
+                        <li>✓ lightSlider - Thumbnails</li>
+                        <li>✓ jCarousel - Flexible toolset</li>
+                        <li>✓ Fotorama - Gallery</li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-3 text-green-400">YakaJS Features</h3>
+                    <ul class="space-y-2 text-gray-300">
+                        <li>✅ Touch/swipe support</li>
+                        <li>✅ Fade & slide transitions</li>
+                        <li>✅ Autoplay with pause on hover</li>
+                        <li>✅ Dots & arrow navigation</li>
+                        <li>✅ Tooltips & value display</li>
+                        <li>✅ Keyboard accessibility</li>
+                        <li>✅ Custom step & range</li>
+                        <li>✅ Event callbacks</li>
+                        <li>🎯 Zero dependencies!</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                <p class="text-center text-lg">
+                    <span class="font-bold">YakaJS = Modern, Lightweight, Feature-Rich</span> 🚀
+                    <br>
+                    <span class="text-sm text-gray-400">No jQuery required. Pure JavaScript. Built-in TypeScript support.</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- API Reference -->
+        <div class="glass-card rounded-2xl p-8 mb-6">
+            <h2 class="text-3xl font-bold mb-6">📚 API Reference</h2>
+            
+            <div class="space-y-6">
+                <div>
+                    <h3 class="text-xl font-bold mb-3 text-purple-400">Slider Options</h3>
+                    <pre><code>{
+    min: 0,              // Minimum value
+    max: 100,            // Maximum value
+    step: 1,             // Step increment
+    value: 50,           // Initial value
+    showTooltip: true,   // Show tooltip above slider
+    showValue: true,     // Show value below slider
+    onChange: (val) => {}// Callback on value change
+}</code></pre>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-bold mb-3 text-green-400">Carousel Options</h3>
+                    <pre><code>{
+    auto: false,         // Auto-advance slides
+    interval: 3000,      // Auto-advance interval (ms)
+    showDots: true,      // Show dot indicators
+    showArrows: true,    // Show arrow buttons
+    startIndex: 0,       // Starting slide index
+    transition: 'fade',  // 'fade', 'slide', or 'none'
+    touch: true,         // Enable touch/swipe
+    onChange: (idx) => {}// Callback on slide change
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-12 text-gray-400">
+            <p>Built with ❤️ using YakaJS</p>
+            <p class="mt-2">
+                <a href="index.html" class="text-purple-400 hover:text-purple-300">← Back to Demos</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Initialize all sliders and carousels
+        
+        // Basic Slider
+        _('#slider1').slider({
+            min: 0,
+            max: 100,
+            value: 50,
+            onChange: (val) => console.log('Slider 1:', val)
+        });
+
+        // Custom Range & Step
+        _('#slider2').slider({
+            min: 0,
+            max: 500,
+            value: 100,
+            step: 25,
+            onChange: (val) => console.log('Slider 2:', val)
+        });
+
+        // Slider with Tooltip
+        _('#slider3').slider({
+            min: 0,
+            max: 100,
+            value: 75,
+            showTooltip: true,
+            showValue: true
+        });
+
+        // Volume Control
+        _('#slider4').slider({
+            min: 0,
+            max: 100,
+            value: 80,
+            step: 5,
+            onChange: (val) => {
+                _('#volumeDisplay').text(`🔊 Volume: ${val}%`);
+            }
+        });
+
+        // Basic Carousel with Fade
+        _('#carousel1').carousel({
+            transition: 'fade',
+            showDots: true,
+            showArrows: true,
+            touch: true
+        });
+
+        // Autoplay Carousel
+        _('#carousel2').carousel({
+            auto: true,
+            interval: 3000,
+            transition: 'fade',
+            showDots: true,
+            showArrows: true
+        });
+
+        // Slide Transition Carousel
+        _('#carousel3').carousel({
+            transition: 'slide',
+            showDots: true,
+            showArrows: true,
+            touch: true
+        });
+
+        // Image Gallery Carousel
+        _('#carousel4').carousel({
+            auto: true,
+            interval: 4000,
+            transition: 'fade',
+            showDots: true,
+            showArrows: true,
+            onChange: (index) => console.log('Current slide:', index)
+        });
+    </script>
+</body>
+</html>

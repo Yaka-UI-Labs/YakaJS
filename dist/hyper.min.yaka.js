@@ -424,12 +424,17 @@ o.type="date",o.style.cssText="width: 100%; padding: 10px; border: 2px solid #dd
 const r=()=>{e.call(n,o.value)}
 o.addEventListener("change",r),n._yaka_datepicker_cleanup=()=>{o.removeEventListener("change",r),o.remove(),delete n._yaka_datepicker,delete n._yaka_datepicker_cleanup}})},t.prototype.slider=function(e={}){return this.each((t,n)=>{if(n._yaka_slider)return
 n._yaka_slider=!0
-const o=document.createElement("input")
-o.type="range",o.min=e.min||0,o.max=e.max||100,o.value=e.value||50,o.style.cssText="width: 100%;"
-const r=document.createElement("div")
-r.textContent=o.value,r.style.cssText="text-align: center; margin-top: 10px; font-weight: bold;",n.appendChild(o),n.appendChild(r)
-const a=()=>{r.textContent=o.value,e.onChange&&e.onChange(parseInt(o.value))}
-o.addEventListener("input",a),n._yaka_slider_cleanup=()=>{o.removeEventListener("input",a),o.remove(),r.remove(),delete n._yaka_slider,delete n._yaka_slider_cleanup}})},t.prototype.tabs=function(){return this.each((e,t)=>{if(t._yaka_tabs)return
+const o=e.min||0,r=e.max||100,a=e.step||1,s=e.value||50,i=!1!==e.showTooltip,l=!1!==e.showValue,c=document.createElement("div")
+c.style.cssText="position: relative; padding: 20px 0;"
+const d=document.createElement("input")
+d.type="range",d.min=o,d.max=r,d.step=a,d.value=s,d.style.cssText=`\n                width: 100%;\n                height: 6px;\n                border-radius: 3px;\n                background: linear-gradient(to right, #4CAF50 0%, #4CAF50 ${(s-o)/(r-o)*100}%, #ddd ${(s-o)/(r-o)*100}%, #ddd 100%);\n                outline: none;\n                -webkit-appearance: none;\n            `
+const p=document.createElement("div")
+i&&(p.textContent=d.value,p.style.cssText=`\n                    position: absolute;\n                    top: -30px;\n                    left: ${(s-o)/(r-o)*100}%;\n                    transform: translateX(-50%);\n                    background: #333;\n                    color: white;\n                    padding: 4px 8px;\n                    border-radius: 4px;\n                    font-size: 12px;\n                    pointer-events: none;\n                    white-space: nowrap;\n                `,c.appendChild(p))
+const u=document.createElement("div")
+l&&(u.textContent=d.value,u.style.cssText="text-align: center; margin-top: 15px; font-weight: bold; font-size: 16px;"),c.appendChild(d),l&&c.appendChild(u),n.appendChild(c)
+const h=()=>{const t=parseInt(d.value),n=(t-o)/(r-o)*100
+d.style.background=`linear-gradient(to right, #4CAF50 0%, #4CAF50 ${n}%, #ddd ${n}%, #ddd 100%)`,i&&(p.textContent=t,p.style.left=n+"%"),l&&(u.textContent=t),e.onChange&&e.onChange(t)}
+d.addEventListener("input",h),d.addEventListener("keydown",e=>{"ArrowLeft"===e.key||"ArrowDown"===e.key?(e.preventDefault(),d.value=Math.max(o,parseInt(d.value)-a),h()):"ArrowRight"!==e.key&&"ArrowUp"!==e.key||(e.preventDefault(),d.value=Math.min(r,parseInt(d.value)+a),h())}),n._yaka_slider_cleanup=()=>{d.removeEventListener("input",h),c.remove(),delete n._yaka_slider,delete n._yaka_slider_cleanup}})},t.prototype.tabs=function(){return this.each((e,t)=>{if(t._yaka_tabs)return
 t._yaka_tabs=!0
 const n=t.querySelectorAll("[data-tab]"),o=t.querySelectorAll("[data-tab-content]"),r=[]
 n.forEach(e=>{const a=()=>{const r=e.dataset.tab
@@ -444,12 +449,22 @@ const t=e.nextElementSibling
 t.style.display="none"
 const n=()=>{t.style.display="block"===t.style.display?"none":"block"}
 e.addEventListener("click",n),o.push({header:e,handleClick:n})}),t._yaka_accordion_cleanup=()=>{o.forEach(({header:e,handleClick:t})=>{e.removeEventListener("click",t)}),delete t._yaka_accordion,delete t._yaka_accordion_cleanup}})},t.prototype.carousel=function(e={}){return this.each((t,n)=>{n._yaka_carousel_cleanup&&n._yaka_carousel_cleanup(),n._yaka_carousel=!0
-const o=n.children
-let r=0
-Array.from(o).forEach((e,t)=>{e.style.display=0===t?"block":"none"})
-const a=()=>{o[r].style.display="none",r=(r+1)%o.length,o[r].style.display="block"}
-let s=null
-e.auto&&(s=setInterval(a,e.interval||3e3)),n._carousel={next:a,prev(){o[r].style.display="none",r=(r-1+o.length)%o.length,o[r].style.display="block"},intervalId:s},n._yaka_carousel_cleanup=()=>{n._carousel&&n._carousel.intervalId&&clearInterval(n._carousel.intervalId),delete n._carousel,delete n._yaka_carousel,delete n._yaka_carousel_cleanup}})},t.prototype.dropdown=function(e={}){return this.each((t,n)=>{if(n._yaka_dropdown)return
+const o="0.5s",r="ease-in-out",a=Array.from(n.children)
+let s=e.startIndex||0
+const i=e.auto||!1,l=e.interval||3e3,c=!1!==e.showDots,d=!1!==e.showArrows,p=e.transition||"fade",u=!1!==e.touch
+n.style.position="relative",n.style.overflow="hidden",a.forEach((e,t)=>{e.style.position="absolute",e.style.top="0",e.style.left="0",e.style.width="100%",e.style.opacity=t===s?"1":"0",e.style.transition="fade"===p?`opacity ${o} ${r}`:`transform ${o} ${r}`,e.style.display="block","slide"===p&&(e.style.transform=t===s?"translateX(0)":"translateX(100%)")})
+const h=e=>{"fade"===p?(a[s].style.opacity="0",a[e].style.opacity="1"):"slide"===p&&(a[s].style.transform="translateX(-100%)",a[e].style.transform="translateX(0)"),s=e,c&&x&&x.forEach((e,t)=>{e.style.background=t===s?"#4CAF50":"#ddd"})},m=()=>{const t=(s+1)%a.length
+h(t),e.onChange&&e.onChange(t)},y=()=>{const t=(s-1+a.length)%a.length
+h(t),e.onChange&&e.onChange(t)},f=t=>{t>=0&&a.length>t&&(h(t),e.onChange&&e.onChange(t))}
+let g,b,v,x
+d&&(g=document.createElement("button"),g.innerHTML="‹",g.style.cssText="\n                    position: absolute;\n                    top: 50%;\n                    left: 10px;\n                    transform: translateY(-50%);\n                    background: rgba(0,0,0,0.5);\n                    color: white;\n                    border: none;\n                    border-radius: 50%;\n                    width: 40px;\n                    height: 40px;\n                    font-size: 24px;\n                    cursor: pointer;\n                    z-index: 10;\n                    transition: background 0.3s;\n                ",g.onmouseover=()=>g.style.background="rgba(0,0,0,0.8)",g.onmouseout=()=>g.style.background="rgba(0,0,0,0.5)",g.onclick=y,n.appendChild(g),b=document.createElement("button"),b.innerHTML="›",b.style.cssText=g.style.cssText.replace("left: 10px","right: 10px"),b.onmouseover=()=>b.style.background="rgba(0,0,0,0.8)",b.onmouseout=()=>b.style.background="rgba(0,0,0,0.5)",b.onclick=m,n.appendChild(b)),c&&(v=document.createElement("div"),v.style.cssText="\n                    position: absolute;\n                    bottom: 15px;\n                    left: 50%;\n                    transform: translateX(-50%);\n                    display: flex;\n                    gap: 8px;\n                    z-index: 10;\n                ",x=a.map((e,t)=>{const n=document.createElement("button")
+return n.style.cssText=`\n                        width: 12px;\n                        height: 12px;\n                        border-radius: 50%;\n                        border: none;\n                        background: ${t===s?"#4CAF50":"#ddd"};\n                        cursor: pointer;\n                        transition: background 0.3s;\n                    `,n.onclick=()=>f(t),v.appendChild(n),n}),n.appendChild(v))
+let k=0,_=0
+const w=e=>{k=e.touches[0].clientX},E=e=>{_=e.touches[0].clientX},C=()=>{const e=k-_
+Math.abs(e)>50&&(e>0?m():y())}
+u&&(n.addEventListener("touchstart",w),n.addEventListener("touchmove",E),n.addEventListener("touchend",C))
+let L=null
+i&&(L=setInterval(m,l),n.addEventListener("mouseenter",()=>{L&&(clearInterval(L),L=null)}),n.addEventListener("mouseleave",()=>{L||(L=setInterval(m,l))})),n._carousel={next:m,prev:y,goTo:f,intervalId:L},n._yaka_carousel_cleanup=()=>{n._carousel&&n._carousel.intervalId&&clearInterval(n._carousel.intervalId),u&&(n.removeEventListener("touchstart",w),n.removeEventListener("touchmove",E),n.removeEventListener("touchend",C)),d&&(g.remove(),b.remove()),c&&v.remove(),delete n._carousel,delete n._yaka_carousel,delete n._yaka_carousel_cleanup}})},t.prototype.dropdown=function(e={}){return this.each((t,n)=>{if(n._yaka_dropdown)return
 n._yaka_dropdown=!0
 const o=e.items||[],r=e.multiSelect||!1,a=!1!==e.searchable,s=e.placeholder||"Select..."
 n.style.position="relative"
