@@ -1918,10 +1918,11 @@
             elem.style.cursor = 'move';
             elem.style.userSelect = 'none'; // Prevent text selection
             
-            // Ensure element has proper positioning
+            // Ensure element has proper positioning (only change if static)
             const computedStyle = getComputedStyle(elem);
             if (computedStyle.position === 'static') {
-                elem.style.position = 'absolute';
+                // Allow position to be configured, default to absolute for best dragging
+                elem.style.position = options.position || 'absolute';
             }
 
             const handleMouseDown = (e) => {
@@ -2067,7 +2068,8 @@
             // Ensure element has position and explicit dimensions
             const computedStyle = getComputedStyle(elem);
             if (computedStyle.position === 'static') {
-                elem.style.position = 'absolute';
+                // Allow position to be configured, default to absolute for resizing to work properly
+                elem.style.position = options.position || 'absolute';
             }
             
             // Set initial width/height if not set
@@ -2078,15 +2080,16 @@
                 elem.style.height = elem.offsetHeight + 'px';
             }
 
+            const handleOffset = options.handleOffset || '-4px';
             const handleStyles = {
-                'se': { cursor: 'nwse-resize', right: '-4px', bottom: '-4px' },
-                'e': { cursor: 'ew-resize', right: '-4px', top: '50%', transform: 'translateY(-50%)' },
-                's': { cursor: 'ns-resize', bottom: '-4px', left: '50%', transform: 'translateX(-50%)' },
-                'sw': { cursor: 'nesw-resize', left: '-4px', bottom: '-4px' },
-                'ne': { cursor: 'nesw-resize', right: '-4px', top: '-4px' },
-                'nw': { cursor: 'nwse-resize', left: '-4px', top: '-4px' },
-                'n': { cursor: 'ns-resize', top: '-4px', left: '50%', transform: 'translateX(-50%)' },
-                'w': { cursor: 'ew-resize', left: '-4px', top: '50%', transform: 'translateY(-50%)' }
+                'se': { cursor: 'nwse-resize', right: handleOffset, bottom: handleOffset },
+                'e': { cursor: 'ew-resize', right: handleOffset, top: '50%', transform: 'translateY(-50%)' },
+                's': { cursor: 'ns-resize', bottom: handleOffset, left: '50%', transform: 'translateX(-50%)' },
+                'sw': { cursor: 'nesw-resize', left: handleOffset, bottom: handleOffset },
+                'ne': { cursor: 'nesw-resize', right: handleOffset, top: handleOffset },
+                'nw': { cursor: 'nwse-resize', left: handleOffset, top: handleOffset },
+                'n': { cursor: 'ns-resize', top: handleOffset, left: '50%', transform: 'translateX(-50%)' },
+                'w': { cursor: 'ew-resize', left: handleOffset, top: '50%', transform: 'translateY(-50%)' }
             };
 
             const resizeHandles = [];
