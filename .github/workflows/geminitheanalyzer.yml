@@ -34,7 +34,7 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          echo "Gemini API key configured via environment variable"
+          test -n "$GEMINI_API_KEY" && echo "✓ Gemini API key is configured" || echo "ERROR: GEMINI_API_KEY is not set"
 
       # 6️⃣ Run Gemini Code Assist (headless, auto-edit, YOLO)
       - name: Run Gemini CLI
