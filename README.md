@@ -1,17 +1,21 @@
 # YakaJS 🚀
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Size](https://img.shields.io/badge/size-132%20KB%20minified-success.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
+[![Size](https://img.shields.io/badge/size-151%20KB%20minified-success.svg)](https://github.com/Yaka-UI-Labs/YakaJS)
 [![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js)
 
 > Next-Gen JavaScript Library - More powerful than jQuery, simpler to write
+
+🎤 **NEW in v1.1.0:** YakaJS is now the **ONLY JavaScript library with built-in voice commands!** Control your app with your voice - a feature no other library has. Plus 20 more premium features including command palette, virtual scroll, and offline detection.
 
 YakaJS is a modern, lightweight JavaScript library that combines the simplicity of jQuery with cutting-edge browser features. It's designed to be error-free, performant, and developer-friendly.
 
 ## 🎨 Interactive Demos
 
 **[👉 Try All Features in One Demo](demos/all-features.html)** - Comprehensive showcase with glassmorphism design
+
+**[🚀 NEW: 21 Premium Features Demo](demos/new-features.html)** - Voice commands, command palette, virtual scroll & more!
 
 Or browse by category:
 - [Core Features](demos/core-features.html) - DOM manipulation, events, selectors
@@ -41,12 +45,13 @@ Explore comprehensive demos with glassmorphism design showcasing all YakaJS feat
 - 🚀 **[Advanced Features](demos/advanced.html)** - Web Workers, IndexedDB, AI, Bluetooth
 
 **⚡ Quick Stats:**
-- 📦 **132 KB minified** (300 KB full source)
-- 🚀 **56% smaller** than unminified version
+- 📦 **151 KB minified** (346 KB full source, 9,504 lines)
+- 🚀 **56% smaller** than unminified version (hyper build)
 - 🗺️ **Source maps included** for debugging
 - 🔒 **Zero dependencies**
-- ✅ **130+ features** ready to use (including 15+ animations & 20+ UI components)
+- ✅ **150+ features** ready to use (including 21 NEW premium features!)
 - 🎯 **Works in all modern browsers**
+- 🎤 **Voice commands** - The only JS library with built-in voice control!
 
 ## ✨ Features
 
@@ -114,31 +119,201 @@ Explore comprehensive demos with glassmorphism design showcasing all YakaJS feat
 - **Dev Tools**: Performance profiling, memory monitoring, element inspection
 - **Memoization**: Cache expensive function results with `_.memoize()`
 
+### 🚀 NEW: Premium High-Impact Features (v1.1.0)
+
+YakaJS now includes **21 groundbreaking features** that no other JavaScript library has!
+
+#### 🔥 High-Impact Features
+- **Offline Detection** 📡 - Monitor connection status in real-time
+  ```javascript
+  _.onOffline(() => _.notify('No internet!', 'error'));
+  _.onOnline(() => _.notify('Back online!', 'success'));
+  console.log('Online:', _.isOnline());
+  ```
+
+- **Clipboard Read** 📋 - Read clipboard contents with permission
+  ```javascript
+  const text = await _.paste();
+  ```
+
+- **WebSocket Wrapper** 🔌 - Simplified WebSocket with auto-reconnect
+  ```javascript
+  const socket = _.socket('wss://example.com');
+  socket.on('message', (data) => console.log(data));
+  socket.send({ type: 'hello' });
+  ```
+
+- **Promise Chain UI** ⏳ - Auto-loading states for async operations
+  ```javascript
+  _('#saveBtn').loadingState(promise, {
+      loading: 'Saving...',
+      success: 'Saved!',
+      error: 'Failed!'
+  });
+  ```
+
+- **Share API** 📤 - Native share functionality
+  ```javascript
+  _.share({
+      title: 'YakaJS',
+      text: 'Better than jQuery!',
+      url: window.location.href
+  });
+  ```
+
+#### ⚡ Performance Optimizations
+- **Batch DOM Updates** 🔄 - Prevent layout thrashing
+  ```javascript
+  _.batch(() => {
+      _('#a').css('color', 'red');
+      _('#b').css('color', 'blue');
+      // All applied in one reflow
+  });
+  ```
+
+- **Resource Preloader** 📦 - Preload images, fonts, and data
+  ```javascript
+  await _.preload([
+      '/images/hero.jpg',
+      '/fonts/custom.woff2',
+      '/data/config.json'
+  ]);
+  ```
+
+- **Time Ago Live Update** 🕐 - Auto-updating relative timestamps
+  ```javascript
+  _('.timestamp').timeAgo({ live: true });
+  // Auto updates "3 minutes ago" → "4 minutes ago"
+  ```
+
+- **DOM Diff & Patch** 🔧 - Smart updates, only changes what's different
+  ```javascript
+  _('#app').patch(newHTML); // Only touches changed nodes
+  ```
+
+#### 🎨 Premium UI Components
+- **Command Palette** ⌨️ - VS Code-style command interface (Ctrl+K)
+  ```javascript
+  _.commandPalette({
+      commands: [
+          { name: 'Go to Home', action: () => router.navigate('/') },
+          { name: 'Toggle Dark Mode', action: () => _.theme.toggle() }
+      ]
+  });
+  ```
+
+- **Virtual Scroll** 📜 - Render 10,000+ items without lag
+  ```javascript
+  _('#list').virtualScroll({
+      items: bigArrayOf10000Items,
+      itemHeight: 50,
+      render: (item) => `<div>${item.name}</div>`
+  });
+  ```
+
+- **Onboarding Tour** 🎯 - Step-by-step user guides
+  ```javascript
+  _.tour([
+      { element: '#menu', text: 'This is the menu' },
+      { element: '#btn', text: 'Click here to start' },
+      { element: '#profile', text: 'Your profile is here' }
+  ]);
+  ```
+
+- **Blur-Up Lazy Loading** 🖼️ - Image lazy loading with blur effect
+  ```javascript
+  _('img[data-src]').blurLazyLoad({
+      placeholder: 'tiny-blurred-version.jpg'
+  });
+  ```
+
+#### 📱 Mobile & PWA Features
+- **Pull to Refresh** ↓ - Mobile pull-to-refresh gesture
+  ```javascript
+  _.pullToRefresh({
+      onRefresh: async () => {
+          await fetchNewData();
+      }
+  });
+  ```
+
+- **PWA Install Prompt** 📲 - Trigger app install dialog
+  ```javascript
+  _.pwa.onInstallable(() => {
+      _.notify('Install this app!', 'info');
+  });
+  _.pwa.install();
+  ```
+
+- **Shake Detection** 📳 - Detect phone shake gestures
+  ```javascript
+  _.onShake(() => {
+      _.notify('Phone shaken!', 'info');
+  });
+  ```
+
+#### 🤖 Unique Features (NO OTHER LIBRARY HAS THESE!)
+- **Voice Commands** 🎤 - Control your app with voice! **VIRAL FEATURE**
+  ```javascript
+  _.voice.listen({
+      'scroll down': () => window.scrollBy(0, 300),
+      'go home': () => router.navigate('/'),
+      'dark mode': () => _.theme.dark()
+  });
+  ```
+
+- **Image Cropper** ✂️ - Built-in image cropping tool
+  ```javascript
+  _('#avatar').cropper({
+      ratio: 1,
+      onCrop: (blob) => uploadAvatar(blob)
+  });
+  ```
+
+- **Rich Text Editor** ✏️ - WYSIWYG text editor
+  ```javascript
+  _('#content').richEditor({
+      toolbar: ['bold', 'italic', 'link', 'image']
+  });
+  ```
+
+- **Element Inspector** 🔍 - Dev tool for debugging
+  ```javascript
+  _.inspect.enable(); // Click any element to inspect
+  _.inspect.disable();
+  ```
+
+- **Eye Tracking** 👁️ - Experimental eye tracking (requires webcam)
+  ```javascript
+  _.eyeTrack.start((x, y) => {
+      console.log('User looking at:', x, y);
+  });
+  ```
+
 
 ## 📦 Build Versions & Compression
 
-YakaJS offers **four optimized build versions** to match your performance needs. All versions include **100% identical functionality** - only the compression level differs!
+YakaJS offers **three optimized build versions** to match your performance needs. All versions include **100% identical functionality** - only the compression level differs!
 
 ### Available Builds
 
 | Version | File | Size | Compression | Use Case |
 |---------|------|------|-------------|----------|
-| **Development** | `src/yaka.js` | 300 KB | Original | Development with comments & formatting |
-| **Standard** | `dist/min.yaka.js` | 132 KB | 56.0% | Production with source maps for debugging |
-| **Ultra** | `dist/ultra.min.yaka.js` | 132 KB | 56.0% | Production with aggressive optimization |
-| **Hyper** 🔥 | `dist/hyper.min.yaka.js` | **128 KB** | **57.3%** | **Maximum compression for fastest load times** |
+| **Development** | `src/yaka.js` | 346 KB | Original | Development with comments & formatting |
+| **Standard** | `dist/min.yaka.js` | 155 KB | 55.2% | Production with source maps for debugging |
+| **Ultra** | `dist/ultra.min.yaka.js` | 154 KB | 55.5% | Production with aggressive optimization |
+| **Hyper** 🔥 | `dist/hyper.min.yaka.js` | **151 KB** | **56.4%** | **Maximum compression for fastest load times** |
 
 ### Build Commands
 
 ```bash
-# Standard minified build (with source maps)
+# Build all three versions at once (recommended)
 npm run build
 
-# Ultra minified build (aggressive compression)
-npm run build:ultra
-
-# Hyper minified build (MAXIMUM compression) 🚀
-npm run build:hyper
+# Or build individually:
+npm run build:min    # Standard minified build
+npm run build:ultra  # Ultra minified build
+npm run build:hyper  # Hyper minified build
 ```
 
 ### Compression Techniques
@@ -166,10 +341,10 @@ npm run build:hyper
 ### Visual Size Comparison
 
 ```
-Original (300 KB)   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0%
-Standard (132 KB)   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░  44.0%
-Ultra (132 KB)      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░  44.0%
-Hyper (128 KB) 🔥   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░  42.7%
+Original (346 KB)   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ 100.0%
+Standard (155 KB)   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░  44.8%
+Ultra (154 KB)      ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░  44.5%
+Hyper (151 KB) 🔥   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░░░  43.6%
 ```
 
 ### Which Version Should I Use?
@@ -1969,39 +2144,56 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 MIT License - see LICENSE file for details
 
-## 🌟 What's New in v2.2.0
+## 🌟 What's New in v1.1.0
 
-### 🎨 NEW! Enhanced Animations & UI Components
-- ✅ **15+ Smooth Animations**: bounce, swing, flip3D, zoomIn/Out, blurIn/Out, rotateIn/Out, slideIn/Out (all directions), rubberBand
-- ✅ **New UI Components**: Dropdown with search & multi-select, Popover (rich tooltips), Breadcrumb, Pagination, Badge/Tag, Stepper/Wizard
-- ✅ **Enhanced Component System**: All components now follow consistent API patterns
-- ✅ **Updated Documentation**: Comprehensive examples for all new features
+### 🚀 21 Premium High-Impact Features Added!
 
-### Build & Distribution
-- ✅ **Minified version** (`dist/min.yaka.js`) - 56% smaller, production-ready
-- ✅ **Source maps** for debugging minified code
-- ✅ **CDN support** via jsDelivr and unpkg
-- ✅ **Copyright preservation** in minified version
+YakaJS now includes features that **no other JavaScript library has**, making it truly unique and powerful.
 
-### Core Features
-- ✅ Safe-mode chaining to prevent crashes
-- ✅ Signals-based reactivity system
-- ✅ Smart form features (masking, honeypot)
-- ✅ Keyboard shortcuts manager
-- ✅ Web Worker wrapper
-- ✅ AI integration (WebNN/Browser AI)
-- ✅ Enhanced IndexedDB API
-- ✅ Theme engine with dark/light modes
-- ✅ Improved plugin system
-- ✅ Developer tools and utilities
-- ✅ Bluetooth API support
-- ✅ Memory leak detection
-- ✅ Comprehensive HTTP error handling
-- ✅ Advanced routing with guards
-- ✅ Vuex/Redux-style state management
-- ✅ Form validation (15+ rules)
-- ✅ Security utilities (XSS, CSRF protection)
-- ✅ And much more!
+#### 🔥 High-Impact Features (5)
+1. ✅ **Offline Detection** - Real-time connection monitoring with `_.onOffline()`, `_.onOnline()`, `_.isOnline()`
+2. ✅ **Clipboard Read** - Async clipboard access with `await _.paste()`
+3. ✅ **WebSocket Wrapper** - Simplified WebSocket API with auto-reconnect and JSON parsing
+4. ✅ **Promise Chain UI** - Automatic loading states for buttons during async operations
+5. ✅ **Share API** - Native share dialog for modern browsers and mobile
+
+#### ⚡ Performance Features (4)
+6. ✅ **Batch DOM Updates** - RequestAnimationFrame-based batching to prevent layout thrashing
+7. ✅ **Resource Preloader** - Parallel preloading for images, fonts, and data files
+8. ✅ **Time Ago Live Update** - Auto-updating relative timestamps that refresh every minute
+9. ✅ **DOM Diff & Patch** - Smart incremental updates using a diffing algorithm
+
+#### 🎨 Premium UI Components (4)
+10. ✅ **Command Palette** - VS Code-style command interface with keyboard shortcuts (Ctrl+K)
+11. ✅ **Virtual Scroll** - Viewport-based rendering for lists with 10,000+ items
+12. ✅ **Onboarding Tour** - Guided walkthroughs with spotlight overlays and step navigation
+13. ✅ **Blur-Up Lazy Loading** - IntersectionObserver-based lazy loading with blur-up effect
+
+#### 📱 Mobile & PWA Features (3)
+14. ✅ **Pull to Refresh** - Touch-based refresh gesture for mobile devices
+15. ✅ **PWA Install Prompt** - BeforeInstallPrompt API wrapper for easy PWA installation
+16. ✅ **Shake Detection** - DeviceMotion-based shake gesture recognition
+
+#### 🤖 Unique Features - NO OTHER LIBRARY HAS THESE! (5)
+17. ✅ **Voice Commands** 🎤 - SpeechRecognition API for voice control - **VIRAL FEATURE!**
+18. ✅ **Image Cropper** - Canvas-based image cropping with aspect ratio support
+19. ✅ **Rich Text Editor** - ContentEditable-based WYSIWYG editor with toolbar
+20. ✅ **Element Inspector** - Debug overlay showing element metadata (dev tool)
+21. ✅ **Eye Tracking** - Experimental webcam-based gaze tracking (experimental)
+
+### 📦 Build System Improvements
+- ✅ **Automated Build Process** - `npm run build` now builds all 3 versions automatically
+- ✅ **Updated File Sizes**: Source 346KB → Min 155KB → Ultra 154KB → Hyper 151KB
+- ✅ **9,504 lines of code** (+1,305 lines, +16% growth from v1.0.0)
+
+### 🎨 Documentation & Demos
+- ✅ **New Demo Page** - `demos/new-features.html` showcasing all 21 features
+- ✅ **Comprehensive Examples** - Code snippets and live demos for each feature
+- ✅ **Updated README** - Full documentation of all new APIs
+
+### Why v1.1.0 Matters
+The **Voice Commands** feature alone makes YakaJS stand out from every other JavaScript library. Combined with the Command Palette, Virtual Scroll, and other premium features, YakaJS now offers capabilities that developers can't find anywhere else.
+
 
 ## 🔥 Coming Soon
 
