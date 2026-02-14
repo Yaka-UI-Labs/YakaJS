@@ -170,18 +170,21 @@ def test_reactivity_demo(page):
         # Test 7: Test interactive counter button
         try:
             increment_btn = page.locator('button:has-text("+")').first
-            if increment_btn.count() > 0:
-                signal_value_before = page.locator('#basicSignalValue').text_content()
+            btn_count = page.locator('button:has-text("+")').count()
+            signal_elem = page.locator('#basicSignalValue')
+            
+            if btn_count > 0 and signal_elem.count() > 0:
+                signal_value_before = signal_elem.text_content()
                 increment_btn.click()
                 page.wait_for_timeout(300)  # Wait for animation
-                signal_value_after = page.locator('#basicSignalValue').text_content()
+                signal_value_after = signal_elem.text_content()
                 
-                if signal_value_before != signal_value_after:
+                if signal_value_before and signal_value_after and signal_value_before != signal_value_after:
                     print("    ✅ Interactive buttons work")
                 else:
                     print("    ⚠️  Interactive buttons may not update UI")
             else:
-                print("    ⚠️  Counter button not found")
+                print("    ⚠️  Counter elements not found")
         except Exception as e:
             print(f"    ⚠️  Interactive test failed: {str(e)}")
         

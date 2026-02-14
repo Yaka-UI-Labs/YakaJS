@@ -16,7 +16,13 @@ def switch_to_local():
     print("Switching demos to LOCAL dist paths...")
     count = 0
     
-    for html_file in glob.glob('demos/*.html'):
+    demo_files = glob.glob('demos/*.html')
+    if not demo_files:
+        print("⚠️  WARNING: No demo files found!")
+        print("   Make sure you run this script from the repository root.")
+        return
+    
+    for html_file in demo_files:
         with open(html_file, 'r', encoding='utf-8') as f:
             content = f.read()
         
@@ -27,15 +33,24 @@ def switch_to_local():
             count += 1
             print(f"  ✅ {os.path.basename(html_file)}")
     
-    print(f"\n✅ Switched {count} files to use local dist paths")
-    print("⚠️  Remember to switch back to CDN before committing!")
+    if count == 0:
+        print("  ℹ️  No files needed updating (already using local paths)")
+    else:
+        print(f"\n✅ Switched {count} files to use local dist paths")
+        print("⚠️  Remember to switch back to CDN before committing!")
 
 def switch_to_cdn():
     """Switch all demos to use CDN"""
     print("Switching demos to CDN...")
     count = 0
     
-    for html_file in glob.glob('demos/*.html'):
+    demo_files = glob.glob('demos/*.html')
+    if not demo_files:
+        print("⚠️  WARNING: No demo files found!")
+        print("   Make sure you run this script from the repository root.")
+        return
+    
+    for html_file in demo_files:
         with open(html_file, 'r', encoding='utf-8') as f:
             content = f.read()
         
@@ -46,7 +61,10 @@ def switch_to_cdn():
             count += 1
             print(f"  ✅ {os.path.basename(html_file)}")
     
-    print(f"\n✅ Switched {count} files to use CDN")
+    if count == 0:
+        print("  ℹ️  No files needed updating (already using CDN)")
+    else:
+        print(f"\n✅ Switched {count} files to use CDN")
 
 def check_status():
     """Check which mode demos are currently in"""
