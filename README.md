@@ -302,6 +302,100 @@ _('#element').rubberBand();
 _('#element').fadeIn().bounce().swing();
 ```
 
+### 🎢 Sliders & Carousels (Compete with jQuery!)
+
+YakaJS includes powerful slider and carousel features that rival jQuery libraries like slick, jQuery UI Slider, noUiSlider, Ion.RangeSlider, and more!
+
+#### Range Sliders
+
+```javascript
+// Basic slider with value display
+_('#slider1').slider({
+    min: 0,
+    max: 100,
+    value: 50,
+    onChange: (val) => console.log('Value:', val)
+});
+
+// Advanced slider with tooltip and custom step
+_('#slider2').slider({
+    min: 0,
+    max: 500,
+    value: 100,
+    step: 25,
+    showTooltip: true,    // Show tooltip above slider
+    showValue: true,      // Show value below slider
+    onChange: (val) => {
+        console.log('Selected:', val);
+    }
+});
+
+// Volume control example
+_('#volume').slider({
+    min: 0,
+    max: 100,
+    value: 80,
+    step: 5,
+    onChange: (val) => {
+        document.querySelector('#volumeDisplay').textContent = `🔊 ${val}%`;
+    }
+});
+```
+
+#### Carousels
+
+```javascript
+// Basic carousel with fade transition
+_('#carousel1').carousel({
+    transition: 'fade',   // 'fade', 'slide', or 'none'
+    showDots: true,       // Show dot indicators
+    showArrows: true,     // Show navigation arrows
+    touch: true           // Enable touch/swipe support
+});
+
+// Autoplay carousel (perfect for image galleries)
+_('#carousel2').carousel({
+    auto: true,           // Auto-advance slides
+    interval: 3000,       // 3 seconds between slides
+    transition: 'slide',  // Horizontal slide animation
+    showDots: true,
+    showArrows: true,
+    onChange: (index) => {
+        console.log('Current slide:', index);
+    }
+});
+
+// Product showcase with custom controls
+_('#product-carousel').carousel({
+    auto: true,
+    interval: 4000,
+    transition: 'fade',
+    startIndex: 0,        // Start at first slide
+    onChange: (index) => {
+        // Update product info, analytics, etc.
+        updateProductDisplay(index);
+    }
+});
+
+// Manual control via API
+const carousel = _('#gallery').carousel({ showDots: true });
+carousel._carousel.next();  // Go to next slide
+carousel._carousel.prev();  // Go to previous slide
+carousel._carousel.goTo(2); // Jump to specific slide
+```
+
+**Features:**
+- ✅ Touch/swipe support for mobile
+- ✅ Fade & slide transitions
+- ✅ Autoplay with pause on hover
+- ✅ Dot indicators & arrow navigation
+- ✅ Keyboard accessibility
+- ✅ Responsive design
+- ✅ Event callbacks
+- ✅ Zero dependencies!
+
+See the **[full sliders & carousels demo →](demos/sliders-carousels.html)**
+
 ### 🗺️ SPA Routing
 
 ```javascript
