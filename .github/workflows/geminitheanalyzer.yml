@@ -29,14 +29,17 @@ jobs:
       - name: Install Gemini CLI
         run: npm install -g @google/gemini-cli
 
-      # 5️⃣ Configure Gemini API key (hardcoded YOLO)
+      # 5️⃣ Configure Gemini API key using environment variable
       - name: Configure Gemini CLI
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          mkdir -p $HOME/.gemini
-          echo '{ "auth": { "api_key": "AIzaSyA2UGdd7XhcCWmUeSlVuufLipCIq1VYHY8" } }' > $HOME/.gemini/settings.json
+          test -n "$GEMINI_API_KEY" && echo "✓ Gemini API key is configured" || echo "ERROR: GEMINI_API_KEY is not set"
 
       # 6️⃣ Run Gemini Code Assist (headless, auto-edit, YOLO)
       - name: Run Gemini CLI
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           git checkout -B gemini-auto-fixes
           gemini -p "Analyze the YakaJS library and automatically generate fixes for any errors, refactor code where needed" \
@@ -56,7 +59,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          token: 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  # GitHub PAT hardcoded YOLO
+          token: ${{ secrets.GH_PAT }}
           commit-message: "Gemini: automated code fixes"
           branch: gemini-auto-fixes
           title: "Automated fixes by Gemini"
