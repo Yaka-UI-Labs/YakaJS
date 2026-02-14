@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Management - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="../dist/min.yaka.js"></script>
+    
+    <style>
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        /* Animated gradient background */
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .transition-glass {
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #6b21a8;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.8);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 1);
+        }
+        
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .todo-item {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .todo-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(5px);
+        }
+        
+        .todo-item.completed {
+            opacity: 0.6;
+        }
+        
+        .todo-item.completed .todo-text {
+            text-decoration: line-through;
+        }
+        
+        .state-viewer {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            overflow-x: auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .counter-display {
+            font-size: 4rem;
+            font-weight: bold;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: white;
+            width: 100%;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .history-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body class="font-sans text-white">
+    
+    <!-- Header -->
+    <header class="glass-dark sticky top-0 z-50 py-4">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl hover:text-yellow-300 transition">←</a>
+                    <h1 class="text-2xl font-bold">State Management Demo</h1>
+                </div>
+                <a href="index.html" class="glass px-4 py-2 rounded-full text-sm hover:bg-white/25 transition">
+                    Back to Demos
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Introduction -->
+        <div class="glass-card rounded-2xl p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">🔄 State Management with _.createStore()</h2>
+            <p class="text-lg text-gray-100">
+                YakaJS provides powerful state management through stores. Create reactive state, define getters, mutations, and actions. Includes time-travel debugging and persistence!
+            </p>
+        </div>
+
+        <div class="grid lg:grid-cols-3 gap-6">
+            
+            <!-- Left Column: Apps -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Todo List App -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <h3 class="text-2xl font-bold mb-4">📝 Todo List App</h3>
+                    <p class="text-gray-100 mb-4">Full-featured todo app with state management</p>
+                    
+                    <div class="mb-4">
+                        <div class="flex gap-2">
+                            <input type="text" id="todoInput" placeholder="Add a new todo..." 
+                                   class="input-field flex-1">
+                            <button id="addTodo" class="btn btn-primary">Add</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 flex gap-2 flex-wrap">
+                        <button id="filterAll" class="btn btn-sm btn-primary">All</button>
+                        <button id="filterActive" class="btn btn-sm btn-secondary">Active</button>
+                        <button id="filterCompleted" class="btn btn-sm btn-secondary">Completed</button>
+                        <button id="clearCompleted" class="btn btn-sm btn-danger">Clear Completed</button>
+                    </div>
+                    
+                    <div id="todoList" class="mb-4"></div>
+                    
+                    <div class="flex items-center justify-between text-sm">
+                        <span id="todoStats"></span>
+                        <div class="flex gap-2">
+                            <button id="undoBtn" class="btn btn-sm btn-secondary" disabled>⟲ Undo</button>
+                            <button id="redoBtn" class="btn btn-sm btn-secondary" disabled>⟳ Redo</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Counter Example -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <h3 class="text-2xl font-bold mb-4">🔢 Counter with State</h3>
+                    <p class="text-gray-100 mb-4">Simple counter demonstrating state mutations</p>
+                    
+                    <div class="counter-display" id="counterDisplay">0</div>
+                    
+                    <div class="flex gap-2 justify-center flex-wrap">
+                        <button id="decrementBtn" class="btn btn-secondary">- Decrement</button>
+                        <button id="incrementBtn" class="btn btn-primary">+ Increment</button>
+                        <button id="increment5Btn" class="btn btn-primary">+5</button>
+                        <button id="resetCounterBtn" class="btn btn-danger">Reset</button>
+                    </div>
+                    
+                    <div class="mt-4 text-center">
+                        <span id="counterInfo" class="badge"></span>
+                    </div>
+                </div>
+                
+                <!-- Watch API Demo -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <h3 class="text-2xl font-bold mb-4">👁️ Watch API Demo</h3>
+                    <p class="text-gray-100 mb-4">React to state changes automatically</p>
+                    
+                    <div class="mb-4">
+                        <input type="text" id="watchInput" placeholder="Type something..." 
+                               class="input-field">
+                    </div>
+                    
+                    <div class="state-viewer">
+                        <div id="watchLog"></div>
+                    </div>
+                </div>
+                
+                <!-- Persistence Demo -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <h3 class="text-2xl font-bold mb-4">💾 State Persistence</h3>
+                    <p class="text-gray-100 mb-4">Save and restore state from localStorage</p>
+                    
+                    <div class="mb-4">
+                        <input type="text" id="persistInput" placeholder="Your name..." 
+                               class="input-field mb-2">
+                        <div class="text-lg">
+                            Hello, <span id="persistName" class="font-bold">Guest</span>! 👋
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button id="saveState" class="btn btn-primary">Save to Storage</button>
+                        <button id="loadState" class="btn btn-secondary">Load from Storage</button>
+                        <button id="clearState" class="btn btn-danger">Clear Storage</button>
+                    </div>
+                    
+                    <div class="mt-4 text-sm">
+                        <p>💡 Try refreshing the page after saving!</p>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- Right Column: State Viewer -->
+            <div class="lg:col-span-1">
+                <div class="glass-card rounded-2xl p-6 transition-glass sticky top-24">
+                    <h3 class="text-xl font-bold mb-4">📊 Current State</h3>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-semibold mb-2">Todo Store:</h4>
+                        <div class="state-viewer" id="todoStateViewer"></div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-semibold mb-2">Counter Store:</h4>
+                        <div class="state-viewer" id="counterStateViewer"></div>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold mb-2">History:</h4>
+                        <div class="state-viewer" id="historyViewer" style="max-height: 200px;"></div>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <script>
+        // Todo Store with time-travel debugging
+        const todoStore = _.createStore({
+            state: {
+                todos: [],
+                filter: 'all',
+                nextId: 1
+            },
+            getters: {
+                filteredTodos(state) {
+                    if (state.filter === 'active') {
+                        return state.todos.filter(t => !t.completed);
+                    } else if (state.filter === 'completed') {
+                        return state.todos.filter(t => t.completed);
+                    }
+                    return state.todos;
+                },
+                activeCount(state) {
+                    return state.todos.filter(t => !t.completed).length;
+                },
+                completedCount(state) {
+                    return state.todos.filter(t => t.completed).length;
+                }
+            },
+            mutations: {
+                addTodo(state, text) {
+                    state.todos.push({
+                        id: state.nextId++,
+                        text: text,
+                        completed: false
+                    });
+                },
+                toggleTodo(state, id) {
+                    const todo = state.todos.find(t => t.id === id);
+                    if (todo) todo.completed = !todo.completed;
+                },
+                removeTodo(state, id) {
+                    state.todos = state.todos.filter(t => t.id !== id);
+                },
+                setFilter(state, filter) {
+                    state.filter = filter;
+                },
+                clearCompleted(state) {
+                    state.todos = state.todos.filter(t => !t.completed);
+                }
+            },
+            actions: {
+                async addTodoAsync({ commit }, text) {
+                    // Simulate async operation
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    commit('addTodo', text);
+                }
+            }
+        });
+
+        // History management for time-travel
+        const history = {
+            past: [],
+            future: []
+        };
+
+        function saveHistory() {
+            history.past.push(JSON.stringify(todoStore.state));
+            history.future = [];
+            updateHistoryButtons();
+            updateHistoryViewer();
+        }
+
+        function undo() {
+            if (history.past.length > 0) {
+                history.future.push(JSON.stringify(todoStore.state));
+                const prevState = JSON.parse(history.past.pop());
+                Object.assign(todoStore.state, prevState);
+                renderTodos();
+                updateHistoryButtons();
+                updateHistoryViewer();
+            }
+        }
+
+        function redo() {
+            if (history.future.length > 0) {
+                history.past.push(JSON.stringify(todoStore.state));
+                const nextState = JSON.parse(history.future.pop());
+                Object.assign(todoStore.state, nextState);
+                renderTodos();
+                updateHistoryButtons();
+                updateHistoryViewer();
+            }
+        }
+
+        function updateHistoryButtons() {
+            _('#undoBtn').prop('disabled', history.past.length === 0);
+            _('#redoBtn').prop('disabled', history.future.length === 0);
+        }
+
+        function updateHistoryViewer() {
+            const historyHtml = [
+                ...history.past.map((_, i) => `<div class="history-item">Past ${i + 1}</div>`).reverse(),
+                '<div class="history-item" style="background: rgba(255,255,255,0.3); font-weight: bold;">→ Current State</div>',
+                ...history.future.map((_, i) => `<div class="history-item">Future ${i + 1}</div>`)
+            ].join('');
+            _('#historyViewer').html(historyHtml);
+        }
+
+        // Render todos
+        function renderTodos() {
+            const filtered = todoStore.getters.filteredTodos();
+            const html = filtered.map(todo => `
+                <div class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
+                    <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                           class="todo-checkbox w-5 h-5 cursor-pointer">
+                    <span class="todo-text flex-1">${todo.text}</span>
+                    <button class="btn btn-sm btn-danger todo-delete">Delete</button>
+                </div>
+            `).join('');
+            
+            _('#todoList').html(html || '<p class="text-center text-gray-300">No todos yet!</p>');
+            
+            const stats = `${todoStore.getters.activeCount()} active, ${todoStore.getters.completedCount()} completed`;
+            _('#todoStats').text(stats);
+            
+            updateStateViewer();
+        }
+
+        // Todo events
+        _('#addTodo').on('click', () => {
+            const text = _('#todoInput').val().trim();
+            if (text) {
+                saveHistory();
+                todoStore.commit('addTodo', text);
+                _('#todoInput').val('');
+                renderTodos();
+            }
+        });
+
+        _('#todoInput').on('keypress', (e) => {
+            if (e.key === 'Enter') {
+                _('#addTodo').trigger('click');
+            }
+        });
+
+        _(document).on('click', '.todo-checkbox', function() {
+            const id = parseInt(_(this).parent().attr('data-id'));
+            saveHistory();
+            todoStore.commit('toggleTodo', id);
+            renderTodos();
+        });
+
+        _(document).on('click', '.todo-delete', function() {
+            const id = parseInt(_(this).parent().attr('data-id'));
+            saveHistory();
+            todoStore.commit('removeTodo', id);
+            renderTodos();
+        });
+
+        _('#filterAll').on('click', () => {
+            todoStore.commit('setFilter', 'all');
+            _('.btn-sm').removeClass('btn-primary').addClass('btn-secondary');
+            _('#filterAll').removeClass('btn-secondary').addClass('btn-primary');
+            renderTodos();
+        });
+
+        _('#filterActive').on('click', () => {
+            todoStore.commit('setFilter', 'active');
+            _('.btn-sm').removeClass('btn-primary').addClass('btn-secondary');
+            _('#filterActive').removeClass('btn-secondary').addClass('btn-primary');
+            renderTodos();
+        });
+
+        _('#filterCompleted').on('click', () => {
+            todoStore.commit('setFilter', 'completed');
+            _('.btn-sm').removeClass('btn-primary').addClass('btn-secondary');
+            _('#filterCompleted').removeClass('btn-secondary').addClass('btn-primary');
+            renderTodos();
+        });
+
+        _('#clearCompleted').on('click', () => {
+            saveHistory();
+            todoStore.commit('clearCompleted');
+            renderTodos();
+        });
+
+        _('#undoBtn').on('click', undo);
+        _('#redoBtn').on('click', redo);
+
+        // Counter Store
+        const counterStore = _.createStore({
+            state: {
+                count: 0
+            },
+            getters: {
+                isPositive(state) {
+                    return state.count > 0;
+                },
+                isNegative(state) {
+                    return state.count < 0;
+                },
+                status(state) {
+                    if (state.count === 0) return 'Zero';
+                    if (state.count > 0) return 'Positive';
+                    return 'Negative';
+                }
+            },
+            mutations: {
+                increment(state, amount = 1) {
+                    state.count += amount;
+                },
+                decrement(state, amount = 1) {
+                    state.count -= amount;
+                },
+                reset(state) {
+                    state.count = 0;
+                }
+            }
+        });
+
+        function updateCounter() {
+            _('#counterDisplay').text(counterStore.state.count);
+            _('#counterInfo').text(`Status: ${counterStore.getters.status()}`);
+            updateStateViewer();
+        }
+
+        _('#incrementBtn').on('click', () => {
+            counterStore.commit('increment');
+            updateCounter();
+        });
+
+        _('#decrementBtn').on('click', () => {
+            counterStore.commit('decrement');
+            updateCounter();
+        });
+
+        _('#increment5Btn').on('click', () => {
+            counterStore.commit('increment', 5);
+            updateCounter();
+        });
+
+        _('#resetCounterBtn').on('click', () => {
+            counterStore.commit('reset');
+            updateCounter();
+        });
+
+        // Watch API Demo
+        const watchStore = _.createStore({
+            state: {
+                inputValue: '',
+                changeCount: 0,
+                logs: []
+            },
+            mutations: {
+                setValue(state, value) {
+                    state.inputValue = value;
+                    state.changeCount++;
+                    state.logs.unshift({
+                        timestamp: new Date().toLocaleTimeString(),
+                        value: value,
+                        count: state.changeCount
+                    });
+                    if (state.logs.length > 10) state.logs.pop();
+                }
+            }
+        });
+
+        // Watch for changes
+        if (typeof watchStore.watch === 'function') {
+            watchStore.watch('inputValue', (newVal, oldVal) => {
+                console.log('Input changed from', oldVal, 'to', newVal);
+            });
+        }
+
+        function updateWatchLog() {
+            const html = watchStore.state.logs.map(log => `
+                <div style="margin-bottom: 0.5rem;">
+                    <span style="color: #ffd700;">[${log.timestamp}]</span>
+                    Change #${log.count}: "${log.value}"
+                </div>
+            `).join('');
+            _('#watchLog').html(html || '<div>Start typing to see changes...</div>');
+        }
+
+        _('#watchInput').on('input', function() {
+            watchStore.commit('setValue', _(this).val());
+            updateWatchLog();
+        });
+
+        // Persistence Demo
+        const persistStore = _.createStore({
+            state: {
+                name: 'Guest'
+            },
+            mutations: {
+                setName(state, name) {
+                    state.name = name || 'Guest';
+                }
+            }
+        });
+
+        _('#persistInput').on('input', function() {
+            persistStore.commit('setName', _(this).val());
+            _('#persistName').text(persistStore.state.name);
+            updateStateViewer();
+        });
+
+        _('#saveState').on('click', () => {
+            localStorage.setItem('yakajs-persist', JSON.stringify(persistStore.state));
+            alert('✓ State saved to localStorage!');
+        });
+
+        _('#loadState').on('click', () => {
+            const saved = localStorage.getItem('yakajs-persist');
+            if (saved) {
+                const state = JSON.parse(saved);
+                persistStore.commit('setName', state.name);
+                _('#persistInput').val(state.name);
+                _('#persistName').text(state.name);
+                updateStateViewer();
+                alert('✓ State loaded from localStorage!');
+            } else {
+                alert('ℹ No saved state found!');
+            }
+        });
+
+        _('#clearState').on('click', () => {
+            localStorage.removeItem('yakajs-persist');
+            persistStore.commit('setName', '');
+            _('#persistInput').val('');
+            _('#persistName').text('Guest');
+            updateStateViewer();
+            alert('✓ Storage cleared!');
+        });
+
+        // State Viewer
+        function updateStateViewer() {
+            _('#todoStateViewer').html(`<pre>${JSON.stringify(todoStore.state, null, 2)}</pre>`);
+            _('#counterStateViewer').html(`<pre>${JSON.stringify(counterStore.state, null, 2)}</pre>`);
+        }
+
+        // Initialize
+        renderTodos();
+        updateCounter();
+        updateWatchLog();
+        updateStateViewer();
+        updateHistoryButtons();
+        updateHistoryViewer();
+
+        // Try to load persisted state on startup
+        const saved = localStorage.getItem('yakajs-persist');
+        if (saved) {
+            try {
+                const state = JSON.parse(saved);
+                persistStore.commit('setName', state.name);
+                _('#persistInput').val(state.name);
+                _('#persistName').text(state.name);
+            } catch (e) {
+                console.error('Failed to load persisted state', e);
+            }
+        }
+    </script>
+
+</body>
+</html>

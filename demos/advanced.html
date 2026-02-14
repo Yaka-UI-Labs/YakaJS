@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Features - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="../dist/min.yaka.js"></script>
+    
+    <style>
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        /* Animated gradient background */
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .transition-glass {
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+        
+        code {
+            color: #ffd700;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .demo-result {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 100px;
+        }
+
+        .metric-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #22c55e, #3b82f6);
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        body.dark-theme {
+            background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #533483);
+        }
+
+        .lazy-item {
+            min-height: 200px;
+            margin-bottom: 1rem;
+        }
+
+        .lazy-item.loaded {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h1 class="text-5xl font-bold text-white mb-4">🚀 Advanced Features</h1>
+            <p class="text-white text-lg mb-4">Web Workers, IndexedDB, Performance Monitoring, and more</p>
+            <a href="index.html" class="text-white hover:text-yellow-300 transition-colors">← Back to Demos</a>
+        </div>
+
+        <!-- Theme Engine -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🎨 Theme Engine</h2>
+            <p class="text-white mb-4">Toggle between light and dark themes</p>
+            
+            <pre><code>// Toggle theme
+_.theme.toggle();
+// Set theme
+_.theme.set('dark');</code></pre>
+
+            <div class="demo-result mt-4">
+                <div class="flex items-center gap-4 mb-4">
+                    <button onclick="toggleTheme()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Toggle Theme
+                    </button>
+                    <div class="text-white">Current: <span id="currentTheme" class="font-bold">Light</span></div>
+                </div>
+                <div class="text-white/70 text-sm">
+                    Theme persisted in localStorage and applied to body class
+                </div>
+            </div>
+        </div>
+
+        <!-- Web Worker -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">⚙️ Web Worker</h2>
+            <p class="text-white mb-4">Heavy computation without blocking UI</p>
+
+            <div class="demo-result mt-4">
+                <div class="mb-4">
+                    <label class="text-white block mb-2">Calculate Fibonacci:</label>
+                    <input type="number" id="fibInput" value="40" min="1" max="45"
+                        class="glass px-4 py-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/50">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <button onclick="calculateFibMain()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Calculate on Main Thread<br><span class="text-sm opacity-70">(blocks UI)</span>
+                    </button>
+                    <button onclick="calculateFibWorker()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Calculate with Worker<br><span class="text-sm opacity-70">(doesn't block)</span>
+                    </button>
+                </div>
+
+                <div id="fibResult" class="glass-dark p-4 rounded-lg text-white">
+                    <div class="font-bold mb-2">Result:</div>
+                    <div id="fibValue" class="text-yellow-300">Click a button to calculate</div>
+                    <div id="fibTime" class="text-sm text-white/70 mt-2"></div>
+                </div>
+
+                <div class="text-white/70 text-sm mt-4">
+                    Try moving your mouse while calculating to test UI responsiveness
+                </div>
+            </div>
+        </div>
+
+        <!-- Performance Monitoring -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">📊 Performance Monitoring</h2>
+            <p class="text-white mb-4">Real-time FPS and memory usage tracking</p>
+
+            <div class="demo-result mt-4">
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="metric-box">
+                        <div class="text-white/70 text-sm mb-2">FPS</div>
+                        <div id="fpsValue" class="text-white text-3xl font-bold">60</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="text-white/70 text-sm mb-2">Memory (MB)</div>
+                        <div id="memoryValue" class="text-white text-3xl font-bold">--</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="text-white/70 text-sm mb-2">Load Time (ms)</div>
+                        <div id="loadTime" class="text-white text-3xl font-bold">--</div>
+                    </div>
+                </div>
+
+                <button onclick="startStressTest()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                    Start Stress Test
+                </button>
+                <button onclick="stopStressTest()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition ml-2">
+                    Stop Test
+                </button>
+
+                <div id="stressCanvas" class="mt-4 hidden">
+                    <canvas id="perfCanvas" width="600" height="200" class="w-full glass rounded-lg"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- IndexedDB -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">💾 IndexedDB Storage</h2>
+            <p class="text-white mb-4">Store and retrieve data in browser database</p>
+
+            <pre><code>// Save to IndexedDB
+await _.db.set('key', value);
+// Get from IndexedDB
+const value = await _.db.get('key');</code></pre>
+
+            <div class="demo-result mt-4">
+                <div class="mb-4">
+                    <label class="text-white block mb-2">Key:</label>
+                    <input type="text" id="dbKey" placeholder="myKey"
+                        class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 mb-2">
+                    
+                    <label class="text-white block mb-2">Value:</label>
+                    <textarea id="dbValue" rows="3" placeholder='{"name": "John", "age": 30}'
+                        class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"></textarea>
+                </div>
+
+                <div class="flex gap-2 mb-4">
+                    <button onclick="dbSave()" class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                        Save
+                    </button>
+                    <button onclick="dbGet()" class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                        Get
+                    </button>
+                    <button onclick="dbDelete()" class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                        Delete
+                    </button>
+                    <button onclick="dbGetAll()" class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                        Get All
+                    </button>
+                </div>
+
+                <div id="dbResult" class="glass-dark p-4 rounded-lg text-white min-h-[100px]">
+                    <div class="text-white/70">Results will appear here...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Debounce & Throttle -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">⏱️ Debounce & Throttle</h2>
+            <p class="text-white mb-4">Control function execution frequency</p>
+
+            <div class="demo-result mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-white block mb-2">Debounce (500ms):</label>
+                        <input type="text" id="debounceInput" placeholder="Type something..."
+                            class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                        <div class="glass-dark p-4 rounded-lg mt-2">
+                            <div class="text-white/70 text-sm mb-2">Execution count:</div>
+                            <div id="debounceCount" class="text-white text-2xl font-bold">0</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="text-white block mb-2">Throttle (500ms):</label>
+                        <input type="text" id="throttleInput" placeholder="Type something..."
+                            class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                        <div class="glass-dark p-4 rounded-lg mt-2">
+                            <div class="text-white/70 text-sm mb-2">Execution count:</div>
+                            <div id="throttleCount" class="text-white text-2xl font-bold">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-white/70 text-sm mt-4">
+                    Debounce waits for typing to stop. Throttle limits execution frequency.
+                </div>
+            </div>
+        </div>
+
+        <!-- Memoization -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🧠 Memoization</h2>
+            <p class="text-white mb-4">Cache expensive function results</p>
+
+            <div class="demo-result mt-4">
+                <div class="mb-4">
+                    <label class="text-white block mb-2">Calculate factorial:</label>
+                    <input type="number" id="memoInput" value="10" min="1" max="20"
+                        class="glass px-4 py-2 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/50">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <button onclick="calculateNormal()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Without Memoization
+                    </button>
+                    <button onclick="calculateMemoized()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        With Memoization
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-dark p-4 rounded-lg">
+                        <div class="text-white/70 text-sm mb-2">Normal time:</div>
+                        <div id="normalTime" class="text-white text-xl font-bold">--</div>
+                    </div>
+                    <div class="glass-dark p-4 rounded-lg">
+                        <div class="text-white/70 text-sm mb-2">Memoized time:</div>
+                        <div id="memoTime" class="text-white text-xl font-bold">--</div>
+                    </div>
+                </div>
+
+                <div id="memoResult" class="glass-dark p-4 rounded-lg mt-4 text-white">
+                    <div class="text-white/70">Click same number twice to see memoization benefit</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lazy Loading -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">👁️ Lazy Loading</h2>
+            <p class="text-white mb-4">Load content as it enters viewport (Intersection Observer)</p>
+
+            <div class="demo-result mt-4">
+                <button onclick="populateLazyItems()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mb-4">
+                    Load Lazy Items
+                </button>
+
+                <div id="lazyContainer" class="max-h-96 overflow-y-auto">
+                    <div class="text-white/70 text-center py-8">
+                        Click button to load items
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clipboard -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">📋 Copy to Clipboard</h2>
+            <p class="text-white mb-4">Copy text and code to clipboard</p>
+
+            <div class="demo-result mt-4">
+                <textarea id="clipboardText" rows="4" placeholder="Enter text to copy..."
+                    class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 mb-4">Hello from YakaJS! 👋</textarea>
+
+                <button onclick="copyToClipboard()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                    📋 Copy to Clipboard
+                </button>
+
+                <div id="clipboardResult" class="mt-4 text-white hidden"></div>
+            </div>
+        </div>
+
+        <!-- Keyboard Shortcuts -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">⌨️ Keyboard Shortcuts</h2>
+            <p class="text-white mb-4">Register global hotkeys</p>
+
+            <div class="demo-result mt-4">
+                <div class="glass-dark p-4 rounded-lg mb-4">
+                    <div class="text-white font-bold mb-2">Active Shortcuts:</div>
+                    <div class="space-y-2 text-white text-sm">
+                        <div>• <code class="text-yellow-300">Ctrl+K</code> - Show command palette</div>
+                        <div>• <code class="text-yellow-300">Ctrl+/</code> - Toggle shortcuts help</div>
+                        <div>• <code class="text-yellow-300">Ctrl+D</code> - Toggle dark mode</div>
+                        <div>• <code class="text-yellow-300">Esc</code> - Close dialogs</div>
+                    </div>
+                </div>
+
+                <div id="shortcutLog" class="glass-dark p-4 rounded-lg">
+                    <div class="text-white font-bold mb-2">Shortcut Log:</div>
+                    <div id="shortcutList" class="text-white/70 text-sm">
+                        Press a shortcut to see it logged here...
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Memory Leak Detection -->
+        <div class="glass-card rounded-2xl p-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🔍 Memory Leak Detection</h2>
+            <p class="text-white mb-4">Monitor for potential memory leaks</p>
+
+            <div class="demo-result mt-4">
+                <button onclick="createLeakyObjects()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mb-4">
+                    Create Objects (Test Memory)
+                </button>
+                <button onclick="checkMemory()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mb-4 ml-2">
+                    Check Memory
+                </button>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="glass-dark p-4 rounded-lg">
+                        <div class="text-white/70 text-sm mb-2">Objects Created:</div>
+                        <div id="objectCount" class="text-white text-2xl font-bold">0</div>
+                    </div>
+                    <div class="glass-dark p-4 rounded-lg">
+                        <div class="text-white/70 text-sm mb-2">Memory Trend:</div>
+                        <div id="memoryTrend" class="text-white text-2xl font-bold">--</div>
+                    </div>
+                </div>
+
+                <div id="memoryChart" class="mt-4 glass-dark p-4 rounded-lg">
+                    <div class="text-white text-sm mb-2">Memory Usage:</div>
+                    <div class="progress-bar">
+                        <div id="memoryProgress" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if YakaJS is available
+        if (typeof _ === 'undefined') {
+            document.body.innerHTML = '<div class="glass-card rounded-2xl p-8 m-8"><h1 class="text-white text-2xl">YakaJS not loaded. Please build the project first: npm run build</h1></div>';
+        } else {
+            // Theme Engine
+            let isDarkTheme = false;
+            window.toggleTheme = function() {
+                isDarkTheme = !isDarkTheme;
+                document.body.classList.toggle('dark-theme', isDarkTheme);
+                document.getElementById('currentTheme').textContent = isDarkTheme ? 'Dark' : 'Light';
+            };
+
+            // Web Worker (Fibonacci)
+            function fibonacci(n) {
+                if (n <= 1) return n;
+                return fibonacci(n - 1) + fibonacci(n - 2);
+            }
+
+            window.calculateFibMain = function() {
+                const n = parseInt(document.getElementById('fibInput').value);
+                const start = performance.now();
+                const result = fibonacci(n);
+                const time = (performance.now() - start).toFixed(2);
+                
+                document.getElementById('fibValue').textContent = result;
+                document.getElementById('fibTime').textContent = `Calculated in ${time}ms (main thread)`;
+            };
+
+            window.calculateFibWorker = function() {
+                const n = parseInt(document.getElementById('fibInput').value);
+                
+                const workerCode = `
+                    function fibonacci(n) {
+                        if (n <= 1) return n;
+                        return fibonacci(n - 1) + fibonacci(n - 2);
+                    }
+                    self.onmessage = function(e) {
+                        const result = fibonacci(e.data);
+                        self.postMessage(result);
+                    };
+                `;
+                
+                const blob = new Blob([workerCode], { type: 'application/javascript' });
+                const worker = new Worker(URL.createObjectURL(blob));
+                
+                const start = performance.now();
+                worker.onmessage = function(e) {
+                    const time = (performance.now() - start).toFixed(2);
+                    document.getElementById('fibValue').textContent = e.data;
+                    document.getElementById('fibTime').textContent = `Calculated in ${time}ms (worker thread)`;
+                    worker.terminate();
+                };
+                
+                worker.postMessage(n);
+            };
+
+            // Performance Monitoring
+            let fpsFrames = [];
+            let lastFrameTime = performance.now();
+            let stressTestRunning = false;
+
+            function updateFPS() {
+                const now = performance.now();
+                const delta = now - lastFrameTime;
+                lastFrameTime = now;
+                const fps = Math.round(1000 / delta);
+                
+                fpsFrames.push(fps);
+                if (fpsFrames.length > 60) fpsFrames.shift();
+                
+                const avgFps = Math.round(fpsFrames.reduce((a, b) => a + b, 0) / fpsFrames.length);
+                document.getElementById('fpsValue').textContent = avgFps;
+                
+                requestAnimationFrame(updateFPS);
+            }
+            updateFPS();
+
+            // Memory monitoring
+            if (performance.memory) {
+                setInterval(() => {
+                    const usedMB = (performance.memory.usedJSHeapSize / 1048576).toFixed(2);
+                    document.getElementById('memoryValue').textContent = usedMB;
+                }, 1000);
+            }
+
+            // Load time
+            window.addEventListener('load', () => {
+                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                document.getElementById('loadTime').textContent = loadTime;
+            });
+
+            window.startStressTest = function() {
+                stressTestRunning = true;
+                document.getElementById('stressCanvas').classList.remove('hidden');
+                runStressTest();
+            };
+
+            window.stopStressTest = function() {
+                stressTestRunning = false;
+            };
+
+            function runStressTest() {
+                if (!stressTestRunning) return;
+                
+                // Create temporary objects
+                const temp = new Array(10000).fill(0).map(() => ({ data: Math.random() }));
+                
+                requestAnimationFrame(runStressTest);
+            }
+
+            // IndexedDB
+            const DB_NAME = 'YakaDB';
+            const DB_VERSION = 1;
+            const STORE_NAME = 'data';
+
+            function openDB() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(DB_NAME, DB_VERSION);
+                    request.onerror = () => reject(request.error);
+                    request.onsuccess = () => resolve(request.result);
+                    request.onupgradeneeded = (e) => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains(STORE_NAME)) {
+                            db.createObjectStore(STORE_NAME);
+                        }
+                    };
+                });
+            }
+
+            window.dbSave = async function() {
+                const key = document.getElementById('dbKey').value;
+                const value = document.getElementById('dbValue').value;
+                
+                if (!key) {
+                    document.getElementById('dbResult').innerHTML = '<div class="text-red-300">Please enter a key</div>';
+                    return;
+                }
+                
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    
+                    let parsedValue;
+                    try {
+                        parsedValue = JSON.parse(value);
+                    } catch {
+                        parsedValue = value;
+                    }
+                    
+                    store.put(parsedValue, key);
+                    await tx.complete;
+                    
+                    document.getElementById('dbResult').innerHTML = `<div class="text-green-300">✓ Saved: ${key}</div>`;
+                } catch (err) {
+                    document.getElementById('dbResult').innerHTML = `<div class="text-red-300">Error: ${err.message}</div>`;
+                }
+            };
+
+            window.dbGet = async function() {
+                const key = document.getElementById('dbKey').value;
+                
+                if (!key) {
+                    document.getElementById('dbResult').innerHTML = '<div class="text-red-300">Please enter a key</div>';
+                    return;
+                }
+                
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.get(key);
+                    
+                    request.onsuccess = () => {
+                        const value = request.result;
+                        if (value !== undefined) {
+                            const display = typeof value === 'object' ? JSON.stringify(value, null, 2) : value;
+                            document.getElementById('dbResult').innerHTML = `<div class="text-white"><strong>Value:</strong><pre class="mt-2">${display}</pre></div>`;
+                        } else {
+                            document.getElementById('dbResult').innerHTML = '<div class="text-yellow-300">Key not found</div>';
+                        }
+                    };
+                } catch (err) {
+                    document.getElementById('dbResult').innerHTML = `<div class="text-red-300">Error: ${err.message}</div>`;
+                }
+            };
+
+            window.dbDelete = async function() {
+                const key = document.getElementById('dbKey').value;
+                
+                if (!key) {
+                    document.getElementById('dbResult').innerHTML = '<div class="text-red-300">Please enter a key</div>';
+                    return;
+                }
+                
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction(STORE_NAME, 'readwrite');
+                    const store = tx.objectStore(STORE_NAME);
+                    store.delete(key);
+                    await tx.complete;
+                    
+                    document.getElementById('dbResult').innerHTML = `<div class="text-green-300">✓ Deleted: ${key}</div>`;
+                } catch (err) {
+                    document.getElementById('dbResult').innerHTML = `<div class="text-red-300">Error: ${err.message}</div>`;
+                }
+            };
+
+            window.dbGetAll = async function() {
+                try {
+                    const db = await openDB();
+                    const tx = db.transaction(STORE_NAME, 'readonly');
+                    const store = tx.objectStore(STORE_NAME);
+                    const request = store.getAllKeys();
+                    
+                    request.onsuccess = () => {
+                        const keys = request.result;
+                        if (keys.length === 0) {
+                            document.getElementById('dbResult').innerHTML = '<div class="text-white/70">No items in database</div>';
+                        } else {
+                            document.getElementById('dbResult').innerHTML = `<div class="text-white"><strong>All Keys:</strong><br>${keys.join('<br>')}</div>`;
+                        }
+                    };
+                } catch (err) {
+                    document.getElementById('dbResult').innerHTML = `<div class="text-red-300">Error: ${err.message}</div>`;
+                }
+            };
+
+            // Debounce & Throttle
+            function debounce(func, wait) {
+                let timeout;
+                return function(...args) {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => func.apply(this, args), wait);
+                };
+            }
+
+            function throttle(func, wait) {
+                let lastTime = 0;
+                return function(...args) {
+                    const now = Date.now();
+                    if (now - lastTime >= wait) {
+                        lastTime = now;
+                        func.apply(this, args);
+                    }
+                };
+            }
+
+            let debounceCount = 0;
+            let throttleCount = 0;
+
+            const debouncedFn = debounce(() => {
+                debounceCount++;
+                document.getElementById('debounceCount').textContent = debounceCount;
+            }, 500);
+
+            const throttledFn = throttle(() => {
+                throttleCount++;
+                document.getElementById('throttleCount').textContent = throttleCount;
+            }, 500);
+
+            document.getElementById('debounceInput')?.addEventListener('input', debouncedFn);
+            document.getElementById('throttleInput')?.addEventListener('input', throttledFn);
+
+            // Memoization
+            const memoCache = {};
+            
+            function factorial(n) {
+                if (n <= 1) return 1;
+                return n * factorial(n - 1);
+            }
+
+            function memoizedFactorial(n) {
+                if (n in memoCache) return memoCache[n];
+                const result = factorial(n);
+                memoCache[n] = result;
+                return result;
+            }
+
+            window.calculateNormal = function() {
+                const n = parseInt(document.getElementById('memoInput').value);
+                const start = performance.now();
+                const result = factorial(n);
+                const time = (performance.now() - start).toFixed(4);
+                
+                document.getElementById('normalTime').textContent = `${time}ms`;
+                document.getElementById('memoResult').innerHTML = `<div class="text-white">Result: ${result}</div>`;
+            };
+
+            window.calculateMemoized = function() {
+                const n = parseInt(document.getElementById('memoInput').value);
+                const start = performance.now();
+                const result = memoizedFactorial(n);
+                const time = (performance.now() - start).toFixed(4);
+                
+                document.getElementById('memoTime').textContent = `${time}ms`;
+                document.getElementById('memoResult').innerHTML = `<div class="text-white">Result: ${result} (cached: ${n in memoCache ? 'Yes' : 'No'})</div>`;
+            };
+
+            // Lazy Loading
+            window.populateLazyItems = function() {
+                const container = document.getElementById('lazyContainer');
+                container.innerHTML = '';
+                
+                for (let i = 1; i <= 20; i++) {
+                    const item = document.createElement('div');
+                    item.className = 'lazy-item glass-card rounded-lg p-6 transition-glass';
+                    item.innerHTML = `
+                        <div class="text-white text-xl font-bold mb-2">Item ${i}</div>
+                        <div class="text-white/70">This item was lazy loaded</div>
+                        <div class="h-32 glass-dark rounded-lg mt-4 flex items-center justify-center text-white">
+                            Content ${i}
+                        </div>
+                    `;
+                    container.appendChild(item);
+                }
+                
+                // Intersection Observer
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('loaded');
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+                
+                container.querySelectorAll('.lazy-item').forEach(item => observer.observe(item));
+            };
+
+            // Clipboard
+            window.copyToClipboard = async function() {
+                const text = document.getElementById('clipboardText').value;
+                const result = document.getElementById('clipboardResult');
+                
+                try {
+                    await navigator.clipboard.writeText(text);
+                    result.className = 'mt-4 text-green-300';
+                    result.textContent = '✓ Copied to clipboard!';
+                    result.classList.remove('hidden');
+                    
+                    setTimeout(() => result.classList.add('hidden'), 3000);
+                } catch (err) {
+                    result.className = 'mt-4 text-red-300';
+                    result.textContent = '✗ Failed to copy';
+                    result.classList.remove('hidden');
+                }
+            };
+
+            // Keyboard Shortcuts
+            const shortcuts = [];
+            
+            document.addEventListener('keydown', (e) => {
+                const key = e.key;
+                const ctrl = e.ctrlKey || e.metaKey;
+                
+                if (ctrl && key === 'k') {
+                    e.preventDefault();
+                    logShortcut('Ctrl+K - Command Palette');
+                } else if (ctrl && key === '/') {
+                    e.preventDefault();
+                    logShortcut('Ctrl+/ - Toggle Help');
+                } else if (ctrl && key === 'd') {
+                    e.preventDefault();
+                    toggleTheme();
+                    logShortcut('Ctrl+D - Toggle Theme');
+                } else if (key === 'Escape') {
+                    logShortcut('Esc - Close Dialogs');
+                }
+            });
+
+            function logShortcut(text) {
+                const list = document.getElementById('shortcutList');
+                shortcuts.unshift(`[${new Date().toLocaleTimeString()}] ${text}`);
+                if (shortcuts.length > 5) shortcuts.pop();
+                list.innerHTML = shortcuts.join('<br>');
+            }
+
+            // Memory Leak Detection
+            let objectArray = [];
+            let memorySnapshots = [];
+
+            window.createLeakyObjects = function() {
+                for (let i = 0; i < 1000; i++) {
+                    objectArray.push({
+                        data: new Array(1000).fill(Math.random()),
+                        timestamp: Date.now()
+                    });
+                }
+                document.getElementById('objectCount').textContent = objectArray.length;
+            };
+
+            window.checkMemory = function() {
+                if (performance.memory) {
+                    const usedMB = performance.memory.usedJSHeapSize / 1048576;
+                    memorySnapshots.push(usedMB);
+                    
+                    if (memorySnapshots.length > 1) {
+                        const trend = memorySnapshots[memorySnapshots.length - 1] - memorySnapshots[0];
+                        const trendText = trend > 0 ? `+${trend.toFixed(2)} MB` : `${trend.toFixed(2)} MB`;
+                        document.getElementById('memoryTrend').textContent = trendText;
+                        document.getElementById('memoryTrend').style.color = trend > 10 ? '#ef4444' : '#22c55e';
+                    }
+                    
+                    const percentage = Math.min((usedMB / 100) * 100, 100);
+                    document.getElementById('memoryProgress').style.width = `${percentage}%`;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

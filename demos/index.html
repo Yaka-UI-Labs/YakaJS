@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YakaJS - Interactive Demos & Documentation</title>
+    
+    <!-- Google Fonts - Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="../dist/min.yaka.js"></script>
+    
+    <style>
+        /* Outfit Font */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Outfit', system-ui, sans-serif;
+        }
+        
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .glass-dark {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Modern gradient background */
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%);
+            background-size: 400% 400%;
+            animation: gradient 20s ease infinite;
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* Smooth transitions */
+        .transition-glass {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 20px 50px 0 rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Code blocks */
+        pre {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            overflow-x: auto;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        code {
+            color: #fbbf24;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="text-white">
+    
+    <!-- Header -->
+    <header class="glass-dark sticky top-0 z-50 py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-3xl font-bold">YakaJS</h1>
+                    <span class="glass px-3 py-1 rounded-full text-sm">v1.0.0</span>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#features" class="hover:text-yellow-300 transition">Features</a>
+                    <a href="#demos" class="hover:text-yellow-300 transition">Demos</a>
+                    <a href="#docs" class="hover:text-yellow-300 transition">Docs</a>
+                    <a href="https://github.com/Yaka-UI-Labs/YakaJS" target="_blank" class="hover:text-yellow-300 transition">GitHub</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-20">
+        <div class="container mx-auto px-4 text-center">
+            <div class="glass-card rounded-3xl p-12 max-w-4xl mx-auto transition-glass">
+                <h2 class="text-6xl md:text-7xl font-extrabold mb-6 leading-tight">
+                    Next-Gen JavaScript Library
+                </h2>
+                <p class="text-xl md:text-2xl mb-8 text-white/90 font-light">
+                    More powerful than jQuery, simpler to write
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 mb-8">
+                    <div class="glass px-8 py-4 rounded-2xl">
+                        <div class="text-4xl font-bold">132 KB</div>
+                        <div class="text-sm font-medium opacity-80">Minified</div>
+                    </div>
+                    <div class="glass px-8 py-4 rounded-2xl">
+                        <div class="text-4xl font-bold">130+</div>
+                        <div class="text-sm font-medium opacity-80">Features</div>
+                    </div>
+                    <div class="glass px-8 py-4 rounded-2xl">
+                        <div class="text-4xl font-bold">0</div>
+                        <div class="text-sm font-medium opacity-80">Dependencies</div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-center gap-4">
+                    <a href="all-features.html" class="bg-white text-purple-700 px-8 py-4 rounded-2xl font-bold hover:bg-yellow-300 hover:text-purple-900 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:scale-105">
+                        🚀 View All Features Demo
+                    </a>
+                    <a href="#demos" class="glass px-8 py-4 rounded-2xl font-bold hover:bg-white/30 transition-all duration-300">
+                        Browse Demos
+                    </a>
+                    <a href="https://github.com/Yaka-UI-Labs/YakaJS" target="_blank" class="glass px-8 py-4 rounded-2xl font-bold hover:bg-white/30 transition-all duration-300">
+                        View on GitHub
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section id="docs" class="py-16">
+        <div class="container mx-auto px-4">
+            <div class="glass-card rounded-2xl p-8 max-w-4xl mx-auto">
+                <h3 class="text-3xl font-bold mb-6">Quick Start</h3>
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-xl font-semibold mb-2">CDN (Recommended)</h4>
+                        <pre class="text-sm"><code>&lt;script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"&gt;&lt;/script&gt;</code></pre>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-semibold mb-2">NPM</h4>
+                        <pre class="text-sm"><code>npm install yakajs</code></pre>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-semibold mb-2">Simple Example</h4>
+                        <pre class="text-sm"><code>// DOM Ready
+_(() => {
+    // Select elements and manipulate
+    _('#myButton').on('click', () => {
+        _('#content').fadeIn(500);
+    });
+    
+    // AJAX made simple
+    _.get('/api/data').then(data => {
+        _('#output').html(data);
+    });
+});</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features" class="py-16">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-center mb-12">Core Features</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <!-- DOM Manipulation -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">🎯</div>
+                    <h4 class="text-2xl font-bold mb-3">DOM Manipulation</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">jQuery-like selector engine with modern enhancements. Select, traverse, and modify elements effortlessly.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• CSS selectors</li>
+                        <li>• Chaining support</li>
+                        <li>• Element creation</li>
+                    </ul>
+                </div>
+
+                <!-- Animations -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">✨</div>
+                    <h4 class="text-2xl font-bold mb-3">15+ Animations</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">Beautiful built-in animations including fade, slide, zoom, bounce, shake, flip3D, and more.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• fadeIn/Out</li>
+                        <li>• slideIn/Out (4 directions)</li>
+                        <li>• Custom animate()</li>
+                    </ul>
+                </div>
+
+                <!-- HTTP -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">🌐</div>
+                    <h4 class="text-2xl font-bold mb-3">HTTP & AJAX</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">Complete HTTP client with error handling, retries, timeouts, and request/response interceptors.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• GET, POST, PUT, DELETE</li>
+                        <li>• Auto-retry with backoff</li>
+                        <li>• Response caching</li>
+                    </ul>
+                </div>
+
+                <!-- State Management -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">🏪</div>
+                    <h4 class="text-2xl font-bold mb-3">State Management</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">Vuex/Redux-style store with actions, mutations, time-travel debugging, and persistence.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• Reactive state</li>
+                        <li>• Undo/redo support</li>
+                        <li>• localStorage sync</li>
+                    </ul>
+                </div>
+
+                <!-- Routing -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">🗺️</div>
+                    <h4 class="text-2xl font-bold mb-3">SPA Routing</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">Full-featured router with guards, named routes, parameters, and 404 handling.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• Route parameters</li>
+                        <li>• Navigation guards</li>
+                        <li>• History API support</li>
+                    </ul>
+                </div>
+
+                <!-- Reactivity -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">⚡</div>
+                    <h4 class="text-2xl font-bold mb-3">Signals & Reactivity</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">SolidJS-inspired reactive primitives with signals, effects, and computed values.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• signal() for reactive state</li>
+                        <li>• effect() for side effects</li>
+                        <li>• computed() for derived values</li>
+                    </ul>
+                </div>
+
+                <!-- Form Validation -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">📝</div>
+                    <h4 class="text-2xl font-bold mb-3">Form Validation</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">15+ built-in validators with real-time feedback, custom rules, and anti-spam honeypot.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• Email, phone, URL validation</li>
+                        <li>• Custom validators</li>
+                        <li>• Auto-save forms</li>
+                    </ul>
+                </div>
+
+                <!-- UI Components -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">🧩</div>
+                    <h4 class="text-2xl font-bold mb-3">UI Components</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">20+ ready-to-use components including modals, tooltips, dropdowns, carousels, and more.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• Modal, Tooltip, Popover</li>
+                        <li>• Tabs, Accordion, Carousel</li>
+                        <li>• DatePicker, TimePicker</li>
+                    </ul>
+                </div>
+
+                <!-- Security -->
+                <div class="glass-card rounded-2xl p-8 transition-glass">
+                    <div class="text-5xl mb-4">🔐</div>
+                    <h4 class="text-2xl font-bold mb-3">Security</h4>
+                    <p class="text-white/80 mb-4 leading-relaxed">Built-in XSS protection, CSRF tokens, input sanitization, and CSP support.</p>
+                    <ul class="text-sm space-y-2 text-white/70">
+                        <li>• HTML/URL sanitization</li>
+                        <li>• CSRF token management</li>
+                        <li>• CSP nonce support</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Demos -->
+    <section id="demos" class="py-16">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-center mb-12">Interactive Demos</h3>
+            
+            <!-- Featured: All-in-One Demo -->
+            <div class="max-w-4xl mx-auto mb-12">
+                <a href="all-features.html" class="glass-card rounded-3xl p-10 transition-glass hover:no-underline text-white block">
+                    <div class="text-center">
+                        <div class="text-7xl mb-6">🚀</div>
+                        <h4 class="text-4xl font-extrabold mb-4">Complete Feature Showcase</h4>
+                        <p class="text-xl text-white/80 mb-6 font-light">All 130+ YakaJS features in one comprehensive demo!</p>
+                        <span class="inline-block bg-white text-purple-700 px-8 py-4 rounded-2xl font-bold shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300">
+                            View All Features →
+                        </span>
+                    </div>
+                </a>
+            </div>
+
+            <h4 class="text-3xl font-bold text-center mb-10">Or Browse by Category:</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <a href="core-features.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">🎯</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">Core Features</h4>
+                    <p class="text-white/80 text-center leading-relaxed">DOM manipulation, events, and basic operations</p>
+                </a>
+
+                <a href="animations.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">✨</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">Animations Gallery</h4>
+                    <p class="text-white/80 text-center leading-relaxed">All 15+ built-in animation effects</p>
+                </a>
+
+                <a href="forms.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">📝</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">Forms & Validation</h4>
+                    <p class="text-white/80 text-center leading-relaxed">Real-time validation with 15+ rules</p>
+                </a>
+
+                <a href="components.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">🧩</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">UI Components</h4>
+                    <p class="text-white/80 text-center leading-relaxed">Modals, tooltips, dropdowns & more</p>
+                </a>
+
+                <a href="state.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">🏪</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">State Management</h4>
+                    <p class="text-white/80 text-center leading-relaxed">Vuex/Redux-style store with undo/redo</p>
+                </a>
+
+                <a href="routing.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">🗺️</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">SPA Routing</h4>
+                    <p class="text-white/80 text-center leading-relaxed">Client-side routing with guards</p>
+                </a>
+
+                <a href="reactivity.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">⚡</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">Signals & Reactivity</h4>
+                    <p class="text-white/80 text-center leading-relaxed">SolidJS-inspired reactive primitives</p>
+                </a>
+
+                <a href="security.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">🔐</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">Security Features</h4>
+                    <p class="text-white/80 text-center leading-relaxed">XSS protection, CSRF, sanitization</p>
+                </a>
+
+                <a href="advanced.html" class="glass-card rounded-2xl p-8 transition-glass hover:no-underline text-white">
+                    <div class="text-6xl mb-4 text-center">🚀</div>
+                    <h4 class="text-2xl font-bold mb-3 text-center">Advanced Features</h4>
+                    <p class="text-white/80 text-center leading-relaxed">Web Workers, IndexedDB, AI, Bluetooth</p>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="glass-dark py-8 mt-20">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-4">YakaJS - Next-Gen JavaScript Library</p>
+            <div class="flex justify-center space-x-6 mb-4">
+                <a href="https://github.com/Yaka-UI-Labs/YakaJS" target="_blank" class="hover:text-yellow-300 transition">GitHub</a>
+                <a href="../README.md" class="hover:text-yellow-300 transition">Documentation</a>
+                <a href="https://github.com/Yaka-UI-Labs/YakaJS/issues" target="_blank" class="hover:text-yellow-300 transition">Issues</a>
+            </div>
+            <p class="text-sm text-gray-300">Released under the MIT License</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        _('a[href^="#"]').on('click', function(e) {
+            e.preventDefault();
+            const target = _(this.getAttribute('href'));
+            if (target.elements.length) {
+                target.get(0).scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+
+</body>
+</html>

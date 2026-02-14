@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA Routing - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="../dist/min.yaka.js"></script>
+    
+    <style>
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        /* Animated gradient background */
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .transition-glass {
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #6b21a8;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: scale(1.05);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .nav-link {
+            padding: 0.75rem 1.5rem;
+            color: white;
+            text-decoration: none;
+            border-radius: 9999px;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.3);
+            font-weight: bold;
+        }
+        
+        .route-view {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .route-view.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .route-info {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+        
+        .user-card {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .user-card:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(5px);
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            color: white;
+            width: 100%;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .input-field:focus {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        textarea.input-field {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        
+        .breadcrumb a:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="font-sans text-white">
+    
+    <!-- Header -->
+    <header class="glass-dark sticky top-0 z-50 py-4">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl hover:text-yellow-300 transition">←</a>
+                    <h1 class="text-2xl font-bold">SPA Routing Demo</h1>
+                </div>
+                
+                <!-- Navigation -->
+                <nav class="flex gap-2 flex-wrap">
+                    <a href="#/" class="nav-link" data-route="/">🏠 Home</a>
+                    <a href="#/about" class="nav-link" data-route="/about">ℹ️ About</a>
+                    <a href="#/contact" class="nav-link" data-route="/contact">✉️ Contact</a>
+                    <a href="#/users" class="nav-link" data-route="/users">👥 Users</a>
+                    <a href="index.html" class="glass px-4 py-2 rounded-full text-sm hover:bg-white/25 transition">
+                        Back
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        
+        <div class="grid lg:grid-cols-3 gap-6">
+            
+            <!-- Left Column: Views -->
+            <div class="lg:col-span-2">
+                
+                <!-- Router View Container -->
+                <div id="app" class="mb-6">
+                    
+                    <!-- Home View -->
+                    <div id="view-home" class="route-view active">
+                        <div class="glass-card rounded-2xl p-8 transition-glass">
+                            <h2 class="text-3xl font-bold mb-4">🏠 Welcome Home</h2>
+                            <p class="text-lg text-gray-100 mb-6">
+                                Welcome to the YakaJS SPA Routing Demo! This is a single-page application with client-side routing.
+                            </p>
+                            
+                            <div class="grid md:grid-cols-2 gap-4 mb-6">
+                                <div class="glass p-4 rounded-xl">
+                                    <h3 class="font-bold text-xl mb-2">🎯 Features</h3>
+                                    <ul class="space-y-2 text-sm">
+                                        <li>✓ Hash-based routing</li>
+                                        <li>✓ Dynamic route parameters</li>
+                                        <li>✓ Query string handling</li>
+                                        <li>✓ Navigation guards</li>
+                                        <li>✓ 404 error handling</li>
+                                        <li>✓ History management</li>
+                                    </ul>
+                                </div>
+                                <div class="glass p-4 rounded-xl">
+                                    <h3 class="font-bold text-xl mb-2">🚀 Quick Start</h3>
+                                    <p class="text-sm mb-3">Try these navigation examples:</p>
+                                    <div class="flex flex-col gap-2">
+                                        <a href="#/about" class="btn btn-sm btn-primary text-center">About Page</a>
+                                        <a href="#/user/123" class="btn btn-sm btn-secondary text-center">User Profile</a>
+                                        <a href="#/contact?ref=home" class="btn btn-sm btn-secondary text-center">Contact with Query</a>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="glass-dark p-4 rounded-xl">
+                                <h3 class="font-bold mb-2">💡 Pro Tip</h3>
+                                <p class="text-sm">Use the browser's back/forward buttons to see history management in action!</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- About View -->
+                    <div id="view-about" class="route-view">
+                        <div class="glass-card rounded-2xl p-8 transition-glass">
+                            <div class="breadcrumb">
+                                <a href="#/">Home</a> / <span>About</span>
+                            </div>
+                            
+                            <h2 class="text-3xl font-bold mb-4">ℹ️ About YakaJS Router</h2>
+                            <p class="text-lg text-gray-100 mb-6">
+                                YakaJS provides a powerful and flexible routing system for building single-page applications.
+                            </p>
+                            
+                            <div class="space-y-4">
+                                <div class="glass p-4 rounded-xl">
+                                    <h3 class="font-bold text-xl mb-2">Route Configuration</h3>
+                                    <p class="text-sm mb-2">Define routes with ease:</p>
+                                    <div class="route-info">
+<pre>_.route('/about', () => {
+    // Show about view
+});
+
+_.route('/user/:id', (params) => {
+    // Access params.id
+});</pre>
+                                    </div>
+                                </div>
+                                
+                                <div class="glass p-4 rounded-xl">
+                                    <h3 class="font-bold text-xl mb-2">Navigation Guards</h3>
+                                    <p class="text-sm">Protect routes with authentication checks, redirect users, or perform cleanup operations.</p>
+                                </div>
+                                
+                                <div class="glass p-4 rounded-xl">
+                                    <h3 class="font-bold text-xl mb-2">Dynamic Parameters</h3>
+                                    <p class="text-sm">Extract parameters from URLs like <code class="bg-black/30 px-2 py-1 rounded">/user/:id</code> or query strings.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact View -->
+                    <div id="view-contact" class="route-view">
+                        <div class="glass-card rounded-2xl p-8 transition-glass">
+                            <div class="breadcrumb">
+                                <a href="#/">Home</a> / <span>Contact</span>
+                            </div>
+                            
+                            <h2 class="text-3xl font-bold mb-4">✉️ Contact Us</h2>
+                            <p class="text-lg text-gray-100 mb-6">
+                                Have questions? Send us a message!
+                            </p>
+                            
+                            <div id="contactRefInfo" class="mb-4"></div>
+                            
+                            <form id="contactForm" class="space-y-4">
+                                <div>
+                                    <label class="block mb-2 font-semibold">Name:</label>
+                                    <input type="text" id="contactName" placeholder="Your name" 
+                                           class="input-field" required>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold">Email:</label>
+                                    <input type="email" id="contactEmail" placeholder="your@email.com" 
+                                           class="input-field" required>
+                                </div>
+                                <div>
+                                    <label class="block mb-2 font-semibold">Message:</label>
+                                    <textarea id="contactMessage" placeholder="Your message..." 
+                                              class="input-field" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Send Message</button>
+                            </form>
+                            
+                            <div id="contactResult" class="mt-4"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Users List View -->
+                    <div id="view-users" class="route-view">
+                        <div class="glass-card rounded-2xl p-8 transition-glass">
+                            <div class="breadcrumb">
+                                <a href="#/">Home</a> / <span>Users</span>
+                            </div>
+                            
+                            <h2 class="text-3xl font-bold mb-4">👥 User Directory</h2>
+                            <p class="text-lg text-gray-100 mb-6">
+                                Browse our user profiles (click to view details)
+                            </p>
+                            
+                            <div id="usersList"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- User Profile View -->
+                    <div id="view-user" class="route-view">
+                        <div class="glass-card rounded-2xl p-8 transition-glass">
+                            <div class="breadcrumb">
+                                <a href="#/">Home</a> / <a href="#/users">Users</a> / <span id="userBreadcrumb">Profile</span>
+                            </div>
+                            
+                            <div id="userProfile"></div>
+                            
+                            <div class="mt-6">
+                                <a href="#/users" class="btn btn-secondary">← Back to Users</a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 404 Not Found View -->
+                    <div id="view-404" class="route-view">
+                        <div class="glass-card rounded-2xl p-8 transition-glass text-center">
+                            <div class="text-8xl mb-4">🔍</div>
+                            <h2 class="text-4xl font-bold mb-4">404 - Page Not Found</h2>
+                            <p class="text-lg text-gray-100 mb-6">
+                                Oops! The page you're looking for doesn't exist.
+                            </p>
+                            <a href="#/" class="btn btn-primary">Go Home</a>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+            </div>
+            
+            <!-- Right Column: Route Info -->
+            <div class="lg:col-span-1">
+                <div class="glass-card rounded-2xl p-6 transition-glass sticky top-24">
+                    <h3 class="text-xl font-bold mb-4">📍 Current Route Info</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-sm opacity-75">Path:</label>
+                            <div class="route-info" id="currentPath">/</div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm opacity-75">Hash:</label>
+                            <div class="route-info" id="currentHash">#/</div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm opacity-75">Parameters:</label>
+                            <div class="route-info" id="currentParams">{}</div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm opacity-75">Query String:</label>
+                            <div class="route-info" id="currentQuery">{}</div>
+                        </div>
+                        
+                        <div>
+                            <label class="text-sm opacity-75">Navigation History:</label>
+                            <div class="route-info" id="navHistory" style="max-height: 200px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-white/20">
+                        <button id="goBack" class="btn btn-secondary w-full mb-2">⬅️ Back</button>
+                        <button id="goForward" class="btn btn-secondary w-full">➡️ Forward</button>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <script>
+        // Sample user data
+        const users = [
+            { id: 1, name: 'Alice Johnson', role: 'Developer', email: 'alice@example.com', bio: 'Full-stack developer with 5 years of experience.' },
+            { id: 2, name: 'Bob Smith', role: 'Designer', email: 'bob@example.com', bio: 'UI/UX designer passionate about user experience.' },
+            { id: 3, name: 'Charlie Brown', role: 'Manager', email: 'charlie@example.com', bio: 'Project manager with strong leadership skills.' },
+            { id: 4, name: 'Diana Prince', role: 'Developer', email: 'diana@example.com', bio: 'Frontend specialist and React enthusiast.' },
+            { id: 5, name: 'Ethan Hunt', role: 'DevOps', email: 'ethan@example.com', bio: 'DevOps engineer focused on automation.' }
+        ];
+
+        // Simple Router Implementation
+        const router = {
+            routes: {},
+            guards: [],
+            history: [],
+            currentRoute: null,
+
+            init() {
+                window.addEventListener('hashchange', () => this.navigate());
+                window.addEventListener('load', () => this.navigate());
+            },
+
+            route(path, handler) {
+                this.routes[path] = handler;
+            },
+
+            beforeEach(guard) {
+                this.guards.push(guard);
+            },
+
+            navigate() {
+                const hash = window.location.hash.slice(1) || '/';
+                this.history.push(hash);
+                if (this.history.length > 20) this.history.shift();
+                
+                const [path, queryString] = hash.split('?');
+                const query = this.parseQuery(queryString || '');
+                
+                // Update route info display
+                _('#currentPath').text(path);
+                _('#currentHash').text(window.location.hash || '#/');
+                _('#currentQuery').html(`<pre>${JSON.stringify(query, null, 2)}</pre>`);
+                
+                // Update navigation history display
+                const historyHtml = this.history.slice(-10).reverse().map((h, i) => 
+                    `<div class="${i === 0 ? 'font-bold' : 'opacity-75'}">${i === 0 ? '→ ' : '  '}${h}</div>`
+                ).join('');
+                _('#navHistory').html(historyHtml);
+                
+                // Run guards
+                for (let guard of this.guards) {
+                    if (!guard(path, query)) {
+                        return;
+                    }
+                }
+                
+                // Match route
+                let matched = false;
+                for (let route in this.routes) {
+                    const params = this.matchRoute(route, path);
+                    if (params !== null) {
+                        this.currentRoute = { path, params, query };
+                        _('#currentParams').html(`<pre>${JSON.stringify(params, null, 2)}</pre>`);
+                        this.routes[route](params, query);
+                        matched = true;
+                        break;
+                    }
+                }
+                
+                // 404 handler
+                if (!matched) {
+                    this.showView('404');
+                }
+                
+                // Update active nav links
+                _('.nav-link').removeClass('active');
+                _('.nav-link').each(function() {
+                    const routePath = _(this).attr('data-route');
+                    if (routePath === path || (routePath !== '/' && path.startsWith(routePath))) {
+                        _(this).addClass('active');
+                    }
+                });
+            },
+
+            matchRoute(route, path) {
+                const routeParts = route.split('/');
+                const pathParts = path.split('/');
+                
+                if (routeParts.length !== pathParts.length) {
+                    return null;
+                }
+                
+                const params = {};
+                for (let i = 0; i < routeParts.length; i++) {
+                    if (routeParts[i].startsWith(':')) {
+                        params[routeParts[i].slice(1)] = pathParts[i];
+                    } else if (routeParts[i] !== pathParts[i]) {
+                        return null;
+                    }
+                }
+                return params;
+            },
+
+            parseQuery(queryString) {
+                const query = {};
+                if (queryString) {
+                    queryString.split('&').forEach(pair => {
+                        const [key, value] = pair.split('=');
+                        query[decodeURIComponent(key)] = decodeURIComponent(value || '');
+                    });
+                }
+                return query;
+            },
+
+            showView(viewName) {
+                _('.route-view').removeClass('active');
+                _('#view-' + viewName).addClass('active');
+            },
+
+            push(path) {
+                window.location.hash = path;
+            },
+
+            back() {
+                window.history.back();
+            },
+
+            forward() {
+                window.history.forward();
+            }
+        };
+
+        // Define routes
+        router.route('/', () => {
+            router.showView('home');
+        });
+
+        router.route('/about', () => {
+            router.showView('about');
+        });
+
+        router.route('/contact', (params, query) => {
+            router.showView('contact');
+            
+            if (query.ref) {
+                _('#contactRefInfo').html(`
+                    <div class="glass p-3 rounded-lg text-sm">
+                        📌 You came from: <span class="badge">${query.ref}</span>
+                    </div>
+                `);
+            } else {
+                _('#contactRefInfo').html('');
+            }
+        });
+
+        router.route('/users', () => {
+            router.showView('users');
+            
+            const usersHtml = users.map(user => `
+                <a href="#/user/${user.id}" class="user-card block">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 bg-white/30 rounded-full flex items-center justify-center text-3xl">
+                            ${user.name.charAt(0)}
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold">${user.name}</h3>
+                            <p class="text-sm opacity-75">${user.role}</p>
+                        </div>
+                        <span class="text-2xl">→</span>
+                    </div>
+                </a>
+            `).join('');
+            
+            _('#usersList').html(usersHtml);
+        });
+
+        router.route('/user/:id', (params) => {
+            const userId = parseInt(params.id);
+            const user = users.find(u => u.id === userId);
+            
+            router.showView('user');
+            
+            if (user) {
+                _('#userBreadcrumb').text(user.name);
+                _('#userProfile').html(`
+                    <div class="text-center mb-6">
+                        <div class="w-32 h-32 bg-white/30 rounded-full flex items-center justify-center text-6xl mx-auto mb-4">
+                            ${user.name.charAt(0)}
+                        </div>
+                        <h2 class="text-3xl font-bold mb-2">${user.name}</h2>
+                        <p class="text-xl"><span class="badge">${user.role}</span></p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="glass p-4 rounded-xl">
+                            <h3 class="font-bold mb-2">📧 Email</h3>
+                            <p>${user.email}</p>
+                        </div>
+                        <div class="glass p-4 rounded-xl">
+                            <h3 class="font-bold mb-2">📝 Bio</h3>
+                            <p>${user.bio}</p>
+                        </div>
+                        <div class="glass p-4 rounded-xl">
+                            <h3 class="font-bold mb-2">🆔 User ID</h3>
+                            <p>${user.id}</p>
+                        </div>
+                    </div>
+                `);
+            } else {
+                _('#userBreadcrumb').text('Unknown');
+                _('#userProfile').html(`
+                    <div class="text-center py-8">
+                        <div class="text-6xl mb-4">❌</div>
+                        <h3 class="text-2xl font-bold mb-2">User Not Found</h3>
+                        <p class="mb-4">No user found with ID: ${userId}</p>
+                    </div>
+                `);
+            }
+        });
+
+        // Navigation guards example
+        router.beforeEach((path, query) => {
+            console.log('Navigating to:', path, 'with query:', query);
+            // Return true to allow navigation, false to prevent
+            return true;
+        });
+
+        // Contact form handling
+        _(document).on('submit', '#contactForm', function(e) {
+            e.preventDefault();
+            
+            const name = _('#contactName').val();
+            const email = _('#contactEmail').val();
+            const message = _('#contactMessage').val();
+            
+            _('#contactResult').html(`
+                <div class="glass p-4 rounded-xl">
+                    <h3 class="font-bold text-lg mb-2">✓ Message Sent!</h3>
+                    <p class="text-sm">Thanks ${name}! We received your message and will get back to you at ${email} soon.</p>
+                </div>
+            `);
+            
+            // Reset form
+            _('#contactForm')[0].reset();
+        });
+
+        // History navigation
+        _('#goBack').on('click', () => router.back());
+        _('#goForward').on('click', () => router.forward());
+
+        // Initialize router
+        router.init();
+    </script>
+
+</body>
+</html>
