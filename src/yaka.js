@@ -107,14 +107,12 @@
                 return this.elements[0]?.innerHTML || '';
             }
             return this.each((i, elem) => {
-                // Use sanitizer if requested and available, otherwise fall back to escaping or raw HTML
+                // Use sanitizer if requested and available
                 if (sanitize && Yaka.security && typeof Yaka.security.sanitizeHtml === 'function') {
                     elem.innerHTML = Yaka.security.sanitizeHtml(value);
                 } else if (sanitize) {
-                    // Fallback: escape HTML if security module not available
-                    const div = document.createElement('div');
-                    div.textContent = value;
-                    elem.innerHTML = div.innerHTML;
+                    // Fallback: render as plain text (no HTML) to prevent XSS
+                    elem.textContent = value;
                 } else {
                     elem.innerHTML = value;
                 }
@@ -385,14 +383,14 @@
                         };
                     }
                     if (color.startsWith('rgb')) {
-                        // More precise regex to match valid decimal numbers only
-                        const match = color.match(/(\d+(?:\.\d+)?)/g);
+                        // Parse rgb() or rgba() format with specific pattern
+                        const match = color.match(/rgba?\(\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)\s*,\s*(\d+(?:\.\d+)?)(?:\s*,\s*(\d+(?:\.\d+)?))?\s*\)/);
                         if (!match) return null;
                         return {
-                            r: +match[0],
-                            g: +match[1],
-                            b: +match[2],
-                            a: match[3] !== undefined ? +match[3] : 1
+                            r: +match[1],
+                            g: +match[2],
+                            b: +match[3],
+                            a: match[4] !== undefined ? +match[4] : 1
                         };
                     }
                     return null;
@@ -9570,9 +9568,6 @@
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = Yaka;
         module.exports.default = Yaka;
-    } else if (typeof exports !== 'undefined') {
-        exports.Yaka = Yaka;
-        exports.default = Yaka;
     }
 
 })(typeof window !== 'undefined' ? window : globalThis);
