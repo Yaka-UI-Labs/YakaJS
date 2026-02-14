@@ -38,8 +38,8 @@ npm run build:hyper
 
 ## Which Version to Use?
 
-- **min.yaka.js** - Best for most production use (includes source maps)(we recoommend this😉)
-- **ultra.min.yaka.js** - Aggressive compression, no source maps
+- **min.yaka.js** - Best for most production use (includes source maps) (we recoommend this😉)
+- **ultra.min.yaka.js** - Aggressive compression, no source maps (production good🚀)
 - **hyper.min.yaka.js** - Maximum compression for fastest load times
 
 All versions include 100% identical functionality - only compression level differs.
