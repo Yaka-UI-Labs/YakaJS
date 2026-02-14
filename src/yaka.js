@@ -107,7 +107,17 @@
                 return this.elements[0]?.innerHTML || '';
             }
             return this.each((i, elem) => {
-                elem.innerHTML = sanitize ? Yaka.security.sanitizeHtml(value) : value;
+                // Use sanitizer if requested and available, otherwise fall back to escaping or raw HTML
+                if (sanitize && Yaka.security && typeof Yaka.security.sanitizeHtml === 'function') {
+                    elem.innerHTML = Yaka.security.sanitizeHtml(value);
+                } else if (sanitize) {
+                    // Fallback: escape HTML if security module not available
+                    const div = document.createElement('div');
+                    div.textContent = value;
+                    elem.innerHTML = div.innerHTML;
+                } else {
+                    elem.innerHTML = value;
+                }
             });
         },
 
@@ -375,7 +385,8 @@
                         };
                     }
                     if (color.startsWith('rgb')) {
-                        const match = color.match(/[\d.]+/g);
+                        // More precise regex to match valid decimal numbers only
+                        const match = color.match(/(\d+(?:\.\d+)?)/g);
                         if (!match) return null;
                         return {
                             r: +match[0],
@@ -9559,12 +9570,9 @@
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = Yaka;
         module.exports.default = Yaka;
-    }
-    
-    // ES6 named export compatibility
-    if (typeof exports !== 'undefined') {
+    } else if (typeof exports !== 'undefined') {
         exports.Yaka = Yaka;
         exports.default = Yaka;
     }
 
-})(typeof window !== 'undefined' ? window : global);
+})(typeof window !== 'undefined' ? window : globalThis);
