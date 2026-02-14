@@ -30,7 +30,7 @@ New to YakaJS? Start here:
 <td width="50%">
 
 #### 📘 [TypeScript Guide](TYPESCRIPT.md)
-**6 KB | 187 lines**
+**8 KB | 258 lines**
 
 Full TypeScript support with definitions:
 - ✅ Complete type definitions (.d.ts)

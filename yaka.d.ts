@@ -1345,27 +1345,27 @@ export interface YakaStatic {
     /**
      * HTTP GET request
      */
-    get(url: string, data?: any): Promise<any>;
+    get<T = any>(url: string, data?: any): Promise<T>;
 
     /**
      * HTTP POST request
      */
-    post(url: string, data?: any): Promise<any>;
+    post<T = any>(url: string, data?: any): Promise<T>;
 
     /**
      * HTTP PUT request
      */
-    put(url: string, data?: any): Promise<any>;
+    put<T = any>(url: string, data?: any): Promise<T>;
 
     /**
      * HTTP DELETE request
      */
-    delete(url: string): Promise<any>;
+    delete<T = any>(url: string): Promise<T>;
 
     /**
      * AJAX request
      */
-    ajax(options: AjaxOptions): Promise<any>;
+    ajax<T = any>(options: AjaxOptions): Promise<T>;
 
     /**
      * Add request interceptor
