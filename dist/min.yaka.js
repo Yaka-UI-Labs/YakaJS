@@ -1,6 +1,6 @@
 /*!
  * Yaka.js - Next-Gen JavaScript Library
- * Version: 2.2.0
+ * Version: 1.0.0
  * More powerful than jQuery, simpler to write
  * 
  * Copyright (c) 2026

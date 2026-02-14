@@ -1,6 +1,6 @@
 /*!
  * Yaka.js - Ultra-Simple JavaScript Library
- * Version: 1.0.0
+ * Version: 0.1.0
  * Making JavaScript easier than jQuery
  * 
  * Copyright (c) 2026
