@@ -332,7 +332,7 @@ const fullName = _.computed(() =>
         </div>
 
         <!-- Interactive Counter with Multiple Effects -->
-        <div class="glass-card rounded-2xl p-8 transition-glass">
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
             <h2 class="text-3xl font-bold text-white mb-4">🎯 Multi-Effect Counter</h2>
             <p class="text-white mb-4">One signal triggers multiple effects</p>
 
@@ -355,6 +355,46 @@ const fullName = _.computed(() =>
                         <div class="text-white text-sm mb-2">Squared:</div>
                         <div id="counterSquared" class="text-white font-bold text-xl">0</div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D Rotation with Signals -->
+        <div class="glass-card rounded-2xl p-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🔄 3D Rotation</h2>
+            <p class="text-white mb-4">Reactive 3D transformations controlled by signals</p>
+
+            <div class="demo-result mt-4">
+                <div class="grid grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="text-white block mb-2">Rotate X: <span id="rotateXLabel">0</span>°</label>
+                        <input type="range" id="rotateX" min="0" max="360" value="0" class="w-full">
+                    </div>
+                    <div>
+                        <label class="text-white block mb-2">Rotate Y: <span id="rotateYLabel">0</span>°</label>
+                        <input type="range" id="rotateY" min="0" max="360" value="0" class="w-full">
+                    </div>
+                    <div>
+                        <label class="text-white block mb-2">Rotate Z: <span id="rotateZLabel">0</span>°</label>
+                        <input type="range" id="rotateZ" min="0" max="360" value="0" class="w-full">
+                    </div>
+                </div>
+                
+                <div class="flex justify-center items-center" style="perspective: 1000px; min-height: 300px;">
+                    <div id="rotatingCube" class="glass-card p-8 rounded-2xl" style="transform-style: preserve-3d; transition: transform 0.3s ease;">
+                        <div class="text-white text-2xl font-bold mb-2">YakaJS</div>
+                        <div class="text-white/70">3D Rotation Demo</div>
+                        <div class="text-white/50 text-sm mt-2">Powered by Signals</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <button onclick="autoRotate()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        🔄 Auto Rotate
+                    </button>
+                    <button onclick="resetRotation()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        ↺ Reset
+                    </button>
                 </div>
             </div>
         </div>
@@ -629,6 +669,84 @@ const fullName = _.computed(() =>
 
             window.incrementMulti = () => multiCounter.update(n => n + 1);
             window.decrementMulti = () => multiCounter.update(n => n - 1);
+
+            // 3D Rotation with Signals
+            const rotateXSignal = _.signal(0);
+            const rotateYSignal = _.signal(0);
+            const rotateZSignal = _.signal(0);
+            
+            // Update labels when signals change
+            _.effect(() => {
+                const label = document.getElementById('rotateXLabel');
+                if (label) label.textContent = rotateXSignal();
+            });
+            
+            _.effect(() => {
+                const label = document.getElementById('rotateYLabel');
+                if (label) label.textContent = rotateYSignal();
+            });
+            
+            _.effect(() => {
+                const label = document.getElementById('rotateZLabel');
+                if (label) label.textContent = rotateZSignal();
+            });
+            
+            // Apply 3D transformation when any rotation signal changes
+            _.effect(() => {
+                const cube = document.getElementById('rotatingCube');
+                if (cube) {
+                    const x = rotateXSignal();
+                    const y = rotateYSignal();
+                    const z = rotateZSignal();
+                    cube.style.transform = `rotateX(${x}deg) rotateY(${y}deg) rotateZ(${z}deg)`;
+                }
+            });
+            
+            // Connect range inputs to signals
+            ['rotateX', 'rotateY', 'rotateZ'].forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    input.addEventListener('input', (e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        if (id === 'rotateX') rotateXSignal.set(val);
+                        else if (id === 'rotateY') rotateYSignal.set(val);
+                        else if (id === 'rotateZ') rotateZSignal.set(val);
+                    });
+                }
+            });
+            
+            // Auto rotate animation
+            let autoRotateInterval = null;
+            window.autoRotate = () => {
+                if (autoRotateInterval) {
+                    clearInterval(autoRotateInterval);
+                    autoRotateInterval = null;
+                } else {
+                    autoRotateInterval = setInterval(() => {
+                        rotateXSignal.update(n => (n + 2) % 360);
+                        rotateYSignal.update(n => (n + 3) % 360);
+                        rotateZSignal.update(n => (n + 1) % 360);
+                        
+                        // Update range inputs
+                        document.getElementById('rotateX').value = rotateXSignal();
+                        document.getElementById('rotateY').value = rotateYSignal();
+                        document.getElementById('rotateZ').value = rotateZSignal();
+                    }, 50);
+                }
+            };
+            
+            window.resetRotation = () => {
+                if (autoRotateInterval) {
+                    clearInterval(autoRotateInterval);
+                    autoRotateInterval = null;
+                }
+                rotateXSignal.set(0);
+                rotateYSignal.set(0);
+                rotateZSignal.set(0);
+                document.getElementById('rotateX').value = 0;
+                document.getElementById('rotateY').value = 0;
+                document.getElementById('rotateZ').value = 0;
+            };
         }
     </script>
 </body>

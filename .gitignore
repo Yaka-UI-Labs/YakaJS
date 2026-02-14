@@ -16,3 +16,6 @@ custom-yaka.js
 
 # Test files
 test-*.html
+test_*.js
+visual_*.html
+CHANGES.md
