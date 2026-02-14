@@ -558,9 +558,12 @@ const value = await _.db.get('key');</code></pre>
             // Load time
             window.addEventListener('load', () => {
                 const perfData = performance.getEntriesByType('navigation')[0];
-                if (perfData) {
+                if (perfData && perfData.loadEventEnd > 0) {
                     const loadTime = Math.round(perfData.loadEventEnd - perfData.fetchStart);
-                    document.getElementById('loadTime').textContent = loadTime;
+                    const loadTimeEl = document.getElementById('loadTime');
+                    if (loadTimeEl) {
+                        loadTimeEl.textContent = loadTime;
+                    }
                 }
             });
 
@@ -651,13 +654,18 @@ const value = await _.db.get('key');</code></pre>
                     
                     request.onsuccess = () => {
                         const value = request.result;
+                        const resultDiv = document.getElementById('dbResult');
+                        if (!resultDiv) return;
+                        
                         if (value !== undefined) {
                             const display = typeof value === 'object' ? JSON.stringify(value, null, 2) : value;
-                            const resultDiv = document.getElementById('dbResult');
                             resultDiv.innerHTML = '<div class="text-white"><strong>Value:</strong><pre class="mt-2"></pre></div>';
-                            resultDiv.querySelector('pre').textContent = display;
+                            const preEl = resultDiv.querySelector('pre');
+                            if (preEl) {
+                                preEl.textContent = display;
+                            }
                         } else {
-                            document.getElementById('dbResult').innerHTML = '<div class="text-yellow-300">Key not found</div>';
+                            resultDiv.innerHTML = '<div class="text-yellow-300">Key not found</div>';
                         }
                     };
                 } catch (err) {
