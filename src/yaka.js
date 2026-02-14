@@ -4854,6 +4854,11 @@
             
             container._yaka_carousel = true;
 
+            // Configuration constants
+            const TRANSITION_DURATION = '0.5s';
+            const TRANSITION_TIMING = 'ease-in-out';
+            const MIN_SWIPE_DISTANCE = 50;
+
             const items = Array.from(container.children);
             let currentIndex = options.startIndex || 0;
             const auto = options.auto || false;
@@ -4874,7 +4879,7 @@
                 item.style.left = '0';
                 item.style.width = '100%';
                 item.style.opacity = idx === currentIndex ? '1' : '0';
-                item.style.transition = transition === 'fade' ? 'opacity 0.5s ease-in-out' : 'transform 0.5s ease-in-out';
+                item.style.transition = transition === 'fade' ? `opacity ${TRANSITION_DURATION} ${TRANSITION_TIMING}` : `transform ${TRANSITION_DURATION} ${TRANSITION_TIMING}`;
                 item.style.display = 'block';
                 if (transition === 'slide') {
                     item.style.transform = idx === currentIndex ? 'translateX(0)' : 'translateX(100%)';
@@ -5001,7 +5006,7 @@
             
             const handleTouchEnd = () => {
                 const diff = touchStartX - touchEndX;
-                if (Math.abs(diff) > 50) { // Minimum swipe distance
+                if (Math.abs(diff) > MIN_SWIPE_DISTANCE) {
                     if (diff > 0) {
                         next();
                     } else {
