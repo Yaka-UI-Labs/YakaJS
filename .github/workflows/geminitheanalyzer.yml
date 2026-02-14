@@ -40,8 +40,7 @@ jobs:
         run: |
           git checkout -B gemini-auto-fixes
           gemini -p "Analyze the YakaJS library and automatically generate fixes for any errors, refactor code where needed" \
-                 --approval-mode auto_edit \
-                 --yolo \
+                 --approval-mode=yolo \
                  --output-format json > gemini-report.json
 
           # Commit changes if Gemini modified files
