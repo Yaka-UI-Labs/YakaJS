@@ -13,9 +13,9 @@ jobs:
       - name: Run Gemini CLI
         uses: google-github-actions/run-gemini-cli@v0.1.3
         with:
-          prompt: "You are a helpful assistant."
+          prompt: "You are the analyzer of our YakaJS library analyze libary find errors and fix them"
           settings: '{}'
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           use_vertex_ai: false
-          use_gemini_code_assist: false
+          use_gemini_code_assist: true
           gemini_cli_version: "latest"
