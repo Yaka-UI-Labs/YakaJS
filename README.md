@@ -6,6 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Size](https://img.shields.io/badge/size-151%20KB%20minified-success.svg)](dist/min.yaka.js)
 [![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js)
+[![Documentation](https://img.shields.io/badge/📚-Documentation-brightgreen.svg)](DOCUMENTATION.md)
 
 Yes, we're building a JavaScript library **on GitHub**. In fact, we've been doing this since we made our first commit and pushed **9,504 lines** of pure JavaScript magic 🪄. We've implemented **150+ features**, compressed our code by **56%**, and even added **voice commands** 🎤 (because why not?). But that's just us. We are proud to be building a library for developers, designers, and yes, even robots 🤖 across the internet. Yes, Robots!
 
@@ -621,14 +622,18 @@ Or just add this to your HTML and start coding:
 
 ## 📚 Documentation
 
-Want to dive deeper? We've got comprehensive docs:
+> **[📖 Complete Documentation Hub](DOCUMENTATION.md)** - Your gateway to all YakaJS docs!
 
-- **[📖 Complete API Reference](docs/API_REFERENCE.md)** - Every method, parameter, and example (by [@dill-lk](https://github.com/dill-lk))
-- **[🚀 Advanced Guide](docs/ADVANCED_GUIDE.md)** - Performance optimization, advanced patterns, architecture
-- **[✅ Best Practices](docs/BEST_PRACTICES.md)** - Security, performance, and code quality tips
-- **[🔄 Migration Guide](docs/MIGRATION_GUIDE.md)** - Moving from jQuery to YakaJS
-- **[💡 Examples](docs/EXAMPLES.md)** - Real-world code examples and patterns
-- **[🤝 Contributing](docs/CONTRIBUTING.md)** - How to contribute to YakaJS
+Want to dive deeper? We've got **116 KB of comprehensive documentation** (maintained by [@dill-lk](https://github.com/dill-lk)):
+
+- **[📖 Complete API Reference](docs/API_REFERENCE.md)** - Every method, parameter, and example (31 KB, 1,598 lines)
+- **[🚀 Advanced Guide](docs/ADVANCED_GUIDE.md)** - Performance optimization, advanced patterns, architecture (24 KB, 1,041 lines)
+- **[✅ Best Practices](docs/BEST_PRACTICES.md)** - Security, performance, and code quality tips (11 KB, 533 lines)
+- **[🔄 Migration Guide](docs/MIGRATION_GUIDE.md)** - Moving from jQuery to YakaJS (12 KB, 585 lines)
+- **[💡 Examples](docs/EXAMPLES.md)** - Real-world code examples and patterns (20 KB, 687 lines)
+- **[🤝 Contributing](docs/CONTRIBUTING.md)** - How to contribute to YakaJS (9 KB, 481 lines)
+
+**🏆 Most comprehensive JavaScript library documentation available!**
 
 ---
 
