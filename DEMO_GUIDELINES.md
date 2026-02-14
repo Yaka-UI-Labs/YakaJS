@@ -38,15 +38,17 @@ In these cases, temporarily use local path:
 
 ## Error Handling
 
-All demos should check if YakaJS loaded:
+All demos should check if YakaJS loaded properly:
 
 ```javascript
-if (typeof _ === 'undefined' || !_.signal) {
+if (typeof _ === 'undefined' || typeof _.signal !== 'function') {
     document.body.innerHTML = '<div class="error">YakaJS not loaded</div>';
 } else {
     // Demo code here
 }
 ```
+
+This ensures the library is not only loaded but has the expected API surface.
 
 ## Current Status
 
