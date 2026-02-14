@@ -4,6 +4,13 @@
   "description": "YakaJS - A modern JavaScript library",
   "main": "dist/min.yaka.js",
   "types": "yaka.d.ts",
+  "files": [
+    "dist/",
+    "yaka.d.ts",
+    "README.md",
+    "LICENSE",
+    "TYPESCRIPT.md"
+  ],
   "scripts": {
     "build": "npm run build:min && npm run build:ultra && npm run build:hyper",
     "build:min": "terser src/yaka.js -o dist/min.yaka.js -c -m --comments /^!/ --source-map \"url=min.yaka.js.map\"",
@@ -14,8 +21,21 @@
     "javascript",
     "library",
     "ui",
-    "framework"
+    "framework",
+    "typescript",
+    "dom",
+    "jquery",
+    "animation",
+    "reactive"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Yaka-UI-Labs/YakaJS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Yaka-UI-Labs/YakaJS/issues"
+  },
+  "homepage": "https://github.com/Yaka-UI-Labs/YakaJS#readme",
   "author": "Yaka-UI-Labs",
   "license": "MIT",
   "devDependencies": {

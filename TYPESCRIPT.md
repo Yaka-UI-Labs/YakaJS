@@ -8,7 +8,16 @@ YakaJS now includes comprehensive TypeScript definitions! 🎉
 npm install yakajs
 ```
 
-The TypeScript definitions are automatically included and will be picked up by your TypeScript compiler.
+The TypeScript definitions (`yaka.d.ts`) are **automatically included** in the npm package and will be picked up by your TypeScript compiler. The package.json includes a `"types"` field that points to the definitions file, so no additional configuration is needed.
+
+### What's Included in the Package
+
+When you install YakaJS via npm, you get:
+- ✅ **`yaka.d.ts`** - Complete TypeScript definitions (all 150+ features)
+- ✅ **`dist/min.yaka.js`** - Minified production build
+- ✅ **`dist/ultra.min.yaka.js`** - Ultra-minified build
+- ✅ **`dist/hyper.min.yaka.js`** - Hyper-optimized build
+- ✅ **`README.md`** and **`TYPESCRIPT.md`** - Documentation
 
 ## Usage
 

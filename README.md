@@ -117,6 +117,14 @@ Want to see YakaJS in action? We've built [**12 gorgeous interactive demos**](de
 npm install yakajs
 ```
 
+**Includes TypeScript definitions!** The package automatically includes `yaka.d.ts` for full TypeScript support with IntelliSense, type checking, and autocomplete in your IDE.
+
+```typescript
+import Yaka from 'yakajs';
+
+Yaka('#app').fadeIn(); // Full type safety!
+```
+
 ### Git Clone (Hacker Mode)
 
 ```bash
