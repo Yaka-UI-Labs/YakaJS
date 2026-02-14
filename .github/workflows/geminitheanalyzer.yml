@@ -51,6 +51,7 @@ jobs:
             git push --force --set-upstream origin gemini-auto-fixes
           else
             echo "No changes detected by Gemini."
+          fi
 
       # 7️⃣ Create Pull Request automatically
       - name: Create Pull Request
