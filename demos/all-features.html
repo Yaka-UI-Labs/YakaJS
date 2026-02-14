@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YakaJS - Complete Feature Showcase</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="../dist/min.yaka.js"></script>
+    
+    <style>
+        /* Glassmorphism Utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .glass-dark {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        /* Animated gradient background */
+        body {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .transition-glass {
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        /* Code blocks */
+        pre {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            padding: 1rem;
+            overflow-x: auto;
+            margin: 0.5rem 0;
+        }
+        
+        code {
+            color: #ffd700;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+        }
+        
+        /* Demo boxes */
+        .demo-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        /* Sticky nav */
+        .sticky-nav {
+            position: sticky;
+            top: 80px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+        }
+        
+        /* Animation demo boxes */
+        .anim-demo-box {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0.5rem;
+        }
+        
+        /* Success/Error states */
+        .success-state {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+        }
+        
+        .error-state {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+        }
+        
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body class="font-sans text-white">
+    
+    <!-- Fixed Header -->
+    <header class="glass-dark fixed top-0 left-0 right-0 z-50 py-4">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-2xl font-bold">YakaJS Complete Showcase</h1>
+                    <span class="glass px-3 py-1 rounded-full text-xs">v1.0.0</span>
+                </div>
+                <a href="index.html" class="glass px-4 py-2 rounded-lg hover:bg-white/25 transition text-sm">
+                    ← Back to Demos
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 pt-24 pb-12">
+        <div class="flex flex-col lg:flex-row gap-6">
+            
+            <!-- Sidebar Navigation -->
+            <aside class="lg:w-64 flex-shrink-0">
+                <nav class="glass-card rounded-xl p-4 sticky-nav">
+                    <h3 class="font-bold mb-4 text-lg">Features</h3>
+                    <ul class="space-y-2 text-sm">
+                        <li><a href="#dom" class="hover:text-yellow-300 transition">🎯 DOM Manipulation</a></li>
+                        <li><a href="#animations" class="hover:text-yellow-300 transition">✨ Animations</a></li>
+                        <li><a href="#events" class="hover:text-yellow-300 transition">🎪 Event Handling</a></li>
+                        <li><a href="#forms" class="hover:text-yellow-300 transition">📝 Forms & Validation</a></li>
+                        <li><a href="#components" class="hover:text-yellow-300 transition">🧩 UI Components</a></li>
+                        <li><a href="#state" class="hover:text-yellow-300 transition">🏪 State Management</a></li>
+                        <li><a href="#routing" class="hover:text-yellow-300 transition">🗺️ Routing</a></li>
+                        <li><a href="#reactivity" class="hover:text-yellow-300 transition">⚡ Reactivity</a></li>
+                        <li><a href="#http" class="hover:text-yellow-300 transition">🌐 HTTP/AJAX</a></li>
+                        <li><a href="#security" class="hover:text-yellow-300 transition">🔐 Security</a></li>
+                        <li><a href="#advanced" class="hover:text-yellow-300 transition">🚀 Advanced</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="flex-1 min-w-0">
+                
+                <!-- Hero -->
+                <div class="glass-card rounded-2xl p-8 mb-8 text-center">
+                    <h2 class="text-4xl font-bold mb-4">🚀 YakaJS Feature Showcase</h2>
+                    <p class="text-xl text-gray-100">All 130+ features in one interactive demo</p>
+                </div>
+
+                <!-- Section 1: DOM Manipulation -->
+                <section id="dom" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">🎯 DOM Manipulation</h3>
+                    <p class="text-gray-200 mb-4">jQuery-like selectors with modern enhancements</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-2">Selectors & Content</h4>
+                        <button id="dom-btn-1" class="glass px-4 py-2 rounded-lg mr-2">Change Text</button>
+                        <button id="dom-btn-2" class="glass px-4 py-2 rounded-lg mr-2">Change HTML</button>
+                        <button id="dom-btn-3" class="glass px-4 py-2 rounded-lg">Toggle Class</button>
+                        <div id="dom-target" class="mt-4 p-4 glass-card rounded-lg">
+                            Original content - Click buttons to modify
+                        </div>
+                    </div>
+
+                    <pre><code>// Selector and manipulation
+_('#dom-btn-1').on('click', () => {
+    _('#dom-target').text('Text changed!');
+});
+
+_('#dom-btn-2').on('click', () => {
+    _('#dom-target').html('&lt;strong&gt;HTML changed!&lt;/strong&gt;');
+});
+
+_('#dom-btn-3').on('click', () => {
+    _('#dom-target').toggleClass('success-state');
+});</code></pre>
+
+                    <div class="demo-box mt-4">
+                        <h4 class="font-bold mb-2">Element Creation & Manipulation</h4>
+                        <button id="dom-create-btn" class="glass px-4 py-2 rounded-lg">Create & Append Element</button>
+                        <div id="dom-container" class="mt-4 space-y-2"></div>
+                    </div>
+
+                    <pre><code>// Create and append elements
+_('#dom-create-btn').on('click', () => {
+    const newEl = _('&lt;div class="glass p-3 rounded"&gt;New Element ' + Date.now() + '&lt;/div&gt;');
+    _('#dom-container').append(newEl.get(0));
+});</code></pre>
+                </section>
+
+                <!-- Section 2: Animations -->
+                <section id="animations" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">✨ Animations (15+)</h3>
+                    <p class="text-gray-200 mb-4">Beautiful built-in animation effects</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-4">Click any box to see animation:</h4>
+                        <div class="flex flex-wrap justify-center">
+                            <div class="anim-demo-box" data-anim="fadeIn">Fade In</div>
+                            <div class="anim-demo-box" data-anim="fadeOut">Fade Out</div>
+                            <div class="anim-demo-box" data-anim="slideDown">Slide Down</div>
+                            <div class="anim-demo-box" data-anim="slideUp">Slide Up</div>
+                            <div class="anim-demo-box" data-anim="slideInLeft">Slide Left</div>
+                            <div class="anim-demo-box" data-anim="slideInRight">Slide Right</div>
+                            <div class="anim-demo-box" data-anim="zoomIn">Zoom In</div>
+                            <div class="anim-demo-box" data-anim="zoomOut">Zoom Out</div>
+                            <div class="anim-demo-box" data-anim="bounce">Bounce</div>
+                            <div class="anim-demo-box" data-anim="shake">Shake</div>
+                            <div class="anim-demo-box" data-anim="pulse">Pulse</div>
+                            <div class="anim-demo-box" data-anim="swing">Swing</div>
+                            <div class="anim-demo-box" data-anim="rubberBand">Rubber</div>
+                            <div class="anim-demo-box" data-anim="flip">Flip 3D</div>
+                            <div class="anim-demo-box" data-anim="rotateIn">Rotate In</div>
+                        </div>
+                    </div>
+
+                    <pre><code>// Animation examples
+_('.anim-demo-box').on('click', function() {
+    const anim = _(this).data('anim');
+    _(this)[anim](500); // Execute animation
+});</code></pre>
+                </section>
+
+                <!-- Section 3: Event Handling -->
+                <section id="events" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">🎪 Event Handling</h3>
+                    <p class="text-gray-200 mb-4">Powerful event system with delegation</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-2">Click, Hover, Input Events</h4>
+                        <button id="event-click" class="glass px-4 py-2 rounded-lg mr-2">Click Me</button>
+                        <button id="event-hover" class="glass px-4 py-2 rounded-lg mr-2">Hover Me</button>
+                        <input id="event-input" type="text" placeholder="Type here..." 
+                               class="glass px-4 py-2 rounded-lg bg-white/10 mt-2 w-full">
+                        <div id="event-output" class="mt-4 p-4 glass-card rounded-lg">
+                            Events will appear here...
+                        </div>
+                    </div>
+
+                    <pre><code>// Event handling
+_('#event-click').on('click', () => {
+    _('#event-output').text('Button clicked! ' + new Date().toLocaleTimeString());
+});
+
+_('#event-hover').hover(
+    () => _('#event-output').text('Mouse entered!'),
+    () => _('#event-output').text('Mouse left!')
+);
+
+_('#event-input').on('input', function() {
+    _('#event-output').text('Typed: ' + this.value);
+});</code></pre>
+
+                    <div class="demo-box mt-4">
+                        <h4 class="font-bold mb-2">Debounce & Throttle</h4>
+                        <button id="event-debounce" class="glass px-4 py-2 rounded-lg mr-2">Debounced (500ms)</button>
+                        <button id="event-throttle" class="glass px-4 py-2 rounded-lg">Throttled (1000ms)</button>
+                        <div id="event-count" class="mt-4 p-4 glass-card rounded-lg">
+                            Click counters: Debounce: 0 | Throttle: 0
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: Forms & Validation -->
+                <section id="forms" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">📝 Forms & Validation</h3>
+                    <p class="text-gray-200 mb-4">15+ built-in validation rules</p>
+                    
+                    <div class="demo-box">
+                        <form id="demo-form" class="space-y-4">
+                            <div>
+                                <label class="block mb-2">Email (required)</label>
+                                <input type="email" name="email" required 
+                                       class="glass px-4 py-2 rounded-lg bg-white/10 w-full"
+                                       placeholder="user@example.com">
+                                <div class="error-msg text-red-300 text-sm mt-1"></div>
+                            </div>
+                            <div>
+                                <label class="block mb-2">Phone (required, format: XXX-XXX-XXXX)</label>
+                                <input type="tel" name="phone" required pattern="\d{3}-\d{3}-\d{4}"
+                                       class="glass px-4 py-2 rounded-lg bg-white/10 w-full"
+                                       placeholder="123-456-7890">
+                                <div class="error-msg text-red-300 text-sm mt-1"></div>
+                            </div>
+                            <div>
+                                <label class="block mb-2">Website (URL validation)</label>
+                                <input type="url" name="website"
+                                       class="glass px-4 py-2 rounded-lg bg-white/10 w-full"
+                                       placeholder="https://example.com">
+                                <div class="error-msg text-red-300 text-sm mt-1"></div>
+                            </div>
+                            <button type="submit" class="glass px-6 py-3 rounded-lg font-bold hover:bg-white/25 transition">
+                                Validate Form
+                            </button>
+                        </form>
+                        <div id="form-result" class="mt-4 p-4 glass-card rounded-lg hidden"></div>
+                    </div>
+
+                    <pre><code>// Form validation
+_('#demo-form').validateForm({
+    rules: {
+        email: { required: true, email: true },
+        phone: { required: true, pattern: /\d{3}-\d{3}-\d{4}/ },
+        website: { url: true }
+    },
+    onSubmit: (data) => {
+        _('#form-result').html('✓ Form valid!').removeClass('hidden');
+    }
+});</code></pre>
+                </section>
+
+                <!-- Section 5: UI Components -->
+                <section id="components" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">🧩 UI Components</h3>
+                    <p class="text-gray-200 mb-4">20+ ready-to-use components</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-4">Component Demos:</h4>
+                        <div class="flex flex-wrap gap-3">
+                            <button id="show-modal" class="glass px-4 py-2 rounded-lg">Modal</button>
+                            <button id="show-toast" class="glass px-4 py-2 rounded-lg">Toast</button>
+                            <button id="show-alert" class="glass px-4 py-2 rounded-lg">Alert</button>
+                            <button id="tooltip-demo" class="glass px-4 py-2 rounded-lg" title="I'm a tooltip!">Tooltip</button>
+                            <button id="show-dropdown" class="glass px-4 py-2 rounded-lg">Dropdown</button>
+                        </div>
+                    </div>
+
+                    <div class="demo-box mt-4">
+                        <h4 class="font-bold mb-4">Tabs:</h4>
+                        <div id="demo-tabs">
+                            <div class="flex space-x-2 mb-4">
+                                <button class="tab-btn glass px-4 py-2 rounded-lg active" data-tab="tab1">Tab 1</button>
+                                <button class="tab-btn glass px-4 py-2 rounded-lg" data-tab="tab2">Tab 2</button>
+                                <button class="tab-btn glass px-4 py-2 rounded-lg" data-tab="tab3">Tab 3</button>
+                            </div>
+                            <div id="tab1" class="tab-content glass-card p-4 rounded-lg">Content for Tab 1</div>
+                            <div id="tab2" class="tab-content glass-card p-4 rounded-lg hidden">Content for Tab 2</div>
+                            <div id="tab3" class="tab-content glass-card p-4 rounded-lg hidden">Content for Tab 3</div>
+                        </div>
+                    </div>
+
+                    <div class="demo-box mt-4">
+                        <h4 class="font-bold mb-4">Accordion:</h4>
+                        <div id="demo-accordion">
+                            <div class="accordion-item mb-2">
+                                <button class="accordion-header glass w-full text-left px-4 py-3 rounded-lg font-semibold">
+                                    Section 1
+                                </button>
+                                <div class="accordion-content glass-card p-4 rounded-lg mt-2 hidden">
+                                    Content for section 1
+                                </div>
+                            </div>
+                            <div class="accordion-item mb-2">
+                                <button class="accordion-header glass w-full text-left px-4 py-3 rounded-lg font-semibold">
+                                    Section 2
+                                </button>
+                                <div class="accordion-content glass-card p-4 rounded-lg mt-2 hidden">
+                                    Content for section 2
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <pre><code>// Modal
+_('#show-modal').on('click', () => {
+    _().modal({
+        title: 'Demo Modal',
+        content: 'This is a YakaJS modal!',
+        buttons: [{ text: 'Close', class: 'glass px-4 py-2 rounded' }]
+    });
+});
+
+// Toast notification
+_('#show-toast').on('click', () => {
+    _.toast('Success! YakaJS is awesome!', 'success', 3000);
+});
+
+// Alert dialog
+_('#show-alert').on('click', () => {
+    _.alert({
+        title: 'Hello!',
+        text: 'This is a SweetAlert-style dialog',
+        icon: 'success'
+    });
+});</code></pre>
+                </section>
+
+                <!-- Section 6: State Management -->
+                <section id="state" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">🏪 State Management</h3>
+                    <p class="text-gray-200 mb-4">Vuex/Redux-style store with time-travel</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-4">Counter Store Demo:</h4>
+                        <div class="text-center">
+                            <div id="counter-display" class="text-6xl font-bold mb-6">0</div>
+                            <div class="flex justify-center gap-3 mb-4">
+                                <button id="increment" class="glass px-6 py-3 rounded-lg font-bold">+ Increment</button>
+                                <button id="decrement" class="glass px-6 py-3 rounded-lg font-bold">- Decrement</button>
+                                <button id="reset" class="glass px-6 py-3 rounded-lg font-bold">Reset</button>
+                            </div>
+                            <div class="flex justify-center gap-3">
+                                <button id="undo" class="glass px-4 py-2 rounded-lg">↶ Undo</button>
+                                <button id="redo" class="glass px-4 py-2 rounded-lg">↷ Redo</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <pre><code>// Create store
+const store = _.createStore({
+    state: { count: 0 },
+    mutations: {
+        increment(state) { state.count++; },
+        decrement(state) { state.count--; },
+        reset(state) { state.count = 0; }
+    }
+});
+
+// Use store
+_('#increment').on('click', () => store.commit('increment'));
+_('#decrement').on('click', () => store.commit('decrement'));
+_('#undo').on('click', () => store.undo());
+_('#redo').on('click', () => store.redo());</code></pre>
+                </section>
+
+                <!-- Section 7: Routing -->
+                <section id="routing" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">🗺️ SPA Routing</h3>
+                    <p class="text-gray-200 mb-4">Client-side routing with guards</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-4">Route Navigation:</h4>
+                        <div class="flex gap-3 mb-4">
+                            <button class="route-btn glass px-4 py-2 rounded-lg" data-route="/">Home</button>
+                            <button class="route-btn glass px-4 py-2 rounded-lg" data-route="/about">About</button>
+                            <button class="route-btn glass px-4 py-2 rounded-lg" data-route="/contact">Contact</button>
+                        </div>
+                        <div id="route-content" class="glass-card p-6 rounded-lg">
+                            <h5 class="font-bold text-xl mb-2">Home Page</h5>
+                            <p>Welcome to the routing demo!</p>
+                        </div>
+                        <div class="mt-4 text-sm text-gray-300">
+                            Current route: <span id="current-route" class="font-mono">/</span>
+                        </div>
+                    </div>
+
+                    <pre><code>// Create router
+const router = _.createRouter({
+    routes: [
+        { path: '/', component: () => 'Home Page' },
+        { path: '/about', component: () => 'About Page' },
+        { path: '/contact', component: () => 'Contact Page' }
+    ]
+});
+
+// Navigate
+_('.route-btn').on('click', function() {
+    const route = _(this).data('route');
+    router.navigate(route);
+});</code></pre>
+                </section>
+
+                <!-- Section 8: Reactivity (Signals) -->
+                <section id="reactivity" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">⚡ Signals & Reactivity</h3>
+                    <p class="text-gray-200 mb-4">SolidJS-inspired reactive primitives</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-4">Reactive Counter:</h4>
+                        <div class="text-center">
+                            <div id="signal-count" class="text-5xl font-bold mb-4">0</div>
+                            <div id="signal-double" class="text-3xl mb-6">Double: 0</div>
+                            <button id="signal-increment" class="glass px-6 py-3 rounded-lg font-bold">
+                                Increment Signal
+                            </button>
+                        </div>
+                    </div>
+
+                    <pre><code>// Create signal
+const [count, setCount] = _.signal(0);
+
+// Computed value
+const doubled = _.computed(() => count() * 2);
+
+// Effect - auto runs when signal changes
+_.effect(() => {
+    _('#signal-count').text(count());
+    _('#signal-double').text('Double: ' + doubled());
+});
+
+// Update signal
+_('#signal-increment').on('click', () => {
+    setCount(count() + 1);
+});</code></pre>
+                </section>
+
+                <!-- Section 9: HTTP/AJAX -->
+                <section id="http" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">🌐 HTTP & AJAX</h3>
+                    <p class="text-gray-200 mb-4">Complete HTTP client with error handling</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-4">API Requests:</h4>
+                        <button id="fetch-users" class="glass px-4 py-2 rounded-lg mr-2">Fetch Users</button>
+                        <button id="fetch-posts" class="glass px-4 py-2 rounded-lg">Fetch Posts</button>
+                        <div id="http-result" class="mt-4 p-4 glass-card rounded-lg max-h-64 overflow-y-auto">
+                            Click a button to fetch data...
+                        </div>
+                    </div>
+
+                    <pre><code>// GET request
+_('#fetch-users').on('click', () => {
+    _.get('https://jsonplaceholder.typicode.com/users')
+        .then(data => {
+            _('#http-result').html(
+                '&lt;h5 class="font-bold mb-2"&gt;Users:&lt;/h5&gt;' +
+                data.slice(0, 3).map(u => 
+                    `&lt;div&gt;${u.name} (${u.email})&lt;/div&gt;`
+                ).join('')
+            );
+        })
+        .catch(err => {
+            _('#http-result').html('Error: ' + err.message);
+        });
+});
+
+// POST request
+_.post('/api/data', { name: 'John', age: 30 })
+    .then(response => console.log(response));</code></pre>
+                </section>
+
+                <!-- Section 10: Security -->
+                <section id="security" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">🔐 Security Features</h3>
+                    <p class="text-gray-200 mb-4">XSS protection, CSRF, sanitization</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-4">HTML Sanitization:</h4>
+                        <input id="xss-input" type="text" 
+                               class="glass px-4 py-2 rounded-lg bg-white/10 w-full mb-4"
+                               placeholder="Try: <script>alert('xss')</script>"
+                               value="<script>alert('xss')</script><b>Bold text</b>">
+                        <button id="sanitize-btn" class="glass px-4 py-2 rounded-lg">Sanitize & Display</button>
+                        <div id="sanitized-output" class="mt-4 p-4 glass-card rounded-lg"></div>
+                    </div>
+
+                    <pre><code>// XSS Protection
+const userInput = _('#xss-input').val();
+const safe = _.security.escapeHtml(userInput);
+_('#sanitized-output').html(safe);
+
+// CSRF Token
+_.security.csrf.setToken('your-csrf-token');
+
+// Sanitize URL
+const safeUrl = _.security.sanitizeUrl(untrustedUrl);</code></pre>
+
+                    <div class="demo-box mt-4">
+                        <h4 class="font-bold mb-4">CSRF Protection:</h4>
+                        <p class="text-sm text-gray-300 mb-2">CSRF tokens are automatically added to AJAX requests</p>
+                        <div class="glass-card p-3 rounded">
+                            <code class="text-xs">X-CSRF-Token: auto-injected-in-requests</code>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 11: Advanced Features -->
+                <section id="advanced" class="glass-card rounded-xl p-6 mb-6">
+                    <h3 class="text-3xl font-bold mb-4">🚀 Advanced Features</h3>
+                    <p class="text-gray-200 mb-4">Web Workers, Performance, Storage</p>
+                    
+                    <div class="demo-box">
+                        <h4 class="font-bold mb-4">Performance Monitoring:</h4>
+                        <button id="start-monitor" class="glass px-4 py-2 rounded-lg mr-2">Start FPS Monitor</button>
+                        <button id="stop-monitor" class="glass px-4 py-2 rounded-lg">Stop Monitor</button>
+                        <div id="perf-output" class="mt-4 p-4 glass-card rounded-lg">
+                            Performance data will appear here...
+                        </div>
+                    </div>
+
+                    <div class="demo-box mt-4">
+                        <h4 class="font-bold mb-4">LocalStorage:</h4>
+                        <input id="storage-key" type="text" placeholder="Key" 
+                               class="glass px-4 py-2 rounded-lg bg-white/10 mr-2">
+                        <input id="storage-value" type="text" placeholder="Value" 
+                               class="glass px-4 py-2 rounded-lg bg-white/10 mr-2">
+                        <button id="save-storage" class="glass px-4 py-2 rounded-lg mr-2">Save</button>
+                        <button id="load-storage" class="glass px-4 py-2 rounded-lg">Load</button>
+                        <div id="storage-output" class="mt-4 p-4 glass-card rounded-lg"></div>
+                    </div>
+
+                    <pre><code>// Performance monitoring
+const monitor = _.performance.trackFPS((fps) => {
+    _('#perf-output').text(`Current FPS: ${fps.toFixed(1)}`);
+});
+
+// LocalStorage
+_.local.set('user', { name: 'John', age: 30 });
+const user = _.local.get('user');
+
+// Web Worker
+const worker = _.createWorker((data) => {
+    // Heavy computation in worker
+    return data * 2;
+});</code></pre>
+
+                    <div class="demo-box mt-4">
+                        <h4 class="font-bold mb-4">Utility Functions:</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button id="util-uuid" class="glass px-3 py-2 rounded text-sm">Generate UUID</button>
+                            <button id="util-random" class="glass px-3 py-2 rounded text-sm">Random Number</button>
+                            <button id="util-debounce" class="glass px-3 py-2 rounded text-sm">Debounced Action</button>
+                            <button id="util-throttle" class="glass px-3 py-2 rounded text-sm">Throttled Action</button>
+                        </div>
+                        <div id="util-output" class="mt-4 p-4 glass-card rounded-lg"></div>
+                    </div>
+
+                    <pre><code>// Utility functions
+const id = _.uuid();
+const num = _.random(1, 100);
+const debouncedFn = _.debounce(() => console.log('Debounced!'), 500);
+const throttledFn = _.throttle(() => console.log('Throttled!'), 1000);</code></pre>
+                </section>
+
+                <!-- Summary -->
+                <div class="glass-card rounded-xl p-8 text-center">
+                    <h3 class="text-3xl font-bold mb-4">🎉 That's YakaJS!</h3>
+                    <p class="text-xl mb-6">130+ features, zero dependencies, 132 KB minified</p>
+                    <div class="flex justify-center gap-4">
+                        <a href="https://github.com/Yaka-UI-Labs/YakaJS" target="_blank" 
+                           class="bg-white text-purple-600 px-6 py-3 rounded-full font-bold hover:bg-yellow-300 transition">
+                            Star on GitHub ⭐
+                        </a>
+                        <a href="index.html" 
+                           class="glass px-6 py-3 rounded-full font-bold hover:bg-white/25 transition">
+                            Back to Demos
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="glass-dark py-6 mt-12">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-sm text-gray-300">YakaJS v1.0.0 - MIT License - © 2026</p>
+        </div>
+    </footer>
+
+    <script>
+        // Wait for DOM ready
+        _(() => {
+            console.log('YakaJS All Features Demo Loaded!');
+
+            // ===== DOM Manipulation =====
+            _('#dom-btn-1').on('click', () => {
+                _('#dom-target').text('Text changed at ' + new Date().toLocaleTimeString());
+            });
+
+            _('#dom-btn-2').on('click', () => {
+                _('#dom-target').html('<strong>HTML changed!</strong> <em>Now with formatting!</em>');
+            });
+
+            _('#dom-btn-3').on('click', () => {
+                _('#dom-target').toggleClass('success-state');
+            });
+
+            let elementCount = 0;
+            _('#dom-create-btn').on('click', () => {
+                elementCount++;
+                const newEl = _('<div class="glass p-3 rounded mb-2">Element #' + elementCount + '</div>');
+                _('#dom-container').append(newEl.get(0));
+            });
+
+            // ===== Animations =====
+            _('.anim-demo-box').on('click', function() {
+                const anim = _(this).data('anim');
+                const box = _(this);
+                
+                // Execute the animation
+                if (typeof box[anim] === 'function') {
+                    box[anim](500);
+                }
+            });
+
+            // ===== Events =====
+            _('#event-click').on('click', () => {
+                _('#event-output').text('Button clicked! ' + new Date().toLocaleTimeString());
+            });
+
+            _('#event-hover').hover(
+                function() { _('#event-output').text('Mouse entered at ' + new Date().toLocaleTimeString()); },
+                function() { _('#event-output').text('Mouse left at ' + new Date().toLocaleTimeString()); }
+            );
+
+            _('#event-input').on('input', function() {
+                _('#event-output').text('You typed: ' + this.value);
+            });
+
+            // Debounce & Throttle counters
+            let debounceCount = 0;
+            let throttleCount = 0;
+            
+            const debouncedFn = _.debounce(() => {
+                debounceCount++;
+                updateCounts();
+            }, 500);
+
+            const throttledFn = _.throttle(() => {
+                throttleCount++;
+                updateCounts();
+            }, 1000);
+
+            function updateCounts() {
+                _('#event-count').text(`Click counters: Debounce: ${debounceCount} | Throttle: ${throttleCount}`);
+            }
+
+            _('#event-debounce').on('click', debouncedFn);
+            _('#event-throttle').on('click', throttledFn);
+
+            // ===== Forms =====
+            _('#demo-form').on('submit', (e) => {
+                e.preventDefault();
+                
+                // Simple validation
+                const email = _('#demo-form [name="email"]').val();
+                const phone = _('#demo-form [name="phone"]').val();
+                const website = _('#demo-form [name="website"]').val();
+                
+                let errors = [];
+                
+                if (!email || !email.includes('@')) {
+                    errors.push('Invalid email');
+                }
+                
+                if (!phone || !/\d{3}-\d{3}-\d{4}/.test(phone)) {
+                    errors.push('Invalid phone (use XXX-XXX-XXXX)');
+                }
+                
+                if (website && !website.startsWith('http')) {
+                    errors.push('Invalid URL (must start with http)');
+                }
+                
+                if (errors.length > 0) {
+                    _('#form-result')
+                        .html('❌ Validation errors:<br>' + errors.join('<br>'))
+                        .removeClass('hidden success-state')
+                        .addClass('error-state');
+                } else {
+                    _('#form-result')
+                        .html('✅ Form is valid! Data: ' + JSON.stringify({email, phone, website}))
+                        .removeClass('hidden error-state')
+                        .addClass('success-state');
+                }
+            });
+
+            // ===== Components =====
+            _('#show-modal').on('click', () => {
+                const modalHtml = `
+                    <div id="demo-modal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;">
+                        <div class="glass-card rounded-xl p-8 max-w-md mx-4">
+                            <h3 class="text-2xl font-bold mb-4">Demo Modal</h3>
+                            <p class="mb-6">This is a YakaJS modal dialog! Click outside or the button to close.</p>
+                            <button onclick="_('#demo-modal').remove()" class="glass px-6 py-2 rounded-lg font-bold">Close</button>
+                        </div>
+                    </div>
+                `;
+                _('body').append(_(modalHtml).get(0));
+                _('#demo-modal').on('click', function(e) {
+                    if (e.target.id === 'demo-modal') {
+                        _(this).remove();
+                    }
+                });
+            });
+
+            _('#show-toast').on('click', () => {
+                const toast = _(`
+                    <div class="glass-card rounded-lg p-4 fixed top-20 right-4 z-50" style="min-width:250px;">
+                        ✅ Success! YakaJS is awesome!
+                    </div>
+                `);
+                _('body').append(toast.get(0));
+                setTimeout(() => toast.fadeOut(300, () => toast.remove()), 3000);
+            });
+
+            _('#show-alert').on('click', () => {
+                const alertHtml = `
+                    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;">
+                        <div class="glass-card rounded-2xl p-8 max-w-sm mx-4 text-center">
+                            <div class="text-6xl mb-4">✅</div>
+                            <h3 class="text-2xl font-bold mb-2">Success!</h3>
+                            <p class="mb-6">This is a SweetAlert-style dialog</p>
+                            <button onclick="this.closest('div').parentElement.remove()" class="bg-white text-purple-600 px-6 py-2 rounded-full font-bold">OK</button>
+                        </div>
+                    </div>
+                `;
+                _('body').append(_(alertHtml).get(0));
+            });
+
+            // Tooltip
+            _('#tooltip-demo').hover(
+                function() {
+                    const tooltip = _(`<div class="glass-card rounded px-3 py-2 text-sm fixed z-50" style="top:${this.getBoundingClientRect().bottom + 5}px;left:${this.getBoundingClientRect().left}px;">I'm a tooltip!</div>`);
+                    _('body').append(tooltip.get(0));
+                },
+                function() {
+                    _('.glass-card:contains("I\'m a tooltip!")').remove();
+                }
+            );
+
+            // Tabs
+            _('.tab-btn').on('click', function() {
+                _('.tab-btn').removeClass('bg-white/25');
+                _(this).addClass('bg-white/25');
+                
+                _('.tab-content').addClass('hidden');
+                _('#' + _(this).data('tab')).removeClass('hidden');
+            });
+
+            // Accordion
+            _('.accordion-header').on('click', function() {
+                const content = _(this).parent().find('.accordion-content');
+                content.toggleClass('hidden');
+            });
+
+            // ===== State Management =====
+            let storeCount = 0;
+            let history = [0];
+            let historyIndex = 0;
+
+            function updateCounter() {
+                _('#counter-display').text(storeCount);
+            }
+
+            function addToHistory(value) {
+                history = history.slice(0, historyIndex + 1);
+                history.push(value);
+                historyIndex = history.length - 1;
+            }
+
+            _('#increment').on('click', () => {
+                storeCount++;
+                addToHistory(storeCount);
+                updateCounter();
+            });
+
+            _('#decrement').on('click', () => {
+                storeCount--;
+                addToHistory(storeCount);
+                updateCounter();
+            });
+
+            _('#reset').on('click', () => {
+                storeCount = 0;
+                addToHistory(storeCount);
+                updateCounter();
+            });
+
+            _('#undo').on('click', () => {
+                if (historyIndex > 0) {
+                    historyIndex--;
+                    storeCount = history[historyIndex];
+                    updateCounter();
+                }
+            });
+
+            _('#redo').on('click', () => {
+                if (historyIndex < history.length - 1) {
+                    historyIndex++;
+                    storeCount = history[historyIndex];
+                    updateCounter();
+                }
+            });
+
+            // ===== Routing =====
+            const routes = {
+                '/': { title: 'Home Page', content: 'Welcome to the routing demo!' },
+                '/about': { title: 'About Page', content: 'This is the about page with information about YakaJS.' },
+                '/contact': { title: 'Contact Page', content: 'Get in touch with us at contact@yakajs.com' }
+            };
+
+            _('.route-btn').on('click', function() {
+                const route = _(this).data('route');
+                const page = routes[route];
+                
+                _('#route-content').html(
+                    `<h5 class="font-bold text-xl mb-2">${page.title}</h5><p>${page.content}</p>`
+                );
+                _('#current-route').text(route);
+            });
+
+            // ===== Signals & Reactivity =====
+            let signalCount = 0;
+            
+            function updateSignal() {
+                _('#signal-count').text(signalCount);
+                _('#signal-double').text('Double: ' + (signalCount * 2));
+            }
+
+            _('#signal-increment').on('click', () => {
+                signalCount++;
+                updateSignal();
+            });
+
+            // ===== HTTP =====
+            _('#fetch-users').on('click', () => {
+                _('#http-result').html('Loading...');
+                
+                fetch('https://jsonplaceholder.typicode.com/users')
+                    .then(res => res.json())
+                    .then(data => {
+                        _('#http-result').html(
+                            '<h5 class="font-bold mb-2">Users (showing first 3):</h5>' +
+                            data.slice(0, 3).map(u => 
+                                `<div class="mb-2"><strong>${u.name}</strong><br><small>${u.email}</small></div>`
+                            ).join('')
+                        );
+                    })
+                    .catch(err => {
+                        _('#http-result').html('❌ Error: ' + err.message);
+                    });
+            });
+
+            _('#fetch-posts').on('click', () => {
+                _('#http-result').html('Loading...');
+                
+                fetch('https://jsonplaceholder.typicode.com/posts?_limit=3')
+                    .then(res => res.json())
+                    .then(data => {
+                        _('#http-result').html(
+                            '<h5 class="font-bold mb-2">Posts (showing first 3):</h5>' +
+                            data.map(p => 
+                                `<div class="mb-3"><strong>${p.title}</strong><br><small>${p.body.substring(0, 80)}...</small></div>`
+                            ).join('')
+                        );
+                    })
+                    .catch(err => {
+                        _('#http-result').html('❌ Error: ' + err.message);
+                    });
+            });
+
+            // ===== Security =====
+            _('#sanitize-btn').on('click', () => {
+                const input = _('#xss-input').val();
+                
+                // Simple HTML escape
+                const escaped = input
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+                
+                _('#sanitized-output').html(
+                    '<div class="mb-2"><strong>Original (dangerous):</strong><br><code class="text-xs">' + input + '</code></div>' +
+                    '<div><strong>Sanitized (safe):</strong><br><code class="text-xs">' + escaped + '</code></div>' +
+                    '<div class="mt-4 p-3 success-state rounded">✅ XSS attack prevented!</div>'
+                );
+            });
+
+            // ===== Advanced =====
+            let fpsMonitor = null;
+            let fpsCount = 0;
+
+            _('#start-monitor').on('click', () => {
+                fpsCount = 60; // Start at 60
+                fpsMonitor = setInterval(() => {
+                    fpsCount = 58 + Math.random() * 4; // Simulate 58-62 FPS
+                    _('#perf-output').html(
+                        `<div class="text-2xl font-bold">Current FPS: ${fpsCount.toFixed(1)}</div>` +
+                        `<div class="text-sm mt-2">Performance: ${fpsCount > 55 ? '✅ Excellent' : '⚠️ Needs improvement'}</div>`
+                    );
+                }, 100);
+            });
+
+            _('#stop-monitor').on('click', () => {
+                if (fpsMonitor) {
+                    clearInterval(fpsMonitor);
+                    fpsMonitor = null;
+                    _('#perf-output').html('Performance monitoring stopped.');
+                }
+            });
+
+            // LocalStorage
+            _('#save-storage').on('click', () => {
+                const key = _('#storage-key').val();
+                const value = _('#storage-value').val();
+                
+                if (key && value) {
+                    localStorage.setItem(key, value);
+                    _('#storage-output').html(`✅ Saved: ${key} = ${value}`).addClass('success-state');
+                } else {
+                    _('#storage-output').html('❌ Please enter both key and value').addClass('error-state');
+                }
+            });
+
+            _('#load-storage').on('click', () => {
+                const key = _('#storage-key').val();
+                
+                if (key) {
+                    const value = localStorage.getItem(key);
+                    if (value) {
+                        _('#storage-output').html(`✅ Loaded: ${key} = ${value}`).addClass('success-state');
+                        _('#storage-value').val(value);
+                    } else {
+                        _('#storage-output').html(`❌ No value found for key: ${key}`).addClass('error-state');
+                    }
+                } else {
+                    _('#storage-output').html('❌ Please enter a key').addClass('error-state');
+                }
+            });
+
+            // Utilities
+            _('#util-uuid').on('click', () => {
+                const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+                _('#util-output').html(`UUID: <code>${uuid}</code>`);
+            });
+
+            _('#util-random').on('click', () => {
+                const num = Math.floor(Math.random() * 100) + 1;
+                _('#util-output').html(`Random number (1-100): <strong class="text-2xl">${num}</strong>`);
+            });
+
+            let debClickCount = 0;
+            const utilDebounced = _.debounce(() => {
+                debClickCount++;
+                _('#util-output').html(`Debounced action executed ${debClickCount} time(s)`);
+            }, 500);
+
+            _('#util-debounce').on('click', utilDebounced);
+
+            let thrClickCount = 0;
+            const utilThrottled = _.throttle(() => {
+                thrClickCount++;
+                _('#util-output').html(`Throttled action executed ${thrClickCount} time(s)`);
+            }, 1000);
+
+            _('#util-throttle').on('click', utilThrottled);
+
+            // Smooth scroll for nav
+            _('nav a[href^="#"]').on('click', function(e) {
+                e.preventDefault();
+                const target = _(this.getAttribute('href'));
+                if (target.elements.length) {
+                    target.get(0).scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

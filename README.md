@@ -9,6 +9,21 @@
 
 YakaJS is a modern, lightweight JavaScript library that combines the simplicity of jQuery with cutting-edge browser features. It's designed to be error-free, performant, and developer-friendly.
 
+## 🎨 Interactive Demos
+
+**[👉 Try All Features in One Demo](demos/all-features.html)** - Comprehensive showcase with glassmorphism design
+
+Or browse by category:
+- [Core Features](demos/core-features.html) - DOM manipulation, events, selectors
+- [Animations Gallery](demos/animations.html) - All 15+ animation effects  
+- [Forms & Validation](demos/forms.html) - Real-time validation with 15+ rules
+- [UI Components](demos/components.html) - Modals, tooltips, tabs, accordion, carousel
+- [State Management](demos/state.html) - Vuex/Redux-style store with undo/redo
+- [Routing](demos/routing.html) - SPA routing with guards and parameters
+- [Reactivity](demos/reactivity.html) - SolidJS-inspired signals and effects
+- [Security](demos/security.html) - XSS protection, CSRF, sanitization
+- [Advanced Features](demos/advanced.html) - Web Workers, IndexedDB, performance monitoring
+
 ## 🎪 Interactive Demos
 
 **[View All Interactive Demos →](demos/index.html)**
