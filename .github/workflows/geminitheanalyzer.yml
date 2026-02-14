@@ -1,21 +1,60 @@
-name: Run Gemini CLI
+name: Auto Gemini Code Assist PR
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *"  # every hour
 
 jobs:
-  run-gemini:
+  auto-gemini-pr:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      # 1️⃣ Checkout the repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Run Gemini CLI
+      # 2️⃣ Setup Gemini CLI
+      - name: Setup Gemini CLI
         uses: google-github-actions/run-gemini-cli@v0.1.3
         with:
-          prompt: "You are the analyzer of our YakaJS library analyze libary find errors and fix them"
-          settings: '{}'
-          gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
-          use_vertex_ai: false
-          use_gemini_code_assist: true
           gemini_cli_version: "latest"
+
+      # 3️⃣ Configure Git (required for pushing commits)
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # 4️⃣ Run Gemini CLI with Code Assist, save fixes to a new branch
+      - name: Run Gemini Code Assist
+        run: |
+          # Create a branch for this run
+          git checkout -b gemini-auto-fixes
+          
+          # Run Gemini CLI to analyze & fix code
+          gemini analyze . --apply --output gemini-report.json
+          
+          # Only commit if changes exist
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add .
+            git commit -m "Gemini: automated code fixes"
+            git push --set-upstream origin gemini-auto-fixes
+          else
+            echo "No changes detected by Gemini."
+          fi
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          USE_GEMINI_CODE_ASSIST: "true"
+
+      # 5️⃣ Create Pull Request automatically
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Gemini: automated code fixes"
+          branch: gemini-auto-fixes
+          title: "Automated fixes by Gemini"
+          body: |
+            This PR was automatically created by Gemini Code Assist.
+            It includes suggested fixes and improvements to the YakaJS library.
+          reviewers: "" # optional: add GitHub usernames
