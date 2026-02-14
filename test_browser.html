@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>YakaJS Signal Test</title>
+</head>
+<body style="background: #000; color: #fff; font-family: monospace; padding: 20px;">
+    <h1>YakaJS Signal Test</h1>
+    <div id="test-results"></div>
+    
+    <script src="dist/min.yaka.js"></script>
+    <script>
+        const results = document.getElementById('test-results');
+        function log(msg, status = 'info') {
+            const color = status === 'pass' ? '#0f0' : status === 'fail' ? '#f00' : '#fff';
+            results.innerHTML += `<div style="color: ${color}; margin: 5px 0;">[${status.toUpperCase()}] ${msg}</div>`;
+        }
+        
+        try {
+            // Test 1: Check if _ is defined
+            if (typeof _ === 'undefined') {
+                log('FATAL: _ object not defined', 'fail');
+                throw new Error('YakaJS not loaded');
+            }
+            log('_ object is defined', 'pass');
+            
+            // Test 2: Check signal method
+            if (typeof _.signal !== 'function') {
+                log('_.signal is not a function', 'fail');
+            } else {
+                log('_.signal is a function', 'pass');
+            }
+            
+            // Test 3: Check effect method  
+            if (typeof _.effect !== 'function') {
+                log('_.effect is not a function', 'fail');
+            } else {
+                log('_.effect is a function', 'pass');
+            }
+            
+            // Test 4: Check computed method
+            if (typeof _.computed !== 'function') {
+                log('_.computed is not a function', 'fail');
+            } else {
+                log('_.computed is a function', 'pass');
+            }
+            
+            // Test 5: Create and test signal
+            const testSignal = _.signal(10);
+            if (testSignal() !== 10) {
+                log('Signal initial value incorrect', 'fail');
+            } else {
+                log('Signal created with correct initial value: ' + testSignal(), 'pass');
+            }
+            
+            // Test 6: Test signal.set
+            testSignal.set(20);
+            if (testSignal() !== 20) {
+                log('Signal.set failed', 'fail');
+            } else {
+                log('Signal.set works: ' + testSignal(), 'pass');
+            }
+            
+            // Test 7: Test signal.update
+            testSignal.update(v => v + 5);
+            if (testSignal() !== 25) {
+                log('Signal.update failed', 'fail');
+            } else {
+                log('Signal.update works: ' + testSignal(), 'pass');
+            }
+            
+            // Test 8: Test effect
+            let effectRan = false;
+            let effectValue = 0;
+            const effectSignal = _.signal(100);
+            _.effect(() => {
+                effectRan = true;
+                effectValue = effectSignal();
+            });
+            if (!effectRan || effectValue !== 100) {
+                log('Effect did not run immediately', 'fail');
+            } else {
+                log('Effect runs immediately: ' + effectValue, 'pass');
+            }
+            
+            // Test 9: Test effect reactivity
+            effectSignal.set(200);
+            if (effectValue !== 200) {
+                log('Effect did not react to signal change', 'fail');
+            } else {
+                log('Effect reacts to signal changes: ' + effectValue, 'pass');
+            }
+            
+            // Test 10: Test computed
+            const a = _.signal(5);
+            const b = _.signal(10);
+            const sum = _.computed(() => a() + b());
+            if (sum() !== 15) {
+                log('Computed value incorrect', 'fail');
+            } else {
+                log('Computed works: ' + sum(), 'pass');
+            }
+            
+            // Test 11: Test computed reactivity
+            a.set(20);
+            if (sum() !== 30) {
+                log('Computed did not update when dependency changed', 'fail');
+            } else {
+                log('Computed updates automatically: ' + sum(), 'pass');
+            }
+            
+            log('ALL TESTS PASSED!', 'pass');
+            
+        } catch (error) {
+            log('ERROR: ' + error.message, 'fail');
+            console.error(error);
+        }
+    </script>
+</body>
+</html>
