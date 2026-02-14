@@ -1396,7 +1396,7 @@
 
     Yaka.isEqual = function (a, b) {
         if (a === b) return true;
-        if (a == null || b == null) return false;
+        if (a === null || a === undefined || b === null || b === undefined) return false;
         if (typeof a !== typeof b) return false;
         
         if (a instanceof Date && b instanceof Date) {
@@ -1425,7 +1425,7 @@
         let result = obj;
         
         for (const key of keys) {
-            if (result == null) return defaultValue;
+            if (result === null || result === undefined) return defaultValue;
             result = result[key];
         }
         
@@ -1752,11 +1752,11 @@
     };
 
     Yaka.isNil = function (value) {
-        return value == null;
+        return value === null || value === undefined;
     };
 
     Yaka.isEmpty = function (value) {
-        if (value == null) return true;
+        if (value === null || value === undefined) return true;
         if (Array.isArray(value) || typeof value === 'string') return value.length === 0;
         if (typeof value === 'object') return Object.keys(value).length === 0;
         return false;
@@ -1825,6 +1825,9 @@
     };
 
     Yaka.random = function (min = 0, max = 1, floating = false) {
+        if (min > max) {
+            [min, max] = [max, min]; // Swap if min > max
+        }
         if (floating || min % 1 !== 0 || max % 1 !== 0) {
             return Math.random() * (max - min) + min;
         }
@@ -1832,24 +1835,39 @@
     };
 
     Yaka.sum = function (array) {
+        if (!array || array.length === 0) {
+            return 0;
+        }
         return array.reduce((sum, num) => sum + num, 0);
     };
 
     Yaka.mean = function (array) {
+        if (!array || array.length === 0) {
+            return 0;
+        }
         return Yaka.sum(array) / array.length;
     };
 
     Yaka.median = function (array) {
+        if (!array || array.length === 0) {
+            return 0;
+        }
         const sorted = [...array].sort((a, b) => a - b);
         const mid = Math.floor(sorted.length / 2);
         return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     };
 
     Yaka.min = function (array) {
+        if (!array || array.length === 0) {
+            return Infinity;
+        }
         return Math.min(...array);
     };
 
     Yaka.max = function (array) {
+        if (!array || array.length === 0) {
+            return -Infinity;
+        }
         return Math.max(...array);
     };
 
@@ -1960,6 +1978,9 @@
                         container = elem.offsetParent || document.body;
                     } else if (typeof options.containment === 'string') {
                         container = document.querySelector(options.containment);
+                        if (!container) {
+                            console.warn(`Draggable: containment selector "${options.containment}" not found`);
+                        }
                     } else if (options.containment instanceof Element) {
                         container = options.containment;
                     }
@@ -2010,23 +2031,27 @@
     // NEW! Sortable lists
     Yaka.prototype.sortable = function (options = {}) {
         return this.each((i, container) => {
+            if (container._yaka_sortable) return;
+            container._yaka_sortable = true;
+            
             let draggedItem = null;
+            const eventHandlers = []; // Track handlers for cleanup
 
             Array.from(container.children).forEach(item => {
                 item.draggable = true;
                 item.style.cursor = 'move';
 
-                item.addEventListener('dragstart', (e) => {
+                const dragstartHandler = (e) => {
                     draggedItem = item;
                     item.style.opacity = '0.5';
-                });
+                };
 
-                item.addEventListener('dragend', () => {
+                const dragendHandler = () => {
                     item.style.opacity = '';
                     if (options.onChange) options.onChange.call(container);
-                });
+                };
 
-                item.addEventListener('dragover', (e) => {
+                const dragoverHandler = (e) => {
                     e.preventDefault();
                     const afterElement = getDragAfterElement(container, e.clientY);
                     if (afterElement === null) {
@@ -2034,6 +2059,20 @@
                     } else {
                         container.insertBefore(draggedItem, afterElement);
                     }
+                };
+
+                item.addEventListener('dragstart', dragstartHandler);
+                item.addEventListener('dragend', dragendHandler);
+                item.addEventListener('dragover', dragoverHandler);
+
+                // Store handlers for cleanup
+                eventHandlers.push({
+                    element: item,
+                    events: [
+                        { type: 'dragstart', handler: dragstartHandler },
+                        { type: 'dragend', handler: dragendHandler },
+                        { type: 'dragover', handler: dragoverHandler }
+                    ]
                 });
             });
 
@@ -2049,6 +2088,17 @@
                     }
                 }, { offset: Number.NEGATIVE_INFINITY }).element;
             }
+
+            // Store cleanup function
+            container._yaka_sortable_cleanup = () => {
+                eventHandlers.forEach(({ element, events }) => {
+                    events.forEach(({ type, handler }) => {
+                        element.removeEventListener(type, handler);
+                    });
+                });
+                delete container._yaka_sortable;
+                delete container._yaka_sortable_cleanup;
+            };
         });
     };
 
@@ -3911,7 +3961,9 @@
 
         return this.each((i, elem) => {
             elem.innerHTML = component.render(props);
-            component.mounted.call(elem);
+            if (typeof component.mounted === 'function') {
+                component.mounted.call(elem);
+            }
         });
     };
 
@@ -3966,7 +4018,15 @@
 
         const wrappedHandlers = {
             open: (e) => handlers.onOpen(e),
-            message: (e) => handlers.onMessage(JSON.parse(e.data)),
+            message: (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    handlers.onMessage(data);
+                } catch (error) {
+                    console.error('WebSocket: Failed to parse message as JSON:', error);
+                    handlers.onError(error);
+                }
+            },
             error: (e) => handlers.onError(e),
             close: (e) => handlers.onClose(e)
         };
@@ -6404,6 +6464,7 @@
                 '_yaka_parallax_cleanup',
                 '_yaka_sticky_cleanup',
                 '_yaka_draggable_cleanup',
+                '_yaka_sortable_cleanup',
                 '_yaka_resizable_cleanup',
                 '_yaka_droppable_cleanup',
                 '_yaka_selectable_cleanup',
