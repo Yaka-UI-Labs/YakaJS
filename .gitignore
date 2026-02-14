@@ -13,3 +13,6 @@ dist/*.map
 # Custom builds from yakacli
 *-yaka.js
 custom-yaka.js
+
+# Test files
+test-*.html

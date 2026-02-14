@@ -80,15 +80,17 @@
         },
 
         first: function () {
-            return new Yaka(this.elements[0]);
+            return new Yaka(this.elements[0] || []);
         },
 
         last: function () {
-            return new Yaka(this.elements[this.elements.length - 1]);
+            const lastElem = this.elements[this.elements.length - 1];
+            return new Yaka(lastElem || []);
         },
 
         eq: function (index) {
-            return new Yaka(this.elements[index]);
+            const elem = this.elements[index];
+            return new Yaka(elem !== undefined ? elem : []);
         },
 
         // ==================== CONTENT METHODS ====================
@@ -1137,6 +1139,9 @@
     Yaka.get = async function (url, data) {
         const params = data ? '?' + new URLSearchParams(data) : '';
         const response = await fetch(url + params);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
     };
 
@@ -1146,6 +1151,9 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
     };
 
@@ -1155,11 +1163,17 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
     };
 
     Yaka.delete = async function (url) {
         const response = await fetch(url, { method: 'DELETE' });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
     };
 
@@ -1180,6 +1194,9 @@
             : url;
 
         const response = await fetch(fullUrl, config);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
     };
 
@@ -1784,7 +1801,8 @@
             document.cookie = `${name}=${value};expires=${date.toUTCString()};path=/`;
         },
         get: function (name) {
-            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            const escapedName = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const match = document.cookie.match(new RegExp('(^| )' + escapedName + '=([^;]+)'));
             return match ? match[2] : null;
         },
         remove: function (name) {
@@ -1795,21 +1813,33 @@
     // NEW! Local storage helpers
     Yaka.storage = {
         set: function (key, value) {
-            localStorage.setItem(key, JSON.stringify(value));
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                console.warn('Yaka.storage.set: localStorage unavailable or quota exceeded', e);
+            }
         },
         get: function (key) {
-            const item = localStorage.getItem(key);
             try {
+                const item = localStorage.getItem(key);
                 return JSON.parse(item);
             } catch {
-                return item;
+                return null;
             }
         },
         remove: function (key) {
-            localStorage.removeItem(key);
+            try {
+                localStorage.removeItem(key);
+            } catch (e) {
+                console.warn('Yaka.storage.remove: localStorage unavailable', e);
+            }
         },
         clear: function () {
-            localStorage.clear();
+            try {
+                localStorage.clear();
+            } catch (e) {
+                console.warn('Yaka.storage.clear: localStorage unavailable', e);
+            }
         }
     };
 
@@ -6111,7 +6141,7 @@
         let value = initialValue;
         const subscribers = new Set();
         
-        const read = () => {
+        const signal = () => {
             // Track current effect if any
             if (Yaka.signal._currentEffect) {
                 subscribers.add(Yaka.signal._currentEffect);
@@ -6119,14 +6149,22 @@
             return value;
         };
         
-        const write = (newValue) => {
+        signal.set = (newValue) => {
             if (value === newValue) return;
-            value = typeof newValue === 'function' ? newValue(value) : newValue;
+            value = newValue;
             Yaka._log('info', 'Signal updated', { value });
             subscribers.forEach(effect => effect());
         };
         
-        return [read, write];
+        signal.update = (fn) => {
+            const newValue = fn(value);
+            if (value === newValue) return;
+            value = newValue;
+            Yaka._log('info', 'Signal updated', { value });
+            subscribers.forEach(effect => effect());
+        };
+        
+        return signal;
     };
 
     // Effect runner for signals
@@ -6144,9 +6182,9 @@
 
     // Computed signal
     Yaka.computed = function(fn) {
-        const [value, setValue] = Yaka.signal(undefined);
-        Yaka.effect(() => setValue(fn()));
-        return value;
+        const signal = Yaka.signal(undefined);
+        Yaka.effect(() => signal.set(fn()));
+        return signal;
     };
 
     // Memory leak detector
