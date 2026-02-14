@@ -80,12 +80,12 @@
         },
 
         first: function () {
-            return new Yaka(this.elements[0] || []);
+            return new Yaka(this.elements[0] ?? []);
         },
 
         last: function () {
             const lastElem = this.elements[this.elements.length - 1];
-            return new Yaka(lastElem || []);
+            return new Yaka(lastElem ?? []);
         },
 
         eq: function (index) {
@@ -1820,11 +1820,11 @@
             }
         },
         get: function (key) {
+            const item = localStorage.getItem(key);
             try {
-                const item = localStorage.getItem(key);
                 return JSON.parse(item);
             } catch {
-                return null;
+                return item; // Return raw value if JSON parse fails
             }
         },
         remove: function (key) {
