@@ -13,20 +13,31 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Configure Git for commits
+      # 2️⃣ Configure Git
       - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # 3️⃣ Hardcore Gemini auth
+      # 3️⃣ Install Node.js (required for gemini CLI)
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "20"  # choose latest LTS
+
+      # 4️⃣ Install Gemini CLI globally
+      - name: Install Gemini CLI
+        run: |
+          npm install -g @google/gemini-cli
+
+      # 5️⃣ Hardcore Gemini auth
       - name: Configure Gemini CLI
         run: |
           mkdir -p $HOME/.gemini
           # <-- HARDCODE YOUR API KEY HERE -->
-          echo '{ "auth": { "api_key": "YOUR_HARDCORE_GEMINI_API_KEY" } }' > $HOME/.gemini/settings.json
+          echo '{ "auth": { "api_key": "AIzaSyA2UGdd7XhcCWmUeSlVuufLipCIq1VYHY8" } }' > $HOME/.gemini/settings.json
 
-      # 4️⃣ Run Gemini CLI with Code Assist and apply fixes
+      # 6️⃣ Run Gemini CLI with Code Assist and apply fixes
       - name: Run Gemini Code Assist
         run: |
           git checkout -B gemini-auto-fixes
@@ -41,11 +52,11 @@ jobs:
         env:
           USE_GEMINI_CODE_ASSIST: "true"
 
-      # 5️⃣ Create Pull Request automatically
+      # 7️⃣ Create Pull Request automatically
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          token: YOUR_PERSONAL_ACCESS_TOKEN  # hardcode GitHub PAT here
+          token: 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 # hardcode GitHub PAT here
           commit-message: "Gemini: automated code fixes"
           branch: gemini-auto-fixes
           title: "Automated fixes by Gemini"
