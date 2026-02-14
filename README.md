@@ -5,10 +5,11 @@
 [![Size](https://img.shields.io/badge/size-151%20KB%20minified-success.svg)](dist/min.yaka.js)
 [![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js)
 [![Documentation](https://img.shields.io/badge/📚-Documentation-brightgreen.svg)](DOCUMENTATION.md)
+[![Features](https://img.shields.io/badge/🎯-234%20Features-purple.svg)](FEATURES.md)
 
 ![An illustration showing a variety of differently themed Octocats. Monuments from different cities are indicated in the background like the Space Needle, Berlin Fernsehturm and Transamerica Pyramid.](https://github.com/Yaka-UI-Labs/.github/blob/main/profile/pro.png)
 
-Yes, we're building a JavaScript library **on GitHub**. In fact, we've been doing this since we made our first commit and pushed **9,504 lines** of pure JavaScript magic 🪄. We've implemented **150+ features**, compressed our code by **56%**, and even added **voice commands** 🎤 (because why not?). But that's just us. We are proud to be building a library for developers, designers, and yes, even robots 🤖 across the internet. Yes, Robots!
+Yes, we're building a JavaScript library **on GitHub**. In fact, we've been doing this since we made our first commit and pushed **9,504 lines** of pure JavaScript magic 🪄. We've implemented **234 features** (that's 56% more than promised!), compressed our code by **56%**, and even added **voice commands** 🎤 (because why not?). But that's just us. We are proud to be building a library for developers, designers, and yes, even robots 🤖 across the internet. Yes, Robots!
 
 ## 🍿 What is YakaJS?
 
@@ -16,7 +17,7 @@ Think jQuery meets modern JavaScript. But with superpowers 🦸. YakaJS is a nex
 
 - **🎤 Voice-Controlled** - The ONLY library with built-in voice commands (seriously, try saying "click button" to control your app!)
 - **⚡ Lightning Fast** - Batched DOM operations prevent layout thrashing
-- **🎨 Feature-Rich** - 150+ features including animations, routing, state management, and more
+- **🎨 Feature-Rich** - 234 features including animations, routing, state management, and more
 - **🔒 Secure by Default** - Built-in XSS protection, CSRF tokens, and input sanitization
 - **📦 Tiny** - Just 151 KB minified (that's 56% smaller than the source!)
 - **🛡️ Never Crashes** - Safe-mode chaining with `_.safe()` prevents those annoying "Cannot read property of undefined" errors
@@ -262,12 +263,12 @@ _.createRouter(); // SPA routing!
 
 ### The Numbers 📊
 
-- **346 KB** source code (9,504 lines)
+- **346 KB** source code (10,259 lines)
 - **155 KB** minified
 - **151 KB** hyper-compressed
 - **56% smaller** than source
-- **150+ features** ready to use
-- **12 interactive demos** with examples
+- **234 features** ready to use
+- **13 interactive demos** with examples
 - **21 premium features** that no other library has
 - **0 dependencies** (just vanilla JavaScript)
 - **100% browser compatible** (modern browsers)
@@ -559,7 +560,11 @@ npm run build
 
 ## 📚 Documentation
 
-### Full Feature List
+### 🎯 Complete Features List
+
+**Want to see ALL 234 features?** Check out **[FEATURES.md](FEATURES.md)** - the complete, exhaustive list of every single method, component, and capability in YakaJS!
+
+### Quick Feature Overview
 
 <details>
 <summary>🎨 <strong>UI Components & Animations (Click to expand)</strong></summary>
@@ -733,10 +738,10 @@ Special thanks to:
 
 ## 🎊 Fun Facts
 
-- 📝 **9,504 lines of code** - That's a lot of JavaScript!
+- 📝 **10,259 lines of code** - That's a lot of JavaScript!
 - 🎤 **First library with voice commands** - We checked. It's true!
-- ⚡ **150+ features** - More than you'll probably ever need
-- 🎨 **12 interactive demos** - Each one prettier than the last
+- ⚡ **234 features** - More than you'll probably ever need
+- 🎨 **13 interactive demos** - Each one prettier than the last
 - 🏆 **56% compression** - We're really good at making things small
 - 🤖 **Robot-friendly** - If you're a bot reading this, hi! 👋
 - 🪐 **Solar system ready** - Okay, we haven't tested this one yet

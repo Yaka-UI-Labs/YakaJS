@@ -55,7 +55,7 @@ Includes examples for:
 #### 📘 [API Reference](docs/API_REFERENCE.md)
 **31 KB | 1,598 lines**
 
-Complete documentation for all 150+ features:
+Complete documentation for all 234 features:
 - ✅ Core API & DOM Manipulation
 - ✅ Events & AJAX/HTTP
 - ✅ Animations & UI Components
@@ -72,6 +72,19 @@ Every method includes:
 - Code examples
 - Security notes
 - Performance tips
+
+---
+
+#### 🎯 [Complete Features List](FEATURES.md)
+**22 KB | 356 features documented**
+
+**New!** Exhaustive list of all 234 features:
+- ✅ All static methods (160)
+- ✅ All prototype methods (69)
+- ✅ All namespaced APIs (5)
+- ✅ Organized by category
+- ✅ With descriptions & examples
+- ✅ Quick reference guide
 
 </td>
 <td width="50%">
