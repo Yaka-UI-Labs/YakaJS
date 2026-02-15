@@ -66,6 +66,10 @@
         // NEW! Replace element
         replace: function (newContent) {
             return this.each((i, elem) => {
+                if (!elem.parentNode) {
+                    console.warn('Yaka.replace: Cannot replace element without parent');
+                    return;
+                }
                 if (typeof newContent === 'string') {
                     elem.outerHTML = newContent;
                 } else if (newContent.nodeType) {
@@ -77,6 +81,10 @@
         // NEW! Wrap element
         wrap: function (wrapper) {
             return this.each((i, elem) => {
+                if (!elem.parentNode) {
+                    console.warn('Yaka.wrap: Cannot wrap element without parent');
+                    return;
+                }
                 const wrapElem = typeof wrapper === 'string'
                     ? document.createElement(wrapper)
                     : wrapper.cloneNode(true);

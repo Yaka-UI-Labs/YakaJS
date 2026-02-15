@@ -11,7 +11,8 @@
         // ==================== TRAVERSAL ====================
 
         parent: function () {
-            const parents = [...new Set(this.elements.map(elem => elem.parentNode))];
+            // Filter out null values when parent doesn't exist
+            const parents = [...new Set(this.elements.map(elem => elem.parentNode).filter(Boolean))];
             return new Yaka(parents);
         },
 
