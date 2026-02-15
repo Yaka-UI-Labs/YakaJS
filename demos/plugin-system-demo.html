@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YakaJS Plugin System Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            opacity: 0.9;
+            margin-bottom: 40px;
+        }
+        .demo-section {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .demo-section h2 {
+            margin-top: 0;
+            color: #ffd700;
+        }
+        .test-box {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            transition: all 0.3s;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 4px;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #4caf50;
+        }
+        .status.error {
+            background: #f44336;
+        }
+        code {
+            background: rgba(0,0,0,0.3);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .info-box {
+            background: rgba(255, 215, 0, 0.2);
+            border-left: 4px solid #ffd700;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔌 YakaJS Plugin System</h1>
+    <div class="subtitle">Modular Loading Demo - Load Only What You Need!</div>
+
+    <div class="container">
+        <div class="info-box">
+            <strong>What's Loaded:</strong>
+            <ul id="loadedPlugins">
+                <li>✅ Core (yaka-core.js) - Constructor and basic methods</li>
+            </ul>
+        </div>
+
+        <div class="demo-section">
+            <h2>1️⃣ Core Functionality</h2>
+            <p>Core is always available - let's test basic DOM manipulation:</p>
+            <div class="test-box" id="coreTest">
+                Click the button to test core methods
+            </div>
+            <button onclick="testCore()">Test Core Methods</button>
+            <span id="coreStatus"></span>
+        </div>
+
+        <div class="demo-section">
+            <h2>2️⃣ Load Animation Plugin</h2>
+            <p>Dynamically load the animations plugin and test it:</p>
+            <div class="test-box" id="animTest">
+                This box will fade in/out
+            </div>
+            <button onclick="loadAnimations()">Load Animation Plugin</button>
+            <button onclick="testFadeIn()" id="fadeInBtn" disabled>Test Fade In</button>
+            <button onclick="testFadeOut()" id="fadeOutBtn" disabled>Test Fade Out</button>
+            <span id="animStatus"></span>
+        </div>
+
+        <div class="demo-section">
+            <h2>3️⃣ Load AJAX Plugin</h2>
+            <p>Load AJAX functionality on demand:</p>
+            <button onclick="loadAjax()">Load AJAX Plugin</button>
+            <button onclick="testAjax()" id="ajaxBtn" disabled>Test AJAX</button>
+            <span id="ajaxStatus"></span>
+            <div id="ajaxResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2>4️⃣ Load Events Plugin</h2>
+            <p>Load advanced event handling:</p>
+            <button onclick="loadEvents()">Load Events Plugin</button>
+            <button onclick="testEvents()" id="eventsBtn" disabled>Test Event Delegation</button>
+            <span id="eventsStatus"></span>
+            <div id="eventTest" style="display:none;">
+                <div class="test-box">
+                    <button class="delegated-btn">Click me 1</button>
+                    <button class="delegated-btn">Click me 2</button>
+                    <button class="delegated-btn">Click me 3</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load only the core initially -->
+    <script src="../tree/core/yaka-core.js"></script>
+
+    <script>
+        // Track loaded plugins
+        const loadedPlugins = new Set(['core']);
+
+        function updatePluginsList() {
+            const list = document.getElementById('loadedPlugins');
+            const plugins = Array.from(loadedPlugins);
+            list.innerHTML = plugins.map(p => `<li>✅ ${p}</li>`).join('');
+        }
+
+        function setStatus(elementId, success, message) {
+            const el = document.getElementById(elementId);
+            el.className = `status ${success ? 'success' : 'error'}`;
+            el.textContent = message;
+            setTimeout(() => el.textContent = '', 3000);
+        }
+
+        // Test core functionality
+        function testCore() {
+            try {
+                const box = _('#coreTest');
+                box.text('✅ Core is working! Text changed successfully.');
+                box.each((i, el) => {
+                    el.style.background = 'rgba(76, 175, 80, 0.3)';
+                });
+                setStatus('coreStatus', true, 'Success!');
+            } catch (e) {
+                setStatus('coreStatus', false, 'Error: ' + e.message);
+            }
+        }
+
+        // Load animations plugin dynamically
+        function loadAnimations() {
+            if (loadedPlugins.has('animations')) {
+                setStatus('animStatus', true, 'Already loaded!');
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = '../tree/animations/animations.js';
+            script.onload = () => {
+                loadedPlugins.add('animations');
+                updatePluginsList();
+                document.getElementById('fadeInBtn').disabled = false;
+                document.getElementById('fadeOutBtn').disabled = false;
+                setStatus('animStatus', true, 'Loaded!');
+            };
+            script.onerror = () => {
+                setStatus('animStatus', false, 'Failed to load');
+            };
+            document.head.appendChild(script);
+        }
+
+        function testFadeIn() {
+            _('#animTest').fadeIn(500);
+        }
+
+        function testFadeOut() {
+            _('#animTest').fadeOut(500);
+        }
+
+        // Load AJAX plugin
+        function loadAjax() {
+            if (loadedPlugins.has('ajax')) {
+                setStatus('ajaxStatus', true, 'Already loaded!');
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = '../tree/ajax/http.js';
+            script.onload = () => {
+                loadedPlugins.add('ajax');
+                updatePluginsList();
+                document.getElementById('ajaxBtn').disabled = false;
+                setStatus('ajaxStatus', true, 'Loaded!');
+            };
+            script.onerror = () => {
+                setStatus('ajaxStatus', false, 'Failed to load');
+            };
+            document.head.appendChild(script);
+        }
+
+        function testAjax() {
+            const result = document.getElementById('ajaxResult');
+            result.innerHTML = '<p>Testing AJAX...</p>';
+            
+            // Test with a simple API
+            fetch('https://api.github.com/repos/Yaka-UI-Labs/YakaJS')
+                .then(r => r.json())
+                .then(data => {
+                    result.innerHTML = `
+                        <div class="test-box">
+                            <h3>✅ AJAX Working!</h3>
+                            <p>Repository: ${data.name}</p>
+                            <p>Stars: ⭐ ${data.stargazers_count}</p>
+                            <p>Forks: 🍴 ${data.forks_count}</p>
+                        </div>
+                    `;
+                })
+                .catch(e => {
+                    result.innerHTML = `<div class="test-box">❌ Error: ${e.message}</div>`;
+                });
+        }
+
+        // Load events plugin
+        function loadEvents() {
+            if (loadedPlugins.has('events')) {
+                setStatus('eventsStatus', true, 'Already loaded!');
+                return;
+            }
+
+            const script = document.createElement('script');
+            script.src = '../tree/events/events.js';
+            script.onload = () => {
+                loadedPlugins.add('events');
+                updatePluginsList();
+                document.getElementById('eventsBtn').disabled = false;
+                setStatus('eventsStatus', true, 'Loaded!');
+            };
+            script.onerror = () => {
+                setStatus('eventsStatus', false, 'Failed to load');
+            };
+            document.head.appendChild(script);
+        }
+
+        function testEvents() {
+            const testDiv = document.getElementById('eventTest');
+            testDiv.style.display = 'block';
+            
+            // Use event delegation
+            _('#eventTest').on('click', '.delegated-btn', function(e) {
+                alert('✅ Event delegation working! You clicked: ' + this.textContent);
+            });
+            
+            setStatus('eventsStatus', true, 'Event delegation active!');
+        }
+
+        // Initial setup
+        console.log('YakaJS Plugin System Demo');
+        console.log('Yaka core loaded:', typeof Yaka !== 'undefined');
+        console.log('Yaka.use available:', typeof Yaka.use === 'function');
+    </script>
+</body>
+</html>

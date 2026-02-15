@@ -167,13 +167,16 @@ tree/
 └── performance/       # Performance monitoring
 ```
 
-**Perfect for:**
+**⚠️ IMPORTANT:** The tree folder is for **learning and development only**. For production websites, use the minified bundle (`dist/min.yaka.js` at ~150KB) - it's smaller than most web images!
+
+**Tree folder is perfect for:**
 - 🔍 Understanding the codebase structure
 - 🛠️ Contributing to specific features
 - 📚 Learning how features are organized
 - 🎯 Code reviews and maintenance
+- 🧪 Creating custom builds (advanced)
 
-The tree folder is automatically generated during `npm run build` and provides a clear view of all 234 features organized by category. Check out [tree/README.md](tree/README.md) for more details!
+The tree folder is automatically generated during `npm run build` and provides a clear view of all 234 features organized by category. Check out [tree/README.md](tree/README.md) for complete documentation and plugin system details!
 
 ## 🚀 Quick Start (5 Minutes)
 
