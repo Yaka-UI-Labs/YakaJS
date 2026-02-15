@@ -21,7 +21,7 @@
         // Add methods to Yaka prototype
         Object.assign(Yaka.prototype, {
                     // ==================== ADVANCED FEATURES (jQuery doesn't have!) ====================
-
+            
                     // NEW! Debounced event
                     debounce: function (event, handler, delay = 300) {
                         return this.each((i, elem) => {
@@ -32,7 +32,7 @@
                             });
                         });
                     },
-
+            
                     // NEW! Throttled event
                     throttle: function (event, handler, delay = 300) {
                         return this.each((i, elem) => {
@@ -46,7 +46,7 @@
                             });
                         });
                     },
-
+            
                     // NEW! Observe element visibility
                     onVisible: function (handler, options = {}) {
                         const observer = new IntersectionObserver((entries) => {
@@ -56,11 +56,11 @@
                                 }
                             });
                         }, options);
-
+            
                         this.each((i, elem) => observer.observe(elem));
                         return this;
                     },
-
+            
                     // NEW! Lazy load images
                     lazyLoad: function () {
                         return this.onVisible(function () {
@@ -72,7 +72,7 @@
                             }
                         });
                     },
-
+            
                     // NEW! Copy to clipboard
                     copy: function () {
                         const text = this.text();
@@ -81,12 +81,12 @@
                             .catch(err => console.warn('Yaka copy: clipboard write failed', err));
                         return this;
                     },
-
+            
                     // NEW! Serialize form data
                     serialize: function () {
                         const form = this.elements[0];
                         if (!form || form.tagName !== 'FORM') return {};
-
+            
                         const formData = new FormData(form);
                         const data = {};
                         for (let [key, value] of formData.entries()) {
@@ -94,7 +94,7 @@
                         }
                         return data;
                     },
-
+            
                     // NEW! Auto-save form
                     autoSave: function (key, delay = 1000) {
                         return this.debounce('input', function () {
@@ -106,7 +106,7 @@
                             }
                         }, delay);
                     },
-
+            
                     // NEW! Restore form data
                     restore: function (key) {
                         try {
@@ -124,23 +124,23 @@
                             return this;
                         }
                     },
-
+            
                     // NEW! Validate form
                     validate: function (rules) {
                         const form = this.elements[0];
                         if (!form) return { valid: true, errors: {} };
-
+            
                         const errors = {};
                         let valid = true;
-
+            
                         Object.keys(rules).forEach(name => {
                             const input = form.querySelector(`[name="${name}"]`);
                             if (!input) return;
-
+            
                             const rule = rules[name];
                             const value = input.value;
                             const fieldErrors = [];
-
+            
                             // Check all rules independently
                             // Support both old 'message' and new specific message properties for backward compatibility
                             if (rule.required && !value) {
@@ -155,7 +155,7 @@
                             if (value && rule.max && value.length > rule.max) {
                                 fieldErrors.push(rule.maxMessage || rule.message || `Maximum ${rule.max} characters`);
                             }
-
+            
                             if (fieldErrors.length > 0) {
                                 // Backward compatibility: Return format depends on usage pattern
                                 // - Old API (single 'message' property): returns string
@@ -170,10 +170,10 @@
                                 valid = false;
                             }
                         });
-
+            
                         return { valid, errors };
                     },
-
+            
                     // NEW! Smooth scroll to element
                     scrollTo: function (duration = 500) {
                         if (this.elements[0]) {
@@ -184,7 +184,7 @@
                         }
                         return this;
                     },
-
+            
                     // NEW! Count up animation
                     countUp: function (target, duration = 2000) {
                         return this.each((i, elem) => {
@@ -193,11 +193,11 @@
                                 console.error('countUp target must be a valid number');
                                 return;
                             }
-                
+                            
                             const start = parseInt(elem.textContent) || 0;
                             const range = target - start;
                             const startTime = performance.now();
-
+            
                             const tick = (now) => {
                                 const elapsed = now - startTime;
                                 const progress = Math.min(elapsed / duration, 1);
@@ -206,11 +206,11 @@
                                     requestAnimationFrame(tick);
                                 }
                             };
-
+            
                             requestAnimationFrame(tick);
                         });
                     },
-
+            
                     // NEW! Type writer effect
                     typeWriter: function (text, speed = 50) {
                         return this.each((i, elem) => {
@@ -219,7 +219,7 @@
                                 console.error('typeWriter requires a string');
                                 return;
                             }
-                
+                            
                             elem.textContent = '';
                             let index = 0;
                             const timer = setInterval(() => {
@@ -232,14 +232,14 @@
                             }, speed);
                         });
                     },
-
+            
                     // NEW! Confetti effect
                     confetti: function () {
                         return this.each((i, elem) => {
                             if (!elem._yaka_confetti_timeouts) {
                                 elem._yaka_confetti_timeouts = [];
                             }
-                
+                            
                             const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
                             for (let i = 0; i < 50; i++) {
                                 const confetti = document.createElement('div');
@@ -254,11 +254,11 @@
                                 `;
                                 elem.style.position = 'relative';
                                 elem.appendChild(confetti);
-                    
+                                
                                 const timeoutId = setTimeout(() => confetti.remove(), 5000);
                                 elem._yaka_confetti_timeouts.push(timeoutId);
                             }
-                
+                            
                             // Store cleanup method
                             if (!elem._yaka_confetti_cleanup) {
                                 elem._yaka_confetti_cleanup = () => {
@@ -272,18 +272,13 @@
                         });
                     }
                 };
-
+            
         });
     };
     
     // Auto-register if Yaka is available
     if (typeof window !== 'undefined' && window.Yaka) {
         plugin(window.Yaka);
-    }
-    
-    // Support manual registration via Yaka.use()
-    if (typeof window !== 'undefined' && window.Yaka && window.Yaka.use) {
-        // Already auto-registered above
     }
     
     // Export for module systems

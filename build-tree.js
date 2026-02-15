@@ -175,7 +175,14 @@ function createFeatureFile(category, fileName, content, description, isCore = fa
     if (!isCore && category !== 'core' && !fileName.includes('-methods.js') && fileName !== 'yaka-core.js' && 
         fileName !== 'attributes.js' && fileName !== 'classes.js' && fileName !== 'styles.js') {
         const pluginName = fileName.replace('.js', '');
-        finalContent = `(function(window) {
+        
+        // Check if content contains method definitions (object literal format)
+        // Look for pattern like: "methodName: function" with optional whitespace
+        const hasMethodDefs = /^\s*\w+:\s*function/m.test(content);
+        
+        if (hasMethodDefs) {
+            // Wrap as prototype methods
+            finalContent = `(function(window) {
     'use strict';
     
     // This is a YakaJS plugin
@@ -187,7 +194,7 @@ function createFeatureFile(category, fileName, content, description, isCore = fa
         
         // Add methods to Yaka prototype
         Object.assign(Yaka.prototype, {
-${indentCode(content, 12)}
+${content.split('\n').map(line => line ? '            ' + line : line).join('\n')}
         });
     };
     
@@ -196,9 +203,31 @@ ${indentCode(content, 12)}
         plugin(window.Yaka);
     }
     
-    // Support manual registration via Yaka.use()
-    if (typeof window !== 'undefined' && window.Yaka && window.Yaka.use) {
-        // Already auto-registered above
+    // Export for module systems
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = plugin;
+    }
+})(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : globalThis));
+`;
+        } else {
+            // Execute code directly (for static methods and other code)
+            finalContent = `(function(window) {
+    'use strict';
+    
+    // This is a YakaJS plugin
+    const plugin = function(Yaka) {
+        if (!Yaka) {
+            console.error('YakaJS core is required. Please load yaka-core.js first.');
+            return;
+        }
+        
+        // Execute plugin code
+${content.split('\n').map(line => line ? '        ' + line : line).join('\n')}
+    };
+    
+    // Auto-register if Yaka is available
+    if (typeof window !== 'undefined' && window.Yaka) {
+        plugin(window.Yaka);
     }
     
     // Export for module systems
@@ -207,6 +236,7 @@ ${indentCode(content, 12)}
     }
 })(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : globalThis));
 `;
+        }
     }
 
     const filePath = path.join(folderPath, fileName);
@@ -216,8 +246,17 @@ ${indentCode(content, 12)}
 
 function indentCode(code, spaces) {
     const indent = ' '.repeat(spaces);
+    // Don't indent lines that are already part of object literal or have specific syntax
     return code.split('\n')
-        .map(line => line.trim() ? indent + line : line)
+        .map(line => {
+            // Skip empty lines
+            if (!line.trim()) return line;
+            // Don't double-indent if already indented for object literal
+            if (line.trim().match(/^[a-zA-Z_$][\w$]*:/)) {
+                return indent + line;
+            }
+            return indent + line;
+        })
         .join('\n');
 }
 
@@ -265,13 +304,16 @@ if (staticMethodsStart !== -1 && staticMethodsEnd !== -1) {
 console.log('\n🔧 Creating core bundle...\n');
 
 const coreStart = findLineNumber('(function (window) {');
-const prototypeEnd = findLineNumber('    // ==================== STATIC METHODS ====================');
+// Only include up to the end of STYLES, not all the way to STATIC METHODS
+const coreEnd = findLineNumber('// ==================== ANIMATIONS (ENHANCED!) ====================');
 
-if (coreStart !== -1 && prototypeEnd !== -1) {
-    const coreContent = lines.slice(coreStart, prototypeEnd + 1).join('\n');
+if (coreStart !== -1 && coreEnd !== -1) {
+    const coreContent = lines.slice(coreStart, coreEnd).join('\n');
     
-    // Add plugin system and export
-    const exportSection = `
+    // Add closing for the prototype and plugin system
+    const closingSection = `
+    };
+
     // ==================== PLUGIN SYSTEM ====================
     
     /**
@@ -302,7 +344,7 @@ if (coreStart !== -1 && prototypeEnd !== -1) {
 })(typeof window !== 'undefined' ? window : global);
 `;
 
-    createFeatureFile('core', 'yaka-core.js', coreContent + exportSection, 'Core YakaJS constructor and prototype methods', true);
+    createFeatureFile('core', 'yaka-core.js', coreContent + closingSection, 'Core YakaJS constructor and basic prototype methods', true);
 }
 
 // Create an index file for the tree folder
