@@ -146,8 +146,34 @@ Yaka('#app').fadeIn(); // Full type safety!
 git clone https://github.com/Yaka-UI-Labs/YakaJS.git
 cd YakaJS
 npm install
-npm run build  # Builds all 3 optimized versions!
+npm run build  # Builds all 3 optimized versions + tree folder!
 ```
+
+### 🌲 Tree Folder (Modular Structure)
+
+**New in v1.1.0!** YakaJS now includes a **tree folder** with all features organized into separate files:
+
+```
+tree/
+├── core/              # Basic methods, attributes, classes, styles
+├── dom/               # DOM manipulation and traversal
+├── events/            # Event handling and delegation
+├── animations/        # Fade, slide, scale effects
+├── ui/                # Draggable, sortable, resizable, etc.
+├── ajax/              # HTTP, routing
+├── validation/        # Form validation
+├── security/          # XSS, CSRF protection
+├── state/             # State management
+└── performance/       # Performance monitoring
+```
+
+**Perfect for:**
+- 🔍 Understanding the codebase structure
+- 🛠️ Contributing to specific features
+- 📚 Learning how features are organized
+- 🎯 Code reviews and maintenance
+
+The tree folder is automatically generated during `npm run build` and provides a clear view of all 234 features organized by category. Check out [tree/README.md](tree/README.md) for more details!
 
 ## 🚀 Quick Start (5 Minutes)
 
