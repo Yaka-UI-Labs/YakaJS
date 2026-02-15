@@ -10,6 +10,10 @@ dist/*.map
 !dist/hyper.min.yaka.js
 !dist/min.yaka.js.map
 
+# Tree folder - include all files (auto-generated on build)
+# Minified tree files are kept
+tree/**/*.min.js
+
 # Custom builds from yakacli
 *-yaka.js
 custom-yaka.js

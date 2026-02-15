@@ -6,13 +6,15 @@
   "types": "yaka.d.ts",
   "files": [
     "dist/",
+    "tree/",
     "yaka.d.ts",
     "README.md",
     "LICENSE",
     "TYPESCRIPT.md"
   ],
   "scripts": {
-    "build": "npm run build:min && npm run build:ultra && npm run build:hyper",
+    "build": "npm run build:tree && npm run build:min && npm run build:ultra && npm run build:hyper",
+    "build:tree": "node build-tree.js",
     "build:min": "terser src/yaka.js -o dist/min.yaka.js -c -m --comments /^!/ --source-map \"url=min.yaka.js.map\"",
     "build:ultra": "terser src/yaka.js -o dist/ultra.min.yaka.js -c passes=3,pure_getters,unsafe,unsafe_comps,unsafe_math,unsafe_methods,unsafe_proto,unsafe_regexp,unsafe_undefined -m --comments /^!/",
     "build:hyper": "terser src/yaka.js -o dist/hyper.min.yaka.js --module --ecma 2020 -c passes=10,pure_getters,unsafe,unsafe_comps,unsafe_math,unsafe_methods,unsafe_proto,unsafe_regexp,unsafe_undefined,unsafe_arrows,unsafe_Function,toplevel,join_vars,collapse_vars,reduce_vars,hoist_vars,hoist_funs -m toplevel,eval -f ascii_only=false,semicolons=false,wrap_func_args=false --comments /^!/"
