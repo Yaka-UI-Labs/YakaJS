@@ -707,6 +707,10 @@
         // NEW! Replace element
         replace: function (newContent) {
             return this.each((i, elem) => {
+                if (!elem.parentNode) {
+                    console.warn('Yaka.replace: Cannot replace element without parent');
+                    return;
+                }
                 if (typeof newContent === 'string') {
                     elem.outerHTML = newContent;
                 } else if (newContent.nodeType) {
@@ -718,6 +722,10 @@
         // NEW! Wrap element
         wrap: function (wrapper) {
             return this.each((i, elem) => {
+                if (!elem.parentNode) {
+                    console.warn('Yaka.wrap: Cannot wrap element without parent');
+                    return;
+                }
                 const wrapElem = typeof wrapper === 'string'
                     ? document.createElement(wrapper)
                     : wrapper.cloneNode(true);
@@ -729,7 +737,8 @@
         // ==================== TRAVERSAL ====================
 
         parent: function () {
-            const parents = [...new Set(this.elements.map(elem => elem.parentNode))];
+            // Filter out null values when parent doesn't exist
+            const parents = [...new Set(this.elements.map(elem => elem.parentNode).filter(Boolean))];
             return new Yaka(parents);
         },
 
@@ -1203,7 +1212,12 @@
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return response.json();
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+            return response.json();
+        }
+        return response.text();
     };
 
     Yaka.post = async function (url, data) {
@@ -1234,6 +1248,10 @@
         const response = await fetch(url, { method: 'DELETE' });
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        // Handle 204 No Content responses
+        if (response.status === 204 || response.headers.get('content-length') === '0') {
+            return null;
         }
         return response.json();
     };
@@ -1418,7 +1436,7 @@
         return false;
     };
 
-    Yaka.get = function (obj, path, defaultValue) {
+    Yaka.getProperty = function (obj, path, defaultValue) {
         if (!obj || typeof path !== 'string') return defaultValue;
         
         const keys = path.split('.');
@@ -1900,6 +1918,7 @@
         },
         get: function (key) {
             const item = localStorage.getItem(key);
+            if (!item) return null; // Return null if key doesn't exist
             try {
                 return JSON.parse(item);
             } catch {
