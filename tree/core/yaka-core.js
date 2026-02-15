@@ -1205,6 +1205,22 @@
     };
 
     // ==================== STATIC METHODS ====================
+    // ==================== PLUGIN SYSTEM ====================
+    
+    /**
+     * Plugin registration system for modular YakaJS
+     * Allows loading individual feature modules
+     * @param {Function} plugin - Plugin function that receives Yaka constructor
+     */
+    Yaka.use = function(plugin) {
+        if (typeof plugin === 'function') {
+            plugin(Yaka);
+        } else {
+            console.warn('Plugin must be a function that receives the Yaka constructor');
+        }
+        return Yaka;
+    };
+    
     // Export
     const _ = Yaka;
     

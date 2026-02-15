@@ -152,7 +152,7 @@ function extractSection(startLine, endLine) {
     return lines.slice(startLine, endLine).join('\n');
 }
 
-function createFeatureFile(category, fileName, content, description) {
+function createFeatureFile(category, fileName, content, description, isCore = false) {
     const folderPath = path.join(__dirname, 'tree', category);
     if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath, { recursive: true });
@@ -170,9 +170,55 @@ function createFeatureFile(category, fileName, content, description) {
 
 `;
 
+    // For non-core files, wrap in plugin format
+    let finalContent = content;
+    if (!isCore && category !== 'core' && !fileName.includes('-methods.js') && fileName !== 'yaka-core.js' && 
+        fileName !== 'attributes.js' && fileName !== 'classes.js' && fileName !== 'styles.js') {
+        const pluginName = fileName.replace('.js', '');
+        finalContent = `(function(window) {
+    'use strict';
+    
+    // This is a YakaJS plugin
+    const plugin = function(Yaka) {
+        if (!Yaka || !Yaka.prototype) {
+            console.error('YakaJS core is required. Please load yaka-core.js first.');
+            return;
+        }
+        
+        // Add methods to Yaka prototype
+        Object.assign(Yaka.prototype, {
+${indentCode(content, 12)}
+        });
+    };
+    
+    // Auto-register if Yaka is available
+    if (typeof window !== 'undefined' && window.Yaka) {
+        plugin(window.Yaka);
+    }
+    
+    // Support manual registration via Yaka.use()
+    if (typeof window !== 'undefined' && window.Yaka && window.Yaka.use) {
+        // Already auto-registered above
+    }
+    
+    // Export for module systems
+    if (typeof module !== 'undefined' && module.exports) {
+        module.exports = plugin;
+    }
+})(typeof window !== 'undefined' ? window : (typeof global !== 'undefined' ? global : globalThis));
+`;
+    }
+
     const filePath = path.join(folderPath, fileName);
-    fs.writeFileSync(filePath, header + content, 'utf-8');
-    console.log(`✓ Created: tree/${category}/${fileName} (${content.split('\n').length} lines)`);
+    fs.writeFileSync(filePath, header + finalContent, 'utf-8');
+    console.log(`✓ Created: tree/${category}/${fileName} (${finalContent.split('\n').length} lines)`);
+}
+
+function indentCode(code, spaces) {
+    const indent = ' '.repeat(spaces);
+    return code.split('\n')
+        .map(line => line.trim() ? indent + line : line)
+        .join('\n');
 }
 
 // Extract features based on markers
@@ -224,8 +270,24 @@ const prototypeEnd = findLineNumber('    // ==================== STATIC METHODS 
 if (coreStart !== -1 && prototypeEnd !== -1) {
     const coreContent = lines.slice(coreStart, prototypeEnd + 1).join('\n');
     
-    // Add the closing and export
+    // Add plugin system and export
     const exportSection = `
+    // ==================== PLUGIN SYSTEM ====================
+    
+    /**
+     * Plugin registration system for modular YakaJS
+     * Allows loading individual feature modules
+     * @param {Function} plugin - Plugin function that receives Yaka constructor
+     */
+    Yaka.use = function(plugin) {
+        if (typeof plugin === 'function') {
+            plugin(Yaka);
+        } else {
+            console.warn('Plugin must be a function that receives the Yaka constructor');
+        }
+        return Yaka;
+    };
+    
     // Export
     const _ = Yaka;
     
@@ -240,7 +302,7 @@ if (coreStart !== -1 && prototypeEnd !== -1) {
 })(typeof window !== 'undefined' ? window : global);
 `;
 
-    createFeatureFile('core', 'yaka-core.js', coreContent + exportSection, 'Core YakaJS constructor and prototype methods');
+    createFeatureFile('core', 'yaka-core.js', coreContent + exportSection, 'Core YakaJS constructor and prototype methods', true);
 }
 
 // Create an index file for the tree folder
