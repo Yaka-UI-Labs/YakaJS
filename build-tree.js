@@ -244,21 +244,7 @@ ${content.split('\n').map(line => line ? '        ' + line : line).join('\n')}
     console.log(`✓ Created: tree/${category}/${fileName} (${finalContent.split('\n').length} lines)`);
 }
 
-function indentCode(code, spaces) {
-    const indent = ' '.repeat(spaces);
-    // Don't indent lines that are already part of object literal or have specific syntax
-    return code.split('\n')
-        .map(line => {
-            // Skip empty lines
-            if (!line.trim()) return line;
-            // Don't double-indent if already indented for object literal
-            if (line.trim().match(/^[a-zA-Z_$][\w$]*:/)) {
-                return indent + line;
-            }
-            return indent + line;
-        })
-        .join('\n');
-}
+
 
 // Extract features based on markers
 console.log('🌲 Building tree folder structure...\n');

@@ -1,41 +1,5 @@
 # YakaJS Tree Folder
 
-## ⚠️ IMPORTANT: Use Minified Bundle for Production!
-
-**We STRONGLY recommend using `dist/min.yaka.js` for production websites instead of loading individual tree modules!**
-
-### Why?
-
-- 🎯 **Size**: The minified bundle is only **~150KB** - that's tiny compared to images (which are often 2MB+)!
-- ⚡ **Performance**: Single file = 1 HTTP request instead of multiple
-- 📦 **Complete**: All features included, tested together
-- 🔒 **Production-Ready**: Minified, optimized, and battle-tested
-
-### When to Use Tree Folder?
-
-The tree folder is primarily for:
-- 📚 **Learning**: Study individual features in isolation
-- 🔧 **Development**: Work on specific features
-- 🎓 **Education**: Understand how YakaJS works internally
-- 🧪 **Custom Builds**: Create specialized bundles (advanced users only)
-
-### Bottom Line
-
-```html
-<!-- ✅ RECOMMENDED for production -->
-<script src="dist/min.yaka.js"></script>
-
-<!-- ❌ NOT recommended for production (multiple HTTP requests) -->
-<script src="tree/core/yaka-core.js"></script>
-<script src="tree/animations/animations.js"></script>
-<script src="tree/events/events.js"></script>
-<!-- ... -->
-```
-
-**The minified bundle is smaller than most web images - just use it!** 🚀
-
----
-
 ## What is YakaJS?
 
 **YakaJS** is the **jQuery-beating library** - a next-generation JavaScript library that surpasses jQuery in features, performance, and modern capabilities while maintaining the same elegant simplicity.
