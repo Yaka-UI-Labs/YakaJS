@@ -64,7 +64,6 @@
 
         .yaka-color { background: #667eea; }
         .jquery-color { background: #0769ad; }
-        .vanilla-color { background: #f0db4f; }
 
         .benchmark-section {
             margin-bottom: 50px;
@@ -138,7 +137,6 @@
 
         .yaka-bar { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
         .jquery-bar { background: linear-gradient(90deg, #0769ad 0%, #0a5383 100%); }
-        .vanilla-bar { background: linear-gradient(90deg, #f0db4f 0%, #ddc73f 100%); color: #333; }
 
         .winner-badge {
             display: inline-block;
@@ -248,7 +246,7 @@
 <body>
     <div class="container">
         <h1>⚡ YakaJS Benchmarks</h1>
-        <p class="subtitle">Performance Comparison: YakaJS vs jQuery vs Vanilla JavaScript</p>
+        <p class="subtitle">Performance Comparison: YakaJS vs jQuery</p>
 
         <div class="legend">
             <div class="legend-item">
@@ -258,10 +256,6 @@
             <div class="legend-item">
                 <div class="legend-color jquery-color"></div>
                 <span><strong>jQuery v3.7.1</strong></span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color vanilla-color"></div>
-                <span><strong>Vanilla JS</strong></span>
             </div>
         </div>
 
@@ -399,8 +393,7 @@
             
             const libraries = [
                 { name: 'YakaJS', key: 'yaka', class: 'yaka-bar' },
-                { name: 'jQuery', key: 'jquery', class: 'jquery-bar' },
-                { name: 'Vanilla JS', key: 'vanilla', class: 'vanilla-bar' }
+                { name: 'jQuery', key: 'jquery', class: 'jquery-bar' }
             ];
 
             // Find winner
@@ -438,8 +431,7 @@
             select: () => {
                 return {
                     yaka: measurePerformance(() => _('.benchmark'), 10000),
-                    jquery: measurePerformance(() => $('.benchmark'), 10000),
-                    vanilla: measurePerformance(() => document.querySelectorAll('.benchmark'), 10000)
+                    jquery: measurePerformance(() => $('.benchmark'), 10000)
                 };
             },
 
@@ -447,11 +439,7 @@
             create: () => {
                 return {
                     yaka: measurePerformance(() => _('<div>Hello World</div>'), 10000),
-                    jquery: measurePerformance(() => $('<div>Hello World</div>'), 10000),
-                    vanilla: measurePerformance(() => {
-                        const div = document.createElement('div');
-                        div.textContent = 'Hello World';
-                    }, 10000)
+                    jquery: measurePerformance(() => $('<div>Hello World</div>'), 10000)
                 };
             },
 
@@ -459,7 +447,6 @@
             append: () => {
                 const container1 = document.createElement('div');
                 const container2 = document.createElement('div');
-                const container3 = document.createElement('div');
                 
                 return {
                     yaka: measurePerformance(() => {
@@ -467,11 +454,6 @@
                     }, 1000),
                     jquery: measurePerformance(() => {
                         $(container2).append('<div>Item</div>');
-                    }, 1000),
-                    vanilla: measurePerformance(() => {
-                        const div = document.createElement('div');
-                        div.textContent = 'Item';
-                        container3.appendChild(div);
                     }, 1000)
                 };
             },
@@ -480,7 +462,6 @@
             manipulation: () => {
                 const el1 = document.createElement('div');
                 const el2 = document.createElement('div');
-                const el3 = document.createElement('div');
                 
                 return {
                     yaka: measurePerformance(() => {
@@ -488,10 +469,6 @@
                     }, 10000),
                     jquery: measurePerformance(() => {
                         $(el2).addClass('test').removeClass('test');
-                    }, 10000),
-                    vanilla: measurePerformance(() => {
-                        el3.classList.add('test');
-                        el3.classList.remove('test');
                     }, 10000)
                 };
             },
@@ -500,7 +477,6 @@
             eventAttach: () => {
                 const el1 = document.createElement('div');
                 const el2 = document.createElement('div');
-                const el3 = document.createElement('div');
                 const handler = () => {};
                 
                 return {
@@ -509,9 +485,6 @@
                     }, 1000),
                     jquery: measurePerformance(() => {
                         $(el2).on('click', handler);
-                    }, 1000),
-                    vanilla: measurePerformance(() => {
-                        el3.addEventListener('click', handler);
                     }, 1000)
                 };
             },
@@ -520,12 +493,10 @@
             eventTrigger: () => {
                 const el1 = document.createElement('div');
                 const el2 = document.createElement('div');
-                const el3 = document.createElement('div');
                 const handler = () => {};
                 
                 _(el1).on('click', handler);
                 $(el2).on('click', handler);
-                el3.addEventListener('click', handler);
                 
                 return {
                     yaka: measurePerformance(() => {
@@ -533,9 +504,6 @@
                     }, 10000),
                     jquery: measurePerformance(() => {
                         $(el2).trigger('click');
-                    }, 10000),
-                    vanilla: measurePerformance(() => {
-                        el3.dispatchEvent(new Event('click'));
                     }, 10000)
                 };
             },
@@ -549,10 +517,6 @@
                     }, 1000),
                     jquery: measurePerformance(() => {
                         const config = { url: '/api/test', method: 'GET' };
-                    }, 1000),
-                    vanilla: measurePerformance(() => {
-                        const xhr = new XMLHttpRequest();
-                        // Just setup, don't send
                     }, 1000)
                 };
             },
@@ -561,7 +525,6 @@
             animation: () => {
                 const el1 = document.createElement('div');
                 const el2 = document.createElement('div');
-                const el3 = document.createElement('div');
                 
                 return {
                     yaka: measurePerformance(() => {
@@ -569,9 +532,6 @@
                     }, 1000),
                     jquery: measurePerformance(() => {
                         $(el2).css({ opacity: 0.5 });
-                    }, 1000),
-                    vanilla: measurePerformance(() => {
-                        el3.style.opacity = '0.5';
                     }, 1000)
                 };
             },
@@ -588,10 +548,6 @@
                     jquery: measurePerformance(() => {
                         $.map(arr, x => x * 2);
                         $.grep(arr, x => x > 50);
-                    }, 10000),
-                    vanilla: measurePerformance(() => {
-                        arr.map(x => x * 2);
-                        arr.filter(x => x > 50);
                     }, 10000)
                 };
             }
@@ -642,13 +598,11 @@
             // Calculate summary
             let yakaWins = 0;
             let jqueryWins = 0;
-            let vanillaWins = 0;
 
             Object.values(allResults).forEach(result => {
-                const max = Math.max(result.yaka.opsPerSecond, result.jquery.opsPerSecond, result.vanilla.opsPerSecond);
+                const max = Math.max(result.yaka.opsPerSecond, result.jquery.opsPerSecond);
                 if (result.yaka.opsPerSecond === max) yakaWins++;
                 if (result.jquery.opsPerSecond === max) jqueryWins++;
-                if (result.vanilla.opsPerSecond === max) vanillaWins++;
             });
 
             const summaryStats = document.getElementById('summaryStats');
@@ -660,10 +614,6 @@
                 <div class="summary-stat">
                     <strong style="color: #0769ad;">🥈 ${jqueryWins}</strong>
                     jQuery Wins
-                </div>
-                <div class="summary-stat">
-                    <strong style="color: #f0db4f;">🥉 ${vanillaWins}</strong>
-                    Vanilla JS Wins
                 </div>
             `;
 
