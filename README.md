@@ -729,8 +729,8 @@ Check out our [Contributing Guide](CONTRIBUTING.md) for more details.
 ## 🌍 Community
 
 - **GitHub Discussions** - Ask questions, share ideas
-- **Discord** - Chat with other developers (coming soon!)
-- **Twitter** - Follow [@YakaJS](https://twitter.com/YakaJS) for updates (coming soon!)
+- **Discord** - Chat with other developers
+- **Twitter** - Follow [@YakaJS](https://twitter.com/YakaJS) for updates
 
 ## 📋 Roadmap
 
@@ -755,10 +755,10 @@ Have an idea? [Let us know!](https://github.com/Yaka-UI-Labs/YakaJS/issues)
 
 - **[GitHub Repository](https://github.com/Yaka-UI-Labs/YakaJS)** - Star us! ⭐
 - **[Interactive Demos](demos/index.html)** - See it in action
-- **[API Documentation](docs/API.md)** - Full API reference (coming soon!)
-- **[Migration Guide](docs/MIGRATION.md)** - Moving from jQuery? (coming soon!)
+- **[API Documentation](docs/API_REFERENCE.md)** - Full API reference
+- **[Migration Guide](docs/MIGRATION_GUIDE.md)** - Moving from jQuery?
 - **Minification Guide** - See `MINIFICATION.md`
-- **Implementation Details** - See `IMPLEMENTATION_SUMMARY.md`
+- **Implementation Details** - See `.github/docs/IMPLEMENTATION_SUMMARY.md`
 - **jQuery Comparison** - See `JQUERY_BEATING.md`
 
 ### Browser Support
