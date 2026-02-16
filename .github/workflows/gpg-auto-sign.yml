@@ -1,0 +1,134 @@
+name: GPG Auto-Sign Commits
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - 'feature/**'
+  workflow_dispatch:
+
+jobs:
+  gpg-sign-commits:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1️⃣ Checkout repository with full history
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT || github.token }}
+      
+      # 2️⃣ Import GPG key
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+          git_tag_gpgsign: true
+          git_push_gpgsign: if-asked
+      
+      # 3️⃣ Configure Git with GPG signing
+      - name: Configure Git for GPG signing
+        run: |
+          git config --global user.name "${{ steps.import_gpg.outputs.name }}"
+          git config --global user.email "${{ steps.import_gpg.outputs.email }}"
+          git config --global user.signingkey "${{ steps.import_gpg.outputs.keyid }}"
+          git config --global commit.gpgsign true
+          git config --global tag.gpgsign true
+          
+          echo "✓ Git configured for GPG signing"
+          echo "  Name: ${{ steps.import_gpg.outputs.name }}"
+          echo "  Email: ${{ steps.import_gpg.outputs.email }}"
+          echo "  Key ID: ${{ steps.import_gpg.outputs.keyid }}"
+          echo "  Fingerprint: ${{ steps.import_gpg.outputs.fingerprint }}"
+      
+      # 4️⃣ Check if last commit is already signed
+      - name: Check last commit signature
+        id: check_signature
+        run: |
+          LAST_COMMIT=$(git rev-parse HEAD)
+          echo "Checking commit: $LAST_COMMIT"
+          
+          # Check if commit is already signed
+          if git verify-commit $LAST_COMMIT 2>&1 | grep -q "Good signature"; then
+            echo "✓ Last commit is already signed"
+            echo "signed=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠ Last commit is not signed or signature is invalid"
+            echo "signed=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Show signature info
+          git log -1 --show-signature HEAD || true
+      
+      # 5️⃣ Re-sign last commit if not signed
+      - name: Re-sign last commit
+        if: steps.check_signature.outputs.signed == 'false'
+        run: |
+          echo "Re-signing last commit..."
+          
+          # Get last commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B HEAD)
+          
+          # Amend commit with GPG signature
+          git commit --amend --no-edit -S
+          
+          echo "✓ Commit re-signed successfully"
+          
+          # Verify the new signature
+          git verify-commit HEAD
+          git log -1 --show-signature HEAD
+      
+      # 6️⃣ Force push signed commit
+      - name: Push signed commit
+        if: steps.check_signature.outputs.signed == 'false'
+        run: |
+          # Get current branch name
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          
+          echo "Pushing signed commit to branch: $BRANCH_NAME"
+          
+          # Force push to update the commit
+          git push --force-with-lease origin $BRANCH_NAME
+          
+          echo "✓ Signed commit pushed successfully"
+      
+      # 7️⃣ Verify GPG signature
+      - name: Verify GPG signature
+        run: |
+          echo "Verifying GPG signature..."
+          
+          # Verify the commit signature
+          if git verify-commit HEAD; then
+            echo "✅ GPG signature verified successfully!"
+            git log -1 --show-signature HEAD
+          else
+            echo "❌ GPG signature verification failed!"
+            exit 1
+          fi
+      
+      # 8️⃣ Summary
+      - name: Summary
+        if: always()
+        run: |
+          echo "════════════════════════════════════════"
+          echo "GPG Auto-Sign Summary"
+          echo "════════════════════════════════════════"
+          echo "Branch: $(git rev-parse --abbrev-ref HEAD)"
+          echo "Commit: $(git rev-parse --short HEAD)"
+          echo "Message: $(git log -1 --pretty=%s HEAD)"
+          echo "════════════════════════════════════════"
+          
+          # Show signature status
+          if git verify-commit HEAD 2>/dev/null; then
+            echo "✅ Status: Signed and verified"
+          else
+            echo "⚠️  Status: Not signed or verification failed"
+          fi
+          
+          echo "════════════════════════════════════════"
