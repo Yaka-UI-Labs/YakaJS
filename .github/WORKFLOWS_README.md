@@ -60,9 +60,11 @@ To run the workflows successfully, you need to configure the following GitHub Se
 5. Value: Your Google Gemini API key (get one from [Google AI Studio](https://makersuite.google.com/app/apikey))
 6. Click **Add secret**
 
-### 4. GH_PAT
+### 4. GH_PAT (Optional - Only for Gemini workflow)
 
-**Purpose**: GitHub Personal Access Token for creating pull requests automatically and pushing signed commits.
+**Purpose**: GitHub Personal Access Token for creating pull requests automatically in the Gemini Auto-Fix workflow.
+
+**Note**: The GPG auto-signing workflows use the built-in `GITHUB_TOKEN` and do **NOT** require this secret. Only configure this if you're using the Gemini Auto-Fix workflow.
 
 **How to set it up**:
 1. Generate a Personal Access Token:
@@ -93,7 +95,7 @@ To run the workflows successfully, you need to configure the following GitHub Se
 **Requirements**:
 - `GPG_PRIVATE_KEY` secret must be configured
 - `GPG_PASSPHRASE` secret must be configured (if key has passphrase)
-- `GH_PAT` secret must be configured (for pushing signed commits)
+- No additional secrets needed (uses built-in `GITHUB_TOKEN`)
 
 **What it does**:
 1. Checks out the repository with full history
@@ -135,7 +137,7 @@ To run the workflows successfully, you need to configure the following GitHub Se
 **Requirements**:
 - `GPG_PRIVATE_KEY` secret must be configured
 - `GPG_PASSPHRASE` secret must be configured (if key has passphrase)
-- `GH_PAT` secret must be configured (for pushing signed commits)
+- No additional secrets needed (uses built-in `GITHUB_TOKEN`)
 
 **What it does**:
 1. Detects commits made by GitHub Copilot or GitHub Actions bots

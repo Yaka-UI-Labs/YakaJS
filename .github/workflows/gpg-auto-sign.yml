@@ -21,7 +21,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GH_PAT || github.token }}
+          token: ${{ github.token }}
+          persist-credentials: true
       
       # 2️⃣ Import GPG key
       - name: Import GPG key
@@ -90,9 +91,14 @@ jobs:
       # 6️⃣ Force push signed commit
       - name: Push signed commit
         if: steps.check_signature.outputs.signed == 'false'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           # Get current branch name
           BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          
+          # Configure git to use the GitHub token for authentication
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
           
           echo "Pushing signed commit to branch: $BRANCH_NAME"
           

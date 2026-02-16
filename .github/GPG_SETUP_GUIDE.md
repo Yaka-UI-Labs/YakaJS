@@ -120,17 +120,7 @@ Copy the entire output including:
 - Value: The passphrase you used when creating the key
 - Click **Add secret**
 
-### Secret 3: GH_PAT (GitHub Personal Access Token)
-- Go to GitHub → **Settings** → **Developer settings** → **Personal access tokens** → **Tokens (classic)**
-- Click **Generate new token (classic)**
-- Give it a name: "YakaJS GPG Auto-Sign"
-- Select scope: `repo` (Full control of private repositories)
-- Click **Generate token** and copy it
-- Go back to repository → **Settings** → **Secrets and variables** → **Actions**
-- Click **New repository secret**
-- Name: `GH_PAT`
-- Value: Your GitHub Personal Access Token
-- Click **Add secret**
+**Note**: The GPG auto-signing workflows now use the built-in `GITHUB_TOKEN` which has proper permissions automatically. You do **NOT** need to configure a separate `GH_PAT` token for GPG signing to work.
 
 ## Step 7: Test the Workflow
 
@@ -181,9 +171,9 @@ git log --show-signature
 - Check GitHub → Settings → SSH and GPG keys to confirm the key is added
 
 ### Force push fails
-- Verify the `GH_PAT` secret has `repo` scope permissions
 - Check if branch protection rules prevent force pushes
-- Try temporarily disabling "Require signed commits" during setup
+- Verify the workflow has `contents: write` permission (it does by default)
+- The workflow uses built-in `GITHUB_TOKEN` which should work automatically
 
 ## Workflow Files
 

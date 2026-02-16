@@ -2,12 +2,15 @@
 
 ## Configuration Status
 
-All required GitHub Secrets have been successfully configured:
+**Required GitHub Secrets** (successfully configured):
 
-- ✅ **GPG_PRIVATE_KEY** - Configured (just now)
-- ✅ **GPG_PASSPHRASE** - Configured (just now)
-- ✅ **GH_PAT** - Configured (2 days ago)
-- ✅ **GEMINI_API_KEY** - Configured (2 days ago)
+- ✅ **GPG_PRIVATE_KEY** - Configured
+- ✅ **GPG_PASSPHRASE** - Configured
+
+**Optional Secrets** (not needed for GPG signing):
+
+- ⚪ **GH_PAT** - Only needed for Gemini workflow, not for GPG signing
+- ⚪ **GEMINI_API_KEY** - Only needed for Gemini workflow
 
 ## What This Means
 
