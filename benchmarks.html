@@ -356,18 +356,76 @@
     <script>
         // Fallback if jQuery fails to load
         if (typeof jQuery === 'undefined') {
-            window.jQuery = window.$ = function() { 
-                return { 
-                    on: function() { return this; },
-                    addClass: function() { return this; },
-                    removeClass: function() { return this; },
-                    append: function() { return this; },
-                    trigger: function() { return this; },
-                    css: function() { return this; }
-                }; 
+            window.jQuery = window.$ = function(selector) {
+                let elements = [];
+                if (typeof selector === 'string') {
+                    if (selector[0] === '<') {
+                        // Create element
+                        const div = document.createElement('div');
+                        elements = [div];
+                    } else {
+                        // Query selector
+                        elements = Array.from(document.querySelectorAll(selector));
+                    }
+                } else if (selector && selector.nodeType) {
+                    // DOM element passed
+                    elements = [selector];
+                }
+                
+                const jqObj = {
+                    length: elements.length,
+                    on: function(event, handler) {
+                        elements.forEach(el => el && el.addEventListener && el.addEventListener(event, handler));
+                        return this;
+                    },
+                    addClass: function(className) {
+                        elements.forEach(el => el && el.classList && el.classList.add(className));
+                        return this;
+                    },
+                    removeClass: function(className) {
+                        elements.forEach(el => el && el.classList && el.classList.remove(className));
+                        return this;
+                    },
+                    append: function(content) {
+                        elements.forEach(el => {
+                            if (el) {
+                                if (typeof content === 'string' && content[0] === '<') {
+                                    const div = document.createElement('div');
+                                    div.innerHTML = content;
+                                    el.appendChild(div.firstChild);
+                                } else {
+                                    el.appendChild(content);
+                                }
+                            }
+                        });
+                        return this;
+                    },
+                    trigger: function(eventType) {
+                        elements.forEach(el => el && el.dispatchEvent && el.dispatchEvent(new Event(eventType)));
+                        return this;
+                    },
+                    css: function(prop, value) {
+                        if (typeof prop === 'object') {
+                            elements.forEach(el => {
+                                if (el && el.style) {
+                                    Object.keys(prop).forEach(key => {
+                                        el.style[key] = prop[key];
+                                    });
+                                }
+                            });
+                        }
+                        return this;
+                    }
+                };
+                
+                elements.forEach((el, i) => {
+                    jqObj[i] = el;
+                });
+                
+                return jqObj;
             };
-            jQuery.map = Array.prototype.map;
-            jQuery.grep = Array.prototype.filter;
+            jQuery.map = function(arr, fn) { return arr.map(fn); };
+            jQuery.grep = function(arr, fn) { return arr.filter(fn); };
         }
     </script>
     <script src="./dist/min.yaka.js"></script>
