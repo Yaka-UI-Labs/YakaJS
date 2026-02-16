@@ -63,7 +63,7 @@
                     find: function (selector) {
                         const found = [];
                         this.each((i, elem) => {
-                            found.push(...Array.from(elem.querySelectorAll(selector)));
+                            found.push(...elem.querySelectorAll(selector));
                         });
                         return new Yaka(found);
                     },

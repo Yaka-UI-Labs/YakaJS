@@ -36,29 +36,34 @@
         // Handle null/undefined
         if (!selector) return this;
 
-        // Handle HTML strings
+        // Handle HTML strings and CSS selectors (most common path - optimize first)
         if (typeof selector === 'string') {
             if (selector[0] === '<') {
                 const temp = document.createElement('div');
                 temp.innerHTML = selector;
-                this.elements = Array.from(temp.children);
+                this.elements = [...temp.children];
             } else {
-                // CSS selector
-                const ctx = context || document;
-                this.elements = Array.from(ctx.querySelectorAll(selector));
+                // CSS selector - optimized hot path
+                this.elements = [...(context || document).querySelectorAll(selector)];
             }
+            return this;
         }
+        
         // Handle DOM elements
-        else if (selector.nodeType) {
+        if (selector.nodeType) {
             this.elements = [selector];
+            return this;
         }
+        
         // Handle arrays
-        else if (Array.isArray(selector)) {
+        if (Array.isArray(selector)) {
             this.elements = selector;
+            return this;
         }
+        
         // Handle NodeList or HTMLCollection
-        else if (selector.length !== undefined) {
-            this.elements = Array.from(selector);
+        if (selector.length !== undefined) {
+            this.elements = [...selector];
         }
 
         return this;
