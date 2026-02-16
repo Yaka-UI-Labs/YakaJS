@@ -17,47 +17,22 @@
             color: #333;
             line-height: 1.6;
             padding: 20px;
-            min-height: 100vh;
-            animation: backgroundShift 15s ease infinite;
-        }
-        
-        @keyframes backgroundShift {
-            0%, 100% { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-            50% { background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); }
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            background: white;
             border-radius: 20px;
             padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 0 100px rgba(102, 126, 234, 0.1);
-            animation: containerFloat 3s ease-in-out infinite;
-        }
-        
-        @keyframes containerFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
         h1 {
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #667eea;
             margin-bottom: 10px;
             font-size: 2.5em;
-            font-weight: 800;
-            text-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
-            animation: titlePulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes titlePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
         }
 
         .subtitle {
@@ -102,18 +77,11 @@
         }
 
         .benchmark {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: #f8f9fa;
             border-radius: 10px;
             padding: 25px;
             margin-bottom: 25px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid rgba(102, 126, 234, 0.1);
-        }
-        
-        .benchmark:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
 
         .benchmark h3 {
@@ -157,7 +125,7 @@
         .bar-fill {
             height: 100%;
             border-radius: 5px;
-            transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 1s ease-out;
             display: flex;
             align-items: center;
             justify-content: flex-end;
@@ -165,51 +133,20 @@
             color: white;
             font-weight: bold;
             font-size: 0.9em;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .bar-fill::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
         }
 
-        .yaka-bar { 
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); 
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);
-        }
-        .jquery-bar { 
-            background: linear-gradient(90deg, #0769ad 0%, #0a5383 100%); 
-            box-shadow: 0 2px 10px rgba(7, 105, 173, 0.4);
-        }
+        .yaka-bar { background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); }
+        .jquery-bar { background: linear-gradient(90deg, #0769ad 0%, #0a5383 100%); }
 
         .winner-badge {
             display: inline-block;
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            background: #4caf50;
             color: white;
             padding: 5px 15px;
             border-radius: 20px;
             font-size: 0.85em;
             font-weight: bold;
             margin-left: 10px;
-            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
-            animation: winnerPulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes winnerPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 4px 12px rgba(76, 175, 80, 0.6); }
         }
 
         .methodology {
@@ -239,36 +176,16 @@
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 5px 15px rgba(102,126,234,0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        
-        .run-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        
-        .run-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-        
+
         .run-btn:hover {
-            transform: translateY(-3px) scale(1.05);
-            box-shadow: 0 8px 25px rgba(102,126,234,0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102,126,234,0.6);
         }
-        
+
         .run-btn:active {
-            transform: translateY(-1px) scale(1.02);
+            transform: translateY(0);
         }
 
         .run-btn:disabled {
@@ -394,12 +311,16 @@
             </div>
 
             <div class="benchmark-section">
-                <h2>3. CSS & Styling</h2>
+                <h2>3. AJAX/HTTP Operations</h2>
                 
-                <div class="benchmark" id="bench-css">
-                    <h3>CSS Multi-Property (5,000 operations)</h3>
-                    <div class="benchmark-bars" id="bars-css"></div>
+                <div class="benchmark" id="bench-ajax">
+                    <h3>Promise-based HTTP Request Setup (1,000 preparations)</h3>
+                    <div class="benchmark-bars" id="bars-ajax"></div>
                 </div>
+            </div>
+
+            <div class="benchmark-section">
+                <h2>4. Animation Performance</h2>
                 
                 <div class="benchmark" id="bench-animation">
                     <h3>Animation Setup (1,000 animations)</h3>
@@ -408,30 +329,11 @@
             </div>
 
             <div class="benchmark-section">
-                <h2>4. Method Chaining & Advanced</h2>
-                
-                <div class="benchmark" id="bench-chaining">
-                    <h3>Method Chaining (1,000 chains)</h3>
-                    <div class="benchmark-bars" id="bars-chaining"></div>
-                </div>
+                <h2>5. Utilities & Array Operations</h2>
                 
                 <div class="benchmark" id="bench-utilities">
                     <h3>Array/Object Utilities (10,000 operations)</h3>
                     <div class="benchmark-bars" id="bars-utilities"></div>
-                </div>
-            </div>
-            
-            <div class="benchmark-section">
-                <h2>5. Content Manipulation</h2>
-                
-                <div class="benchmark" id="bench-text">
-                    <h3>Text Operations (5,000 reads/writes)</h3>
-                    <div class="benchmark-bars" id="bars-text"></div>
-                </div>
-                
-                <div class="benchmark" id="bench-attr">
-                    <h3>Attribute Operations (5,000 operations)</h3>
-                    <div class="benchmark-bars" id="bars-attr"></div>
                 </div>
             </div>
         </div>
@@ -709,70 +611,6 @@
                         $.grep(arr, x => x > 50);
                     }, 10000)
                 };
-            },
-            
-            // CSS Multi-Property
-            css: () => {
-                const el1 = document.createElement('div');
-                const el2 = document.createElement('div');
-                
-                return {
-                    yaka: measurePerformance(() => {
-                        _(el1).css({ opacity: '0.5', width: '100px', height: '100px' });
-                    }, 5000),
-                    jquery: measurePerformance(() => {
-                        $(el2).css({ opacity: '0.5', width: '100px', height: '100px' });
-                    }, 5000)
-                };
-            },
-            
-            // Method Chaining
-            chaining: () => {
-                const el1 = document.createElement('div');
-                const el2 = document.createElement('div');
-                
-                return {
-                    yaka: measurePerformance(() => {
-                        _(el1).addClass('test').css('opacity', '0.5').attr('data-id', '123');
-                    }, 1000),
-                    jquery: measurePerformance(() => {
-                        $(el2).addClass('test').css('opacity', '0.5').attr('data-id', '123');
-                    }, 1000)
-                };
-            },
-            
-            // Text Operations
-            text: () => {
-                const el1 = document.createElement('div');
-                const el2 = document.createElement('div');
-                
-                return {
-                    yaka: measurePerformance(() => {
-                        _(el1).text('Hello World');
-                        _(el1).text();
-                    }, 5000),
-                    jquery: measurePerformance(() => {
-                        $(el2).text('Hello World');
-                        $(el2).text();
-                    }, 5000)
-                };
-            },
-            
-            // Attribute Operations
-            attr: () => {
-                const el1 = document.createElement('div');
-                const el2 = document.createElement('div');
-                
-                return {
-                    yaka: measurePerformance(() => {
-                        _(el1).attr('data-test', 'value');
-                        _(el1).attr('data-test');
-                    }, 5000),
-                    jquery: measurePerformance(() => {
-                        $(el2).attr('data-test', 'value');
-                        $(el2).attr('data-test');
-                    }, 5000)
-                };
             }
         };
 
@@ -799,12 +637,9 @@
                 { id: 'manipulation', name: 'Class Manipulation', bars: 'bars-manipulation' },
                 { id: 'eventAttach', name: 'Event Attachment', bars: 'bars-event-attach' },
                 { id: 'eventTrigger', name: 'Event Triggering', bars: 'bars-event-trigger' },
-                { id: 'css', name: 'CSS Multi-Property', bars: 'bars-css' },
+                { id: 'ajax', name: 'AJAX Setup', bars: 'bars-ajax' },
                 { id: 'animation', name: 'Animation Setup', bars: 'bars-animation' },
-                { id: 'chaining', name: 'Method Chaining', bars: 'bars-chaining' },
-                { id: 'utilities', name: 'Utilities', bars: 'bars-utilities' },
-                { id: 'text', name: 'Text Operations', bars: 'bars-text' },
-                { id: 'attr', name: 'Attribute Operations', bars: 'bars-attr' }
+                { id: 'utilities', name: 'Utilities', bars: 'bars-utilities' }
             ];
 
             for (let i = 0; i < benchmarkList.length; i++) {

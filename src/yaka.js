@@ -300,13 +300,17 @@
 
         css: function (prop, value) {
             if (typeof prop === 'object') {
+                // Fast path: use Object.assign for batch updates
                 return this.each((i, elem) => {
                     Object.assign(elem.style, prop);
                 });
             }
             if (value === undefined) {
-                return getComputedStyle(this.elements[0])?.[prop];
+                // Fast path for read
+                const elem = this.elements[0];
+                return elem ? getComputedStyle(elem)[prop] : '';
             }
+            // Fast path for single property write
             return this.each((i, elem) => elem.style[prop] = value);
         },
 
