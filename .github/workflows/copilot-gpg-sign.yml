@@ -13,6 +13,10 @@ on:
 jobs:
   sign-copilot-commits:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write         # Need write access to push signed commits
+      pull-requests: write    # Need write access to comment on PRs
+      actions: read
     # Only run for commits from GitHub Copilot
     if: |
       github.actor == 'github-actions[bot]' || 

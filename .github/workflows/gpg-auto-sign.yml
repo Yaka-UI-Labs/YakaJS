@@ -11,6 +11,9 @@ on:
 jobs:
   gpg-sign-commits:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Need write access to push signed commits
+      actions: read
     
     steps:
       # 1️⃣ Checkout repository with full history
