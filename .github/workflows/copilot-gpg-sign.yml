@@ -1,0 +1,212 @@
+name: Copilot GPG Auto-Sign
+
+on:
+  push:
+    branches:
+      - 'copilot/**'
+  pull_request:
+    types: [opened, synchronize]
+    branches:
+      - main
+      - develop
+
+jobs:
+  sign-copilot-commits:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write         # Need write access to push signed commits
+      pull-requests: write    # Need write access to comment on PRs
+      actions: read
+    # Only run for commits from GitHub Copilot
+    if: |
+      github.actor == 'github-actions[bot]' || 
+      github.actor == 'copilot-swe-agent[bot]' ||
+      contains(github.event.head_commit.author.name, 'copilot') ||
+      contains(github.event.head_commit.author.name, 'Copilot')
+    
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ github.token }}
+          ref: ${{ github.head_ref || github.ref }}
+          persist-credentials: true
+      
+      # 2️⃣ Import GPG key
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+      
+      # 3️⃣ Configure Git
+      - name: Configure Git for GPG signing
+        run: |
+          git config user.name "${{ steps.import_gpg.outputs.name }}"
+          git config user.email "${{ steps.import_gpg.outputs.email }}"
+          git config user.signingkey "${{ steps.import_gpg.outputs.keyid }}"
+          git config commit.gpgsign true
+          
+          echo "✓ Git configured for Copilot commit signing"
+          echo "  Signing as: ${{ steps.import_gpg.outputs.name }} <${{ steps.import_gpg.outputs.email }}>"
+          echo "  Key ID: ${{ steps.import_gpg.outputs.keyid }}"
+      
+      # 4️⃣ Count unsigned commits
+      - name: Count unsigned commits
+        id: count_unsigned
+        run: |
+          # Find all unsigned commits in current branch
+          UNSIGNED_COUNT=0
+          COMMITS=$(git rev-list HEAD --not $(git for-each-ref --format='%(refname)' refs/remotes/origin/main refs/remotes/origin/develop) 2>/dev/null || git rev-list HEAD -n 10)
+          
+          for commit in $COMMITS; do
+            if ! git verify-commit $commit 2>/dev/null; then
+              UNSIGNED_COUNT=$((UNSIGNED_COUNT + 1))
+            fi
+          done
+          
+          echo "unsigned_count=$UNSIGNED_COUNT" >> $GITHUB_OUTPUT
+          echo "Found $UNSIGNED_COUNT unsigned commit(s)"
+      
+      # 5️⃣ Re-sign all unsigned commits
+      - name: Re-sign unsigned commits
+        if: steps.count_unsigned.outputs.unsigned_count != '0'
+        run: |
+          echo "Re-signing ${{ steps.count_unsigned.outputs.unsigned_count }} commit(s)..."
+          
+          # Get list of commits to sign
+          COMMITS=$(git rev-list HEAD --not $(git for-each-ref --format='%(refname)' refs/remotes/origin/main refs/remotes/origin/develop) 2>/dev/null || git rev-list HEAD -n 10)
+          
+          # Create a temporary branch for rewriting
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          git checkout -b temp-signing-branch
+          
+          # Reset to base branch or go back by number of commits
+          BASE_COMMIT=$(git merge-base HEAD origin/main 2>/dev/null || git merge-base HEAD origin/develop 2>/dev/null || git rev-parse HEAD~${{ steps.count_unsigned.outputs.unsigned_count }})
+          git reset --hard $BASE_COMMIT
+          
+          # Cherry-pick and sign each commit
+          for commit in $(echo "$COMMITS" | tac); do
+            echo "Signing commit: $commit"
+            
+            if git verify-commit $commit 2>/dev/null; then
+              echo "  ✓ Already signed, cherry-picking as-is"
+              git cherry-pick $commit
+            else
+              echo "  ⚠ Not signed, cherry-picking and signing"
+              git cherry-pick --no-commit $commit
+              
+              # Get original commit info
+              ORIG_MSG=$(git log -1 --pretty=%B $commit)
+              ORIG_AUTHOR=$(git log -1 --pretty=%an $commit)
+              ORIG_EMAIL=$(git log -1 --pretty=%ae $commit)
+              ORIG_DATE=$(git log -1 --pretty=%ad $commit)
+              
+              # Commit with signature, preserving original author
+              git -c user.name="$ORIG_AUTHOR" \
+                  -c user.email="$ORIG_EMAIL" \
+                  commit -S --date="$ORIG_DATE" -m "$ORIG_MSG" || true
+            fi
+          done
+          
+          # Switch back to original branch and update it
+          git checkout $CURRENT_BRANCH
+          git reset --hard temp-signing-branch
+          git branch -D temp-signing-branch
+          
+          echo "✓ All commits signed successfully"
+      
+      # 6️⃣ Verify all commits
+      - name: Verify GPG signatures
+        run: |
+          echo "Verifying GPG signatures..."
+          
+          COMMITS=$(git rev-list HEAD --not $(git for-each-ref --format='%(refname)' refs/remotes/origin/main refs/remotes/origin/develop) 2>/dev/null || git rev-list HEAD -n 10)
+          
+          ALL_SIGNED=true
+          for commit in $COMMITS; do
+            if git verify-commit $commit 2>/dev/null; then
+              echo "✅ $commit - Signed and verified"
+            else
+              echo "❌ $commit - Not signed or invalid signature"
+              ALL_SIGNED=false
+            fi
+          done
+          
+          if [ "$ALL_SIGNED" = true ]; then
+            echo "✅ All commits are properly signed!"
+          else
+            echo "⚠️ Some commits are not signed"
+            exit 1
+          fi
+      
+      # 7️⃣ Push signed commits
+      - name: Push signed commits
+        if: steps.count_unsigned.outputs.unsigned_count != '0'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+          
+          # Configure git to use the GitHub token for authentication
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git"
+          
+          echo "Pushing signed commits to branch: $BRANCH_NAME"
+          git push --force-with-lease origin $BRANCH_NAME
+          
+          echo "✓ Signed commits pushed successfully"
+      
+      # 8️⃣ Add comment to PR (if applicable)
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && steps.count_unsigned.outputs.unsigned_count != '0'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            const comment = `## 🔐 GPG Auto-Sign Summary
+            
+            ✅ **${{ steps.count_unsigned.outputs.unsigned_count }} commit(s) have been automatically signed with GPG**
+            
+            All commits in this PR are now cryptographically signed and verified.
+            
+            **GPG Key Details:**
+            - **Key ID:** \`${{ steps.import_gpg.outputs.keyid }}\`
+            - **Fingerprint:** \`${{ steps.import_gpg.outputs.fingerprint }}\`
+            - **Signer:** ${{ steps.import_gpg.outputs.name }} <${{ steps.import_gpg.outputs.email }}>
+            
+            You can verify signatures with:
+            \`\`\`bash
+            git log --show-signature
+            \`\`\`
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+      
+      # 9️⃣ Summary
+      - name: Summary
+        if: always()
+        run: |
+          echo "════════════════════════════════════════════════════"
+          echo "Copilot GPG Auto-Sign Summary"
+          echo "════════════════════════════════════════════════════"
+          echo "Actor: ${{ github.actor }}"
+          echo "Branch: $(git rev-parse --abbrev-ref HEAD)"
+          echo "Commits processed: ${{ steps.count_unsigned.outputs.unsigned_count }}"
+          echo "════════════════════════════════════════════════════"
+          
+          # Show recent commits with signature status
+          echo ""
+          echo "Recent commits:"
+          git log --show-signature -n 3 --oneline || git log -n 3 --oneline
+          
+          echo "════════════════════════════════════════════════════"
