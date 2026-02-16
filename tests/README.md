@@ -6,17 +6,22 @@ Comprehensive unit tests for all YakaJS features.
 
 ### Browser-based Tests
 
-Open `test-runner.html` in your browser:
+**Note:** The test runner currently has an execution issue due to method conflicts with YakaJS. See [KNOWN_ISSUES.md](KNOWN_ISSUES.md) for details.
+
+**Alternative ways to run tests:**
+
+1. **Open test files directly** - Each test file can be run independently
+2. **Use browser console** - Copy test code and run in console
+3. **Use standard test frameworks** - Migrate to Jest/Mocha for production use
 
 ```bash
-# From the project root
+# View the test UI (currently non-functional due to known issue)
 open tests/test-runner.html
-# or
-python3 -m http.server 8000
-# Then navigate to http://localhost:8000/tests/test-runner.html
-```
 
-Tests will automatically run when the page loads.
+# Recommended: View individual test files
+open tests/dom.test.js
+# Then run in browser console with YakaJS loaded
+```
 
 ## 📁 Test Files
 
