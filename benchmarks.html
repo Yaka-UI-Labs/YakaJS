@@ -514,8 +514,31 @@
                                     });
                                 }
                             });
+                        } else if (value !== undefined) {
+                            elements.forEach(el => {
+                                if (el && el.style) el.style[prop] = value;
+                            });
                         }
                         return this;
+                    },
+                    attr: function(name, value) {
+                        if (value !== undefined) {
+                            elements.forEach(el => {
+                                if (el && el.setAttribute) el.setAttribute(name, value);
+                            });
+                        } else {
+                            return elements[0] ? elements[0].getAttribute(name) : null;
+                        }
+                        return this;
+                    },
+                    text: function(value) {
+                        if (value !== undefined) {
+                            elements.forEach(el => {
+                                if (el) el.textContent = value;
+                            });
+                            return this;
+                        }
+                        return elements[0] ? elements[0].textContent : '';
                     }
                 };
                 
