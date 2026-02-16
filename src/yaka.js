@@ -40,11 +40,11 @@
             if (selector[0] === '<') {
                 const temp = document.createElement('div');
                 temp.innerHTML = selector;
-                this.elements = Array.from(temp.children);
+                this.elements = [...temp.children];
             } else {
-                // CSS selector
+                // CSS selector - optimized with spread operator for speed
                 const ctx = context || document;
-                this.elements = Array.from(ctx.querySelectorAll(selector));
+                this.elements = [...ctx.querySelectorAll(selector)];
             }
         }
         // Handle DOM elements
@@ -57,7 +57,7 @@
         }
         // Handle NodeList or HTMLCollection
         else if (selector.length !== undefined) {
-            this.elements = Array.from(selector);
+            this.elements = [...selector];
         }
 
         return this;
@@ -784,7 +784,7 @@
         find: function (selector) {
             const found = [];
             this.each((i, elem) => {
-                found.push(...Array.from(elem.querySelectorAll(selector)));
+                found.push(...elem.querySelectorAll(selector));
             });
             return new Yaka(found);
         },
