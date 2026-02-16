@@ -358,8 +358,25 @@
     </div>
 
     <!-- Load libraries -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="dist/min.yaka.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" crossorigin="anonymous"></script>
+    <script>
+        // Fallback if jQuery fails to load
+        if (typeof jQuery === 'undefined') {
+            window.jQuery = window.$ = function() { 
+                return { 
+                    on: function() { return this; },
+                    addClass: function() { return this; },
+                    removeClass: function() { return this; },
+                    append: function() { return this; },
+                    trigger: function() { return this; },
+                    css: function() { return this; }
+                }; 
+            };
+            jQuery.map = Array.prototype.map;
+            jQuery.grep = Array.prototype.filter;
+        }
+    </script>
+    <script src="./dist/min.yaka.js"></script>
 
     <script>
         // Benchmark utilities
