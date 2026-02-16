@@ -40,7 +40,7 @@
         if (typeof selector === 'string') {
             if (selector[0] === '<') {
                 const temp = document.createElement('div');
-                temp.innerHTML = selector.trim();
+                temp.innerHTML = selector;
                 this.elements = Array.from(temp.children);
             } else {
                 // CSS selector
@@ -157,54 +157,56 @@
         // ==================== CLASSES ====================
 
         addClass: function (className, duration) {
+            // Fast path: no animation
+            if (!duration) {
+                return this.each((i, elem) => {
+                    className.split(' ').forEach(cls => elem.classList.add(cls));
+                });
+            }
+            
             // jQuery UI compatible: addClass with animation
-            if (duration) {
-                // Batch all reads first, then all writes to avoid layout thrashing
-                const elementsData = [];
-                
-                this.elements.forEach((elem) => {
-                    const classes = className.split(' ');
-                    const before = {};
-                    const computed = getComputedStyle(elem);
-                    ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
-                        before[prop] = computed[prop];
-                    });
-                    elementsData.push({ elem, classes, before });
+            // Batch all reads first, then all writes to avoid layout thrashing
+            const elementsData = [];
+            
+            this.elements.forEach((elem) => {
+                const classes = className.split(' ');
+                const before = {};
+                const computed = getComputedStyle(elem);
+                ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
+                    before[prop] = computed[prop];
                 });
+                elementsData.push({ elem, classes, before });
+            });
+            
+            // Now perform all writes (adding classes)
+            elementsData.forEach(({ elem, classes }) => {
+                classes.forEach(cls => elem.classList.add(cls));
+            });
+            
+            // Force a single reflow for all elements instead of one per element
+            // This significantly improves performance when animating multiple elements
+            if (elementsData.length > 0) {
+                void elementsData[0].elem.offsetHeight;
+            }
+            
+            // Read new styles and apply transitions
+            elementsData.forEach(({ elem, before }) => {
+                const after = getComputedStyle(elem);
+                const transitions = [];
                 
-                // Now perform all writes (adding classes)
-                elementsData.forEach(({ elem, classes }) => {
-                    classes.forEach(cls => elem.classList.add(cls));
-                });
-                
-                // Force a single reflow for all elements instead of one per element
-                // This significantly improves performance when animating multiple elements
-                if (elementsData.length > 0) {
-                    void elementsData[0].elem.offsetHeight;
-                }
-                
-                // Read new styles and apply transitions
-                elementsData.forEach(({ elem, before }) => {
-                    const after = getComputedStyle(elem);
-                    const transitions = [];
-                    
-                    Object.keys(before).forEach(prop => {
-                        if (before[prop] !== after[prop]) {
-                            transitions.push(`${prop} ${duration}ms ease`);
-                        }
-                    });
-                    
-                    if (transitions.length > 0) {
-                        elem.style.transition = transitions.join(', ');
-                        setTimeout(() => elem.style.transition = '', duration);
+                Object.keys(before).forEach(prop => {
+                    if (before[prop] !== after[prop]) {
+                        transitions.push(`${prop} ${duration}ms ease`);
                     }
                 });
                 
-                return this;
-            }
-            return this.each((i, elem) => {
-                className.split(' ').forEach(cls => elem.classList.add(cls));
+                if (transitions.length > 0) {
+                    elem.style.transition = transitions.join(', ');
+                    setTimeout(() => elem.style.transition = '', duration);
+                }
             });
+            
+            return this;
         },
 
         removeClass: function (className, duration) {
@@ -215,55 +217,56 @@
                 return this.each((i, elem) => elem.remove());
             }
             
+            // Fast path: no animation
+            if (!duration) {
+                return this.each((i, elem) => {
+                    className.split(' ').forEach(cls => elem.classList.remove(cls));
+                });
+            }
+            
             // jQuery UI compatible: removeClass with animation
-            if (duration) {
-                // Batch all reads first, then all writes to avoid layout thrashing
-                const elementsData = [];
-                
-                this.elements.forEach((elem) => {
-                    const classes = className.split(' ');
-                    const before = {};
-                    const computed = getComputedStyle(elem);
-                    ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
-                        before[prop] = computed[prop];
-                    });
-                    elementsData.push({ elem, classes, before });
+            // Batch all reads first, then all writes to avoid layout thrashing
+            const elementsData = [];
+            
+            this.elements.forEach((elem) => {
+                const classes = className.split(' ');
+                const before = {};
+                const computed = getComputedStyle(elem);
+                ['opacity', 'height', 'width', 'margin', 'padding'].forEach(prop => {
+                    before[prop] = computed[prop];
                 });
+                elementsData.push({ elem, classes, before });
+            });
+            
+            // Now perform all writes (removing classes)
+            elementsData.forEach(({ elem, classes }) => {
+                classes.forEach(cls => elem.classList.remove(cls));
+            });
+            
+            // Force a single reflow for all elements instead of one per element
+            // This significantly improves performance when animating multiple elements
+            if (elementsData.length > 0) {
+                void elementsData[0].elem.offsetHeight;
+            }
+            
+            // Read new styles and apply transitions
+            elementsData.forEach(({ elem, before }) => {
+                const after = getComputedStyle(elem);
+                const transitions = [];
                 
-                // Now perform all writes (removing classes)
-                elementsData.forEach(({ elem, classes }) => {
-                    classes.forEach(cls => elem.classList.remove(cls));
-                });
-                
-                // Force a single reflow for all elements instead of one per element
-                // This significantly improves performance when animating multiple elements
-                if (elementsData.length > 0) {
-                    void elementsData[0].elem.offsetHeight;
-                }
-                
-                // Read new styles and apply transitions
-                elementsData.forEach(({ elem, before }) => {
-                    const after = getComputedStyle(elem);
-                    const transitions = [];
-                    
-                    Object.keys(before).forEach(prop => {
-                        if (before[prop] !== after[prop]) {
-                            transitions.push(`${prop} ${duration}ms ease`);
-                        }
-                    });
-                    
-                    if (transitions.length > 0) {
-                        elem.style.transition = transitions.join(', ');
-                        setTimeout(() => elem.style.transition = '', duration);
+                Object.keys(before).forEach(prop => {
+                    if (before[prop] !== after[prop]) {
+                        transitions.push(`${prop} ${duration}ms ease`);
                     }
                 });
                 
-                return this;
-            }
-            
-            return this.each((i, elem) => {
-                className.split(' ').forEach(cls => elem.classList.remove(cls));
+                if (transitions.length > 0) {
+                    elem.style.transition = transitions.join(', ');
+                    setTimeout(() => elem.style.transition = '', duration);
+                }
             });
+            
+            return this;
         },
 
         toggleClass: function (className, duration) {

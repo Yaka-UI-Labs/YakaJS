@@ -117,7 +117,10 @@
             
                     trigger: function (event, data) {
                         return this.each((i, elem) => {
-                            const evt = new CustomEvent(event, { bubbles: true, detail: data });
+                            // Optimize: Use simple Event for common events without data
+                            const evt = data !== undefined 
+                                ? new CustomEvent(event, { bubbles: true, detail: data })
+                                : new Event(event, { bubbles: true });
                             elem.dispatchEvent(evt);
                         });
                     },
