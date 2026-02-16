@@ -32,7 +32,7 @@ Now that we are talking about the important things, ☝️ are you tired of jQue
 *if you are a dev girl who reads this... yess! i am ([@dill-lk](https://github.com/dill-lk)) single too!* 💐😄
 
 The day `yakajs` appeared in `node_modules` for the first time.  
-While everyone else was getting flowers, we shipped an npm package. 😂🔥
+While everyone else was getting flowers, we shipped an npm package.😂🔥
 ```bash
 npm install yakajs
 ```
