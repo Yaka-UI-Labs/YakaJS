@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>21 New Features - YakaJS</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
+    
+    <style>
+        /* Raw Black with Noise & Gradient Design */
+        
+        /* Outfit Font */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Outfit', system-ui, sans-serif;
+        }
+        
+        /* Raw Black Background with Noise and Gradient */
+        body {
+            background: 
+                /* Subtle gradient overlay */
+                linear-gradient(135deg, 
+                    rgba(99, 102, 241, 0.05) 0%,
+                    rgba(139, 92, 246, 0.03) 25%,
+                    rgba(168, 85, 247, 0.05) 50%,
+                    rgba(217, 70, 239, 0.03) 75%,
+                    rgba(99, 102, 241, 0.05) 100%
+                ),
+                /* Noise texture using SVG pattern */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
+                /* Base black */
+                #000000;
+            background-size: 400% 400%, 200px 200px, auto;
+            background-attachment: fixed, fixed, fixed;
+            animation: gradientShift 20s ease infinite;
+            min-height: 100vh;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%, 0 0, 0 0; }
+            50% { background-position: 100% 50%, 100px 100px, 0 0; }
+            100% { background-position: 0% 50%, 0 0, 0 0; }
+        }
+        
+        /* Glassmorphism on Black */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 
+                0 16px 48px 0 rgba(139, 92, 246, 0.2),
+                0 0 80px 0 rgba(139, 92, 246, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .demo-box {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        pre {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            overflow-x: auto;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        code {
+            color: #a78bfa;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+        
+        .feature-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 0.5rem;
+            border: 1px solid;
+        }
+        
+        .badge-high-impact {
+            background: rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #a5b4fc;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+        }
+        
+        .badge-performance {
+            background: rgba(168, 85, 247, 0.15);
+            border-color: rgba(168, 85, 247, 0.4);
+            color: #e9d5ff;
+            box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+        }
+        
+        .badge-mobile {
+            background: rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.4);
+            color: #93c5fd;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+        
+        .badge-premium {
+            background: rgba(217, 70, 239, 0.15);
+            border-color: rgba(217, 70, 239, 0.4);
+            color: #f0abfc;
+            box-shadow: 0 0 10px rgba(217, 70, 239, 0.3);
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 glass backdrop-blur-md">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="text-2xl font-bold">
+                    🚀 YakaJS - 21 New Features
+                </div>
+                <a href="index.html" class="text-white hover:text-yellow-300 transition-colors">← Back to Demos</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-12">
+        <!-- Hero Section -->
+        <div class="text-center mb-16">
+            <h1 class="text-6xl md:text-7xl font-extrabold mb-4">21 New Features</h1>
+            <p class="text-xl text-white/80">High-impact, premium features that no other library has!</p>
+        </div>
+
+        <!-- HIGH IMPACT FEATURES -->
+        <div class="mb-12">
+            <h2 class="text-4xl font-bold mb-6">🔥 High Impact Features</h2>
+            
+            <!-- Offline Detection -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-high-impact feature-badge">HIGH IMPACT</span>
+                    1. Offline Detection
+                </h3>
+                <p class="text-white/80 mb-4">Automatically detect when user goes offline/online</p>
+                <pre><code>_.onOffline(() => _.notify('No internet!', 'error'));
+_.onOnline(() => _.notify('Back online!', 'success'));
+console.log('Online:', _.isOnline());</code></pre>
+                <div class="demo-box">
+                    <div id="offline-status" class="text-xl mb-4">Status: <span id="connection-status" class="font-bold">Checking...</span></div>
+                    <button id="testOffline" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Toggle Airplane Mode to Test
+                    </button>
+                </div>
+            </div>
+
+            <!-- Clipboard Read -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-high-impact feature-badge">HIGH IMPACT</span>
+                    2. Clipboard Read
+                </h3>
+                <p class="text-white/80 mb-4">Read clipboard contents (requires user permission)</p>
+                <pre><code>const text = await _.paste();
+console.log('Clipboard:', text);</code></pre>
+                <div class="demo-box">
+                    <button id="pasteBtn" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mb-4">
+                        Read Clipboard
+                    </button>
+                    <div id="pasteResult" class="text-white/80"></div>
+                </div>
+            </div>
+
+            <!-- WebSocket -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-high-impact feature-badge">HIGH IMPACT</span>
+                    3. WebSocket Wrapper
+                </h3>
+                <p class="text-white/80 mb-4">Simple WebSocket wrapper with auto-reconnect</p>
+                <pre><code>const socket = _.socket('wss://echo.websocket.org');
+socket.on('message', (data) => console.log(data));
+socket.send('Hello WebSocket!');</code></pre>
+                <div class="demo-box">
+                    <p class="text-white/80 text-sm">Note: WebSocket requires a live server. Example shown above.</p>
+                </div>
+            </div>
+
+            <!-- Promise Chain UI -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-high-impact feature-badge">HIGH IMPACT</span>
+                    4. Promise Chain UI (Loading State)
+                </h3>
+                <p class="text-white/80 mb-4">Automatically show loading states for async operations</p>
+                <pre><code>_('#saveBtn').loadingState(promise, {
+    loading: 'Saving...',
+    success: 'Saved!',
+    error: 'Failed!'
+});</code></pre>
+                <div class="demo-box">
+                    <button id="loadingBtn" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Click to Save
+                    </button>
+                </div>
+            </div>
+
+            <!-- Share API -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-high-impact feature-badge">HIGH IMPACT</span>
+                    5. Share API
+                </h3>
+                <p class="text-white/80 mb-4">Native share functionality (mobile + modern browsers)</p>
+                <pre><code>_.share({
+    title: 'YakaJS',
+    text: 'Better than jQuery!',
+    url: window.location.href
+});</code></pre>
+                <div class="demo-box">
+                    <button id="shareBtn" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Share This Page
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFORMANCE FEATURES -->
+        <div class="mb-12">
+            <h2 class="text-4xl font-bold mb-6">⚡ Performance Features</h2>
+            
+            <!-- Batch Updates -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-performance feature-badge">PERFORMANCE</span>
+                    6. Batch DOM Updates
+                </h3>
+                <p class="text-white/80 mb-4">Prevent layout thrashing with batched updates</p>
+                <pre><code>_.batch(() => {
+    _('#a').css('color', 'red');
+    _('#b').css('color', 'blue');
+    // All applied in one reflow
+});</code></pre>
+            </div>
+
+            <!-- Resource Preloader -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-performance feature-badge">PERFORMANCE</span>
+                    7. Resource Preloader
+                </h3>
+                <p class="text-white/80 mb-4">Preload images, fonts, and other resources</p>
+                <pre><code>await _.preload([
+    '/images/hero.jpg',
+    '/fonts/custom.woff2'
+]);</code></pre>
+            </div>
+
+            <!-- Time Ago -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-performance feature-badge">PERFORMANCE</span>
+                    8. Time Ago (Live Update)
+                </h3>
+                <p class="text-white/80 mb-4">Auto-updating time ago labels</p>
+                <pre><code>_('.timestamp').timeAgo({ live: true });</code></pre>
+                <div class="demo-box">
+                    <p class="timestamp" data-timestamp="2026-02-14T02:00:00Z">Loading...</p>
+                </div>
+            </div>
+
+            <!-- DOM Diff -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-performance feature-badge">PERFORMANCE</span>
+                    9. DOM Diff & Patch
+                </h3>
+                <p class="text-white/80 mb-4">Smart DOM updates - only changes what's different</p>
+                <pre><code>_('#app').patch(newHTML); // Only touches changed nodes</code></pre>
+                <div class="demo-box">
+                    <div id="patchTarget">
+                        <h4>Original Content</h4>
+                        <p>This will be updated smartly</p>
+                    </div>
+                    <button id="patchBtn" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mt-4">
+                        Update with Patch
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- UI COMPONENTS -->
+        <div class="mb-12">
+            <h2 class="text-4xl font-bold mb-6">🎨 UI Components</h2>
+            
+            <!-- Command Palette -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-premium feature-badge">PREMIUM</span>
+                    10. Command Palette
+                </h3>
+                <p class="text-white/80 mb-4">VS Code-style command palette (Ctrl+K to open)</p>
+                <pre><code>_.commandPalette({
+    commands: [
+        { name: 'Go Home', action: () => router.navigate('/') }
+    ]
+});</code></pre>
+                <div class="demo-box">
+                    <p class="text-white/80">Press <kbd class="bg-white/20 px-2 py-1 rounded">Ctrl+K</kbd> to open command palette</p>
+                </div>
+            </div>
+
+            <!-- Virtual Scroll -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-premium feature-badge">PREMIUM</span>
+                    11. Virtual Scroll
+                </h3>
+                <p class="text-white/80 mb-4">Render huge lists without lag</p>
+                <pre><code>_('#list').virtualScroll({
+    items: bigArrayOf10000Items,
+    itemHeight: 50,
+    render: (item) => `<div>${item}</div>`
+});</code></pre>
+                <div class="demo-box">
+                    <div id="virtualList" style="height: 300px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;"></div>
+                    <button id="loadVirtualList" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mt-4">
+                        Load 10,000 Items
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tour -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-premium feature-badge">PREMIUM</span>
+                    12. Onboarding Tour
+                </h3>
+                <p class="text-white/80 mb-4">Step-by-step onboarding guides</p>
+                <pre><code>_.tour([
+    { element: '#menu', text: 'This is the menu' },
+    { element: '#btn', text: 'Click here to start' }
+]);</code></pre>
+                <div class="demo-box">
+                    <button id="startTour" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Start Tour
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lazy Load -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-performance feature-badge">PERFORMANCE</span>
+                    13. Blur-Up Lazy Loading
+                </h3>
+                <p class="text-white/80 mb-4">Lazy load images with blur effect</p>
+                <pre><code>_('img[data-src]').blurLazyLoad({
+    placeholder: 'tiny-blurred.jpg'
+});</code></pre>
+            </div>
+        </div>
+
+        <!-- MOBILE/PWA -->
+        <div class="mb-12">
+            <h2 class="text-4xl font-bold mb-6">📱 Mobile & PWA</h2>
+            
+            <!-- Pull to Refresh -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-mobile feature-badge">MOBILE</span>
+                    14. Pull to Refresh
+                </h3>
+                <p class="text-white/80 mb-4">Mobile pull-to-refresh gesture</p>
+                <pre><code>_.pullToRefresh({
+    onRefresh: async () => {
+        await fetchData();
+    }
+});</code></pre>
+            </div>
+
+            <!-- PWA Install -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-mobile feature-badge">MOBILE</span>
+                    15. PWA Install Prompt
+                </h3>
+                <p class="text-white/80 mb-4">Trigger PWA install dialog</p>
+                <pre><code>_.pwa.onInstallable(() => {
+    _.notify('Install this app!');
+});
+_.pwa.install();</code></pre>
+            </div>
+
+            <!-- Shake Detection -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-mobile feature-badge">MOBILE</span>
+                    16. Shake Detection
+                </h3>
+                <p class="text-white/80 mb-4">Detect phone shake gestures</p>
+                <pre><code>_.onShake(() => {
+    _.notify('Phone shaken!');
+});</code></pre>
+                <div class="demo-box">
+                    <p class="text-white/80 text-sm">Note: Requires device with accelerometer (mobile phone)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PREMIUM/UNIQUE -->
+        <div class="mb-12">
+            <h2 class="text-4xl font-bold mb-6">🤖 Premium & Unique Features</h2>
+            
+            <!-- Voice Commands -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-premium feature-badge">PREMIUM</span>
+                    17. Voice Commands 🔥
+                </h3>
+                <p class="text-white/80 mb-4">Control your app with voice! (No other library has this)</p>
+                <pre><code>_.voice.listen({
+    'scroll down': () => window.scrollBy(0, 300),
+    'go home': () => router.navigate('/'),
+    'dark mode': () => _.theme.dark()
+});</code></pre>
+                <div class="demo-box">
+                    <button id="voiceBtn" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mb-4">
+                        Enable Voice Commands
+                    </button>
+                    <div id="voiceStatus" class="text-white/80"></div>
+                    <p class="text-white/60 text-sm mt-2">Try saying: "scroll down", "scroll up", "test command"</p>
+                </div>
+            </div>
+
+            <!-- Image Cropper -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-premium feature-badge">PREMIUM</span>
+                    18. Image Cropper
+                </h3>
+                <p class="text-white/80 mb-4">Built-in image cropping tool</p>
+                <pre><code>_('#avatar').cropper({
+    ratio: 1,
+    onCrop: (blob) => uploadAvatar(blob)
+});</code></pre>
+            </div>
+
+            <!-- Rich Text Editor -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-premium feature-badge">PREMIUM</span>
+                    19. Rich Text Editor
+                </h3>
+                <p class="text-white/80 mb-4">WYSIWYG text editor</p>
+                <pre><code>_('#content').richEditor({
+    toolbar: ['bold', 'italic', 'link']
+});</code></pre>
+                <div class="demo-box">
+                    <textarea id="richText" class="w-full p-3 rounded-lg">Start typing here...</textarea>
+                    <button id="enableEditor" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mt-4">
+                        Enable Rich Editor
+                    </button>
+                </div>
+            </div>
+
+            <!-- Element Inspector -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-premium feature-badge">PREMIUM</span>
+                    20. Element Inspector
+                </h3>
+                <p class="text-white/80 mb-4">Dev tool - inspect elements and see Yaka data</p>
+                <pre><code>_.inspect.enable(); // Click any element to inspect
+_.inspect.disable();</code></pre>
+                <div class="demo-box">
+                    <button id="inspectorBtn" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Toggle Inspector
+                    </button>
+                    <p class="text-white/80 text-sm mt-2">When enabled, click any element to see its info</p>
+                </div>
+            </div>
+
+            <!-- Eye Tracking -->
+            <div class="glass-card rounded-2xl p-8 mb-8 transition-all">
+                <h3 class="text-2xl font-bold mb-4">
+                    <span class="badge-premium feature-badge">PREMIUM</span>
+                    21. Eye Tracking (Experimental)
+                </h3>
+                <p class="text-white/80 mb-4">Track where users are looking (requires webcam)</p>
+                <pre><code>_.eyeTrack.start((x, y) => {
+    console.log('User looking at:', x, y);
+});</code></pre>
+                <div class="demo-box">
+                    <p class="text-white/80 text-sm">Note: Experimental feature, requires webcam permission</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-all text-center">
+            <h2 class="text-3xl font-bold mb-4">🎉 That's 21 Amazing New Features!</h2>
+            <p class="text-xl text-white/80 mb-6">
+                YakaJS now has features that jQuery, Lodash, and other libraries don't have!
+            </p>
+            <div class="flex gap-4 justify-center flex-wrap">
+                <div class="glass px-6 py-4 rounded-lg">
+                    <div class="text-3xl font-bold">21</div>
+                    <div class="text-sm text-white/70">New Features</div>
+                </div>
+                <div class="glass px-6 py-4 rounded-lg">
+                    <div class="text-3xl font-bold">9,504</div>
+                    <div class="text-sm text-white/70">Lines of Code</div>
+                </div>
+                <div class="glass px-6 py-4 rounded-lg">
+                    <div class="text-3xl font-bold">151KB</div>
+                    <div class="text-sm text-white/70">Hyper Minified</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            // 1. Offline Detection
+            const updateStatus = () => {
+                const status = document.getElementById('connection-status');
+                if (_.isOnline()) {
+                    status.textContent = 'ONLINE ✓';
+                    status.style.color = '#2ecc71';
+                } else {
+                    status.textContent = 'OFFLINE ✗';
+                    status.style.color = '#e74c3c';
+                }
+            };
+            updateStatus();
+            _.onOffline(() => {
+                console.log('🔴 Went offline');
+                updateStatus();
+            });
+            _.onOnline(() => {
+                console.log('🟢 Back online');
+                updateStatus();
+            });
+
+            // 2. Clipboard Read
+            document.getElementById('pasteBtn').addEventListener('click', async () => {
+                const text = await _.paste();
+                document.getElementById('pasteResult').textContent = 
+                    text ? `Clipboard: "${text}"` : 'No text in clipboard or permission denied';
+            });
+
+            // 4. Loading State
+            document.getElementById('loadingBtn').addEventListener('click', function() {
+                const promise = new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        Math.random() > 0.3 ? resolve() : reject();
+                    }, 2000);
+                });
+                
+                _(this).loadingState(promise, {
+                    loading: 'Saving...',
+                    success: 'Saved!',
+                    error: 'Failed!'
+                });
+            });
+
+            // 5. Share API
+            document.getElementById('shareBtn').addEventListener('click', async () => {
+                const shared = await _.share({
+                    title: 'YakaJS - 21 New Features',
+                    text: 'Check out these amazing features!',
+                    url: window.location.href
+                });
+                if (!shared) {
+                    alert('Web Share API not supported on this browser');
+                }
+            });
+
+            // 8. Time Ago
+            _('.timestamp').timeAgo({ live: true });
+
+            // 9. DOM Patch
+            document.getElementById('patchBtn').addEventListener('click', () => {
+                _('#patchTarget').patch(`
+                    <div>
+                        <h4>Updated Content</h4>
+                        <p>This was patched smartly - only changed nodes updated!</p>
+                        <small>Time: ${new Date().toLocaleTimeString()}</small>
+                    </div>
+                `);
+            });
+
+            // 10. Command Palette
+            _.commandPalette({
+                commands: [
+                    { name: 'Scroll to Top', action: () => window.scrollTo(0, 0) },
+                    { name: 'Scroll to Bottom', action: () => window.scrollTo(0, document.body.scrollHeight) },
+                    { name: 'Test Alert', action: () => alert('Command executed!') },
+                    { name: 'Reload Page', action: () => location.reload() }
+                ]
+            });
+
+            // 11. Virtual Scroll
+            document.getElementById('loadVirtualList').addEventListener('click', () => {
+                const items = Array.from({ length: 10000 }, (_, i) => `Item ${i + 1}`);
+                _('#virtualList').virtualScroll({
+                    items,
+                    itemHeight: 40,
+                    render: (item) => `<div style="padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1);">${item}</div>`
+                });
+            });
+
+            // 12. Tour
+            document.getElementById('startTour').addEventListener('click', () => {
+                _.tour([
+                    { element: 'nav', text: 'This is the navigation bar with links to all demos' },
+                    { element: '#offline-status', text: 'This shows your current connection status' },
+                    { element: '#startTour', text: 'You just clicked this button to start the tour!' }
+                ]);
+            });
+
+            // 17. Voice Commands
+            let voiceEnabled = false;
+            document.getElementById('voiceBtn').addEventListener('click', () => {
+                if (!voiceEnabled) {
+                    _.voice.listen({
+                        'scroll down': () => {
+                            window.scrollBy({ top: 300, behavior: 'smooth' });
+                            document.getElementById('voiceStatus').textContent = '✓ Scrolled down';
+                        },
+                        'scroll up': () => {
+                            window.scrollBy({ top: -300, behavior: 'smooth' });
+                            document.getElementById('voiceStatus').textContent = '✓ Scrolled up';
+                        },
+                        'test command': () => {
+                            document.getElementById('voiceStatus').textContent = '✓ Test command executed!';
+                        }
+                    });
+                    voiceEnabled = true;
+                    document.getElementById('voiceBtn').textContent = 'Disable Voice Commands';
+                    document.getElementById('voiceStatus').textContent = '🎤 Listening... Try saying a command';
+                } else {
+                    _.voice.stop();
+                    voiceEnabled = false;
+                    document.getElementById('voiceBtn').textContent = 'Enable Voice Commands';
+                    document.getElementById('voiceStatus').textContent = 'Voice commands disabled';
+                }
+            });
+
+            // 19. Rich Text Editor
+            document.getElementById('enableEditor').addEventListener('click', () => {
+                _('#richText').richEditor({
+                    toolbar: ['bold', 'italic', 'underline', 'link']
+                });
+                document.getElementById('enableEditor').disabled = true;
+                document.getElementById('enableEditor').textContent = 'Editor Enabled!';
+            });
+
+            // 20. Element Inspector
+            let inspectorEnabled = false;
+            document.getElementById('inspectorBtn').addEventListener('click', () => {
+                if (!inspectorEnabled) {
+                    _.inspect.enable();
+                    inspectorEnabled = true;
+                    document.getElementById('inspectorBtn').textContent = 'Disable Inspector';
+                } else {
+                    _.inspect.disable();
+                    inspectorEnabled = false;
+                    document.getElementById('inspectorBtn').textContent = 'Enable Inspector';
+                }
+            });
+
+            console.log('✅ All 21 new features loaded!');
+        })();
+    </script>
+</body>
+</html>

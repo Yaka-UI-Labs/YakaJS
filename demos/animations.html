@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animations Gallery - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
+    
+    <style>
+        /* Raw Black with Noise & Gradient Design */
+        
+        /* Outfit Font */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Outfit', system-ui, sans-serif;
+        }
+        
+        /* Raw Black Background with Noise and Gradient */
+        body {
+            background: 
+                /* Subtle gradient overlay */
+                linear-gradient(135deg, 
+                    rgba(99, 102, 241, 0.05) 0%,
+                    rgba(139, 92, 246, 0.03) 25%,
+                    rgba(168, 85, 247, 0.05) 50%,
+                    rgba(217, 70, 239, 0.03) 75%,
+                    rgba(99, 102, 241, 0.05) 100%
+                ),
+                /* Noise texture using SVG pattern */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
+                /* Base black */
+                #000000;
+            background-size: 400% 400%, 200px 200px, auto;
+            background-attachment: fixed, fixed, fixed;
+            animation: gradientShift 20s ease infinite;
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%, 0 0, 0 0; }
+            50% { background-position: 100% 50%, 100px 100px, 0 0; }
+            100% { background-position: 0% 50%, 0 0, 0 0; }
+        }
+        
+        /* Glassmorphism on Black */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-dark {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 
+                0 4px 24px 0 rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+        }
+        
+        /* Smooth transitions */
+        .transition-glass {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 
+                0 16px 48px 0 rgba(139, 92, 246, 0.2),
+                0 0 80px 0 rgba(139, 92, 246, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Code blocks on black */
+        pre {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 0.75rem;
+            overflow-x: auto;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        code {
+            color: #a78bfa;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 0.85rem;
+        }
+        
+        .animation-box {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(168, 85, 247, 0.1));
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(139, 92, 246, 0.4);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        
+        .btn-primary {
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(139, 92, 246, 1);
+            transform: scale(1.05);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .animation-card {
+            min-height: 280px;
+        }
+    </style>
+</head>
+<body class="font-sans text-white">
+    
+    <!-- Header -->
+    <header class="glass-dark sticky top-0 z-50 py-4">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl hover:text-yellow-300 transition">←</a>
+                    <h1 class="text-2xl font-bold">Animations Gallery</h1>
+                </div>
+                <a href="index.html" class="glass px-4 py-2 rounded-full text-sm hover:bg-white/25 transition">
+                    Back to Demos
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Introduction -->
+        <div class="glass-card rounded-2xl p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">✨ 15+ Built-in Animations</h2>
+            <p class="text-lg text-gray-100 mb-4">
+                YakaJS comes with a comprehensive animation library. Click the buttons to see each animation in action!
+            </p>
+            <div class="flex gap-4">
+                <button class="btn btn-primary" onclick="playAllAnimations()">▶ Play All Animations</button>
+                <button class="btn btn-secondary" onclick="resetAllAnimations()">↻ Reset All</button>
+            </div>
+        </div>
+
+        <!-- Animation Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- fadeIn -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">fadeIn</h3>
+                <div class="animation-box mb-4" id="fadeIn-box" style="opacity: 0;">🎭</div>
+                <pre class="mb-3"><code>_('#el').fadeIn(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('fadeIn')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('fadeIn')">Reset</button>
+                </div>
+            </div>
+
+            <!-- fadeOut -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">fadeOut</h3>
+                <div class="animation-box mb-4" id="fadeOut-box">👻</div>
+                <pre class="mb-3"><code>_('#el').fadeOut(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('fadeOut')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('fadeOut')">Reset</button>
+                </div>
+            </div>
+
+            <!-- slideDown -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">slideDown</h3>
+                <div class="animation-box mb-4" id="slideDown-box" style="display: none;">⬇️</div>
+                <pre class="mb-3"><code>_('#el').slideDown(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('slideDown')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('slideDown')">Reset</button>
+                </div>
+            </div>
+
+            <!-- slideUp -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">slideUp</h3>
+                <div class="animation-box mb-4" id="slideUp-box">⬆️</div>
+                <pre class="mb-3"><code>_('#el').slideUp(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('slideUp')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('slideUp')">Reset</button>
+                </div>
+            </div>
+
+            <!-- slideInLeft -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">slideInLeft</h3>
+                <div class="animation-box mb-4" id="slideInLeft-box" style="opacity: 0;">◀️</div>
+                <pre class="mb-3"><code>_('#el').slideInLeft(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('slideInLeft')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('slideInLeft')">Reset</button>
+                </div>
+            </div>
+
+            <!-- slideInRight -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">slideInRight</h3>
+                <div class="animation-box mb-4" id="slideInRight-box" style="opacity: 0;">▶️</div>
+                <pre class="mb-3"><code>_('#el').slideInRight(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('slideInRight')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('slideInRight')">Reset</button>
+                </div>
+            </div>
+
+            <!-- slideInUp -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">slideInUp</h3>
+                <div class="animation-box mb-4" id="slideInUp-box" style="opacity: 0;">🔼</div>
+                <pre class="mb-3"><code>_('#el').slideInUp(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('slideInUp')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('slideInUp')">Reset</button>
+                </div>
+            </div>
+
+            <!-- slideOutLeft -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">slideOutLeft</h3>
+                <div class="animation-box mb-4" id="slideOutLeft-box">◀️</div>
+                <pre class="mb-3"><code>_('#el').slideOutLeft(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('slideOutLeft')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('slideOutLeft')">Reset</button>
+                </div>
+            </div>
+
+            <!-- slideOutRight -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">slideOutRight</h3>
+                <div class="animation-box mb-4" id="slideOutRight-box">▶️</div>
+                <pre class="mb-3"><code>_('#el').slideOutRight(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('slideOutRight')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('slideOutRight')">Reset</button>
+                </div>
+            </div>
+
+            <!-- zoomIn -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">zoomIn</h3>
+                <div class="animation-box mb-4" id="zoomIn-box" style="opacity: 0; transform: scale(0);">🔍</div>
+                <pre class="mb-3"><code>_('#el').zoomIn(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('zoomIn')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('zoomIn')">Reset</button>
+                </div>
+            </div>
+
+            <!-- zoomOut -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">zoomOut</h3>
+                <div class="animation-box mb-4" id="zoomOut-box">🔎</div>
+                <pre class="mb-3"><code>_('#el').zoomOut(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('zoomOut')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('zoomOut')">Reset</button>
+                </div>
+            </div>
+
+            <!-- blurIn -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">blurIn</h3>
+                <div class="animation-box mb-4" id="blurIn-box" style="opacity: 0; filter: blur(20px);">🌫️</div>
+                <pre class="mb-3"><code>_('#el').blurIn(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('blurIn')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('blurIn')">Reset</button>
+                </div>
+            </div>
+
+            <!-- blurOut -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">blurOut</h3>
+                <div class="animation-box mb-4" id="blurOut-box">☁️</div>
+                <pre class="mb-3"><code>_('#el').blurOut(600);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('blurOut')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('blurOut')">Reset</button>
+                </div>
+            </div>
+
+            <!-- bounce -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">bounce</h3>
+                <div class="animation-box mb-4" id="bounce-box">⚽</div>
+                <pre class="mb-3"><code>_('#el').bounce(1000);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('bounce')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('bounce')">Reset</button>
+                </div>
+            </div>
+
+            <!-- pulse -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">pulse</h3>
+                <div class="animation-box mb-4" id="pulse-box">💓</div>
+                <pre class="mb-3"><code>_('#el').pulse(1000);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('pulse')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('pulse')">Reset</button>
+                </div>
+            </div>
+
+            <!-- shake -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">shake</h3>
+                <div class="animation-box mb-4" id="shake-box">📳</div>
+                <pre class="mb-3"><code>_('#el').shake(800);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('shake')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('shake')">Reset</button>
+                </div>
+            </div>
+
+            <!-- swing -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">swing</h3>
+                <div class="animation-box mb-4" id="swing-box">🎯</div>
+                <pre class="mb-3"><code>_('#el').swing(1000);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('swing')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('swing')">Reset</button>
+                </div>
+            </div>
+
+            <!-- flip3D -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">flip3D</h3>
+                <div class="animation-box mb-4" id="flip3D-box">🔄</div>
+                <pre class="mb-3"><code>_('#el').flip3D(1000);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('flip3D')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('flip3D')">Reset</button>
+                </div>
+            </div>
+
+            <!-- rotateIn -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">rotateIn</h3>
+                <div class="animation-box mb-4" id="rotateIn-box" style="opacity: 0; transform: rotate(-200deg) scale(0);">🌀</div>
+                <pre class="mb-3"><code>_('#el').rotateIn(800);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('rotateIn')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('rotateIn')">Reset</button>
+                </div>
+            </div>
+
+            <!-- rotateOut -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">rotateOut</h3>
+                <div class="animation-box mb-4" id="rotateOut-box">🎡</div>
+                <pre class="mb-3"><code>_('#el').rotateOut(800);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('rotateOut')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('rotateOut')">Reset</button>
+                </div>
+            </div>
+
+            <!-- rubberBand -->
+            <div class="glass-card rounded-xl p-6 transition-glass animation-card">
+                <h3 class="text-xl font-bold mb-3 text-center">rubberBand</h3>
+                <div class="animation-box mb-4" id="rubberBand-box">🎸</div>
+                <pre class="mb-3"><code>_('#el').rubberBand(1000);</code></pre>
+                <div class="flex gap-2 justify-center">
+                    <button class="btn btn-primary" onclick="playAnim('rubberBand')">Play</button>
+                    <button class="btn btn-secondary" onclick="resetAnim('rubberBand')">Reset</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Custom Animation Example -->
+        <div class="glass-card rounded-2xl p-8 mt-8">
+            <h3 class="text-2xl font-bold mb-4">🎨 Custom Animation Example</h3>
+            <p class="text-gray-100 mb-4">Create your own animations using the .animate() method:</p>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <pre class="mb-4"><code>_('#custom-box').animate({
+    transform: 'rotate(360deg) scale(1.5)',
+    backgroundColor: '#ff0080',
+    borderRadius: '50%'
+}, 1500);</code></pre>
+                </div>
+                <div class="text-center">
+                    <div class="animation-box mx-auto mb-4" id="custom-box">🎨</div>
+                    <button class="btn btn-primary" onclick="playCustomAnim()">Play Custom</button>
+                    <button class="btn btn-secondary ml-2" onclick="resetCustomAnim()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        _(() => {
+            console.log('YakaJS Animations Demo Ready!');
+        });
+
+        // Animation definitions
+        const animations = {
+            fadeIn: { initial: { opacity: 0 }, method: 'fadeIn', duration: 600 },
+            fadeOut: { initial: { opacity: 1 }, method: 'fadeOut', duration: 600 },
+            slideDown: { initial: { display: 'none' }, method: 'slideDown', duration: 600 },
+            slideUp: { initial: { display: 'flex' }, method: 'slideUp', duration: 600 },
+            slideInLeft: { initial: { opacity: 0 }, method: 'slideInLeft', duration: 600 },
+            slideInRight: { initial: { opacity: 0 }, method: 'slideInRight', duration: 600 },
+            slideInUp: { initial: { opacity: 0 }, method: 'slideInUp', duration: 600 },
+            slideOutLeft: { initial: { opacity: 1 }, method: 'slideOutLeft', duration: 600 },
+            slideOutRight: { initial: { opacity: 1 }, method: 'slideOutRight', duration: 600 },
+            zoomIn: { initial: { opacity: 0, transform: 'scale(0)' }, method: 'zoomIn', duration: 600 },
+            zoomOut: { initial: { opacity: 1, transform: 'scale(1)' }, method: 'zoomOut', duration: 600 },
+            blurIn: { initial: { opacity: 0, filter: 'blur(20px)' }, method: 'blurIn', duration: 600 },
+            blurOut: { initial: { opacity: 1, filter: 'blur(0)' }, method: 'blurOut', duration: 600 },
+            bounce: { initial: {}, method: 'bounce', duration: 1000 },
+            pulse: { initial: {}, method: 'pulse', duration: 1000 },
+            shake: { initial: {}, method: 'shake', duration: 800 },
+            swing: { initial: {}, method: 'swing', duration: 1000 },
+            flip3D: { initial: {}, method: 'flip3D', duration: 1000 },
+            rotateIn: { initial: { opacity: 0, transform: 'rotate(-200deg) scale(0)' }, method: 'rotateIn', duration: 800 },
+            rotateOut: { initial: { opacity: 1, transform: 'rotate(0) scale(1)' }, method: 'rotateOut', duration: 800 },
+            rubberBand: { initial: {}, method: 'rubberBand', duration: 1000 }
+        };
+
+        function playAnim(name) {
+            const config = animations[name];
+            const element = _(`#${name}-box`);
+            
+            if (element && element[config.method]) {
+                element[config.method](config.duration);
+            }
+        }
+
+        function resetAnim(name) {
+            const config = animations[name];
+            const element = _(`#${name}-box`);
+            const box = element.get(0);
+            
+            if (!box) return;
+            
+            // Reset to initial state
+            Object.keys(config.initial).forEach(prop => {
+                box.style[prop] = config.initial[prop];
+            });
+            
+            // Ensure visibility
+            if (config.initial.display !== 'none' && config.method.includes('Out')) {
+                box.style.display = 'flex';
+                box.style.opacity = '1';
+            }
+        }
+
+        function playAllAnimations() {
+            Object.keys(animations).forEach((name, index) => {
+                setTimeout(() => {
+                    playAnim(name);
+                }, index * 300);
+            });
+        }
+
+        function resetAllAnimations() {
+            Object.keys(animations).forEach(name => {
+                resetAnim(name);
+            });
+            resetCustomAnim();
+        }
+
+        function playCustomAnim() {
+            _('#custom-box').animate({
+                transform: 'rotate(360deg) scale(1.5)',
+                background: 'linear-gradient(135deg, #ff0080, #ff8c00)',
+                borderRadius: '50%'
+            }, 1500);
+        }
+
+        function resetCustomAnim() {
+            const box = _('#custom-box').get(0);
+            box.style.transform = 'rotate(0deg) scale(1)';
+            box.style.background = 'linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1))';
+            box.style.borderRadius = '16px';
+        }
+    </script>
+
+</body>
+</html>

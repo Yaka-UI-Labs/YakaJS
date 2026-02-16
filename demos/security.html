@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Features - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
+    
+    <style>
+        /* Raw Black with Noise & Gradient Design */
+        
+        /* Outfit Font */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Outfit', system-ui, sans-serif;
+        }
+        
+        /* Raw Black Background with Noise and Gradient */
+        body {
+            background: 
+                /* Subtle gradient overlay */
+                linear-gradient(135deg, 
+                    rgba(99, 102, 241, 0.05) 0%,
+                    rgba(139, 92, 246, 0.03) 25%,
+                    rgba(168, 85, 247, 0.05) 50%,
+                    rgba(217, 70, 239, 0.03) 75%,
+                    rgba(99, 102, 241, 0.05) 100%
+                ),
+                /* Noise texture using SVG pattern */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
+                /* Base black */
+                #000000;
+            background-size: 400% 400%, 200px 200px, auto;
+            background-attachment: fixed, fixed, fixed;
+            animation: gradientShift 20s ease infinite;
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%, 0 0, 0 0; }
+            50% { background-position: 100% 50%, 100px 100px, 0 0; }
+            100% { background-position: 0% 50%, 0 0, 0 0; }
+        }
+        
+        /* Glassmorphism on Black */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-dark {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 
+                0 4px 24px 0 rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+        }
+        
+        /* Smooth transitions */
+        .transition-glass {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 
+                0 16px 48px 0 rgba(139, 92, 246, 0.2),
+                0 0 80px 0 rgba(139, 92, 246, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Code blocks on black */
+        pre {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1rem;
+            overflow-x: auto;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        code {
+            color: #a78bfa;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+        
+        .demo-result {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            padding: 1rem;
+            min-height: 100px;
+        }
+
+        .danger-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .safe-box {
+            background: rgba(34, 197, 94, 0.1);
+            border: 2px solid rgba(34, 197, 94, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .warning-box {
+            background: rgba(251, 191, 36, 0.1);
+            border: 2px solid rgba(251, 191, 36, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body class="p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h1 class="text-5xl font-bold text-white mb-4">🛡️ Security Features</h1>
+            <p class="text-white text-lg mb-4">XSS Protection, Input Sanitization, CSRF Protection, and more</p>
+            <a href="index.html" class="text-white hover:text-yellow-300 transition-colors">← Back to Demos</a>
+        </div>
+
+        <!-- XSS Protection -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🚫 XSS Protection</h2>
+            <p class="text-white mb-4">HTML sanitization prevents script injection attacks</p>
+            
+            <pre><code>// Escape HTML to prevent XSS
+const safe = _.escapeHtml(userInput);
+// Or use _.sanitize() for more control</code></pre>
+
+            <div class="demo-result mt-4">
+                <label class="text-white block mb-2">Try to inject a script:</label>
+                <textarea id="xssInput" rows="3" placeholder="<script>alert('XSS')</script>"
+                    class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 mb-4"></textarea>
+                
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <div class="text-red-300 font-bold mb-2">❌ UNSAFE (Raw HTML):</div>
+                        <div class="danger-box">
+                            <div id="unsafeOutput" class="text-white text-sm break-words"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-green-300 font-bold mb-2">✓ SAFE (Escaped):</div>
+                        <div class="safe-box">
+                            <div id="safeOutput" class="text-white text-sm break-words"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="testXSS()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                    Test XSS Protection
+                </button>
+            </div>
+        </div>
+
+        <!-- HTML Sanitization -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🧼 HTML Sanitization</h2>
+            <p class="text-white mb-4">Remove dangerous HTML while preserving safe content</p>
+
+            <div class="demo-result mt-4">
+                <label class="text-white block mb-2">HTML Input:</label>
+                <textarea id="htmlInput" rows="4" 
+                    placeholder="<p>Hello <b>World</b></p><script>alert('evil')</script>"
+                    class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 mb-4"></textarea>
+                
+                <button onclick="sanitizeHTML()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mb-4">
+                    Sanitize HTML
+                </button>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-white font-bold mb-2">Original:</div>
+                        <div class="warning-box">
+                            <code id="originalHTML" class="text-sm break-words"></code>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-green-300 font-bold mb-2">Sanitized:</div>
+                        <div class="safe-box">
+                            <code id="sanitizedHTML" class="text-sm break-words"></code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- URL Sanitization -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🔗 URL Sanitization</h2>
+            <p class="text-white mb-4">Validate and sanitize URLs to prevent javascript: and data: schemes</p>
+
+            <div class="demo-result mt-4">
+                <label class="text-white block mb-2">Test URLs:</label>
+                <div class="space-y-2 mb-4">
+                    <button onclick="testURL('https://example.com')" 
+                        class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition w-full text-left">
+                        https://example.com
+                    </button>
+                    <button onclick="testURL('javascript:alert(1)')" 
+                        class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition w-full text-left">
+                        javascript:alert(1)
+                    </button>
+                    <button onclick="testURL('data:text/html,<script>alert(1)</script>')" 
+                        class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition w-full text-left">
+                        data:text/html,&lt;script&gt;alert(1)&lt;/script&gt;
+                    </button>
+                    <button onclick="testURL('http://malicious.com@example.com')" 
+                        class="glass px-4 py-2 rounded-lg text-white hover:bg-white/20 transition w-full text-left">
+                        http://malicious.com@example.com
+                    </button>
+                </div>
+
+                <div id="urlResult" class="hidden mb-4"></div>
+
+                <label class="text-white block mb-2">Custom URL:</label>
+                <input type="text" id="customURL" placeholder="Enter a URL to test"
+                    class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50 mb-2">
+                <button onclick="testURL(document.getElementById('customURL').value)" 
+                    class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                    Test Custom URL
+                </button>
+            </div>
+        </div>
+
+        <!-- Input Sanitization -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">✂️ Input Sanitization</h2>
+            <p class="text-white mb-4">Clean user input based on allowed characters</p>
+
+            <div class="demo-result mt-4">
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="text-white block mb-2">Alphanumeric Only:</label>
+                        <input type="text" id="alphaInput" placeholder="Try special characters..."
+                            class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                        <div id="alphaOutput" class="safe-box mt-2 text-white text-sm min-h-[40px]"></div>
+                    </div>
+                    <div>
+                        <label class="text-white block mb-2">Numeric Only:</label>
+                        <input type="text" id="numericInput" placeholder="Try letters..."
+                            class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                        <div id="numericOutput" class="safe-box mt-2 text-white text-sm min-h-[40px]"></div>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-white block mb-2">Email Format:</label>
+                    <input type="text" id="emailInput" placeholder="Enter email..."
+                        class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                    <div id="emailOutput" class="mt-2 text-white text-sm min-h-[40px]"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSRF Protection -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🎫 CSRF Token Protection</h2>
+            <p class="text-white mb-4">Generate and validate CSRF tokens for secure form submissions</p>
+
+            <pre><code>// Generate CSRF token
+const token = _.csrf.generate();
+// Validate token
+const valid = _.csrf.validate(token);</code></pre>
+
+            <div class="demo-result mt-4">
+                <button onclick="generateCSRF()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mb-4">
+                    Generate CSRF Token
+                </button>
+
+                <div id="csrfToken" class="safe-box mb-4 hidden">
+                    <div class="text-white font-bold mb-2">Token:</div>
+                    <code id="tokenValue" class="text-yellow-300 text-sm break-all"></code>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-white block mb-2">Validate Token:</label>
+                    <input type="text" id="validateToken" placeholder="Paste token to validate"
+                        class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                </div>
+                <button onclick="validateCSRF()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                    Validate Token
+                </button>
+                <div id="csrfResult" class="mt-4 hidden"></div>
+            </div>
+        </div>
+
+        <!-- CSP Nonce -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">🔐 CSP Nonce Support</h2>
+            <p class="text-white mb-4">Content Security Policy nonces for inline scripts</p>
+
+            <pre><code>// Generate nonce for CSP
+const nonce = _.security.generateNonce();
+// Use in script tag: &lt;script nonce="${nonce}"&gt;</code></pre>
+
+            <div class="demo-result mt-4">
+                <button onclick="generateNonce()" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition mb-4">
+                    Generate Nonce
+                </button>
+
+                <div id="nonceResult" class="safe-box hidden">
+                    <div class="text-white font-bold mb-2">Nonce:</div>
+                    <code id="nonceValue" class="text-yellow-300 text-sm break-all"></code>
+                    <div class="text-white text-sm mt-4">
+                        Use in HTML: <code class="text-yellow-300">&lt;script nonce="[value]"&gt;</code>
+                    </div>
+                    <div class="text-white text-sm mt-2">
+                        CSP Header: <code class="text-yellow-300">script-src 'nonce-[value]';</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secure Form -->
+        <div class="glass-card rounded-2xl p-8 mb-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">📋 Secure Form Submission</h2>
+            <p class="text-white mb-4">Complete form with XSS protection and CSRF token</p>
+
+            <div class="demo-result mt-4">
+                <form id="secureForm" onsubmit="submitSecureForm(event)">
+                    <input type="hidden" id="formCSRF" name="csrf_token">
+                    
+                    <div class="mb-4">
+                        <label class="text-white block mb-2">Name:</label>
+                        <input type="text" id="formName" required
+                            class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-white block mb-2">Email:</label>
+                        <input type="email" id="formEmail" required
+                            class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="text-white block mb-2">Comment:</label>
+                        <textarea id="formComment" rows="3" required
+                            class="glass w-full px-4 py-2 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-white/50"></textarea>
+                    </div>
+
+                    <button type="submit" class="glass px-6 py-3 rounded-lg text-white font-semibold hover:bg-white/20 transition">
+                        Submit Securely
+                    </button>
+                </form>
+
+                <div id="formResult" class="mt-4 hidden"></div>
+            </div>
+        </div>
+
+        <!-- Security Comparison -->
+        <div class="glass-card rounded-2xl p-8 transition-glass">
+            <h2 class="text-3xl font-bold text-white mb-4">⚖️ Security Comparison</h2>
+            <p class="text-white mb-4">Side-by-side comparison of dangerous vs safe practices</p>
+
+            <div class="demo-result mt-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-red-300 font-bold mb-4 text-xl">❌ Dangerous</div>
+                        
+                        <div class="danger-box mb-4">
+                            <div class="text-white font-semibold mb-2">innerHTML with user input:</div>
+                            <code class="text-red-200 text-sm">
+                                element.innerHTML = userInput;
+                            </code>
+                        </div>
+
+                        <div class="danger-box mb-4">
+                            <div class="text-white font-semibold mb-2">No URL validation:</div>
+                            <code class="text-red-200 text-sm">
+                                link.href = userURL;
+                            </code>
+                        </div>
+
+                        <div class="danger-box mb-4">
+                            <div class="text-white font-semibold mb-2">No CSRF protection:</div>
+                            <code class="text-red-200 text-sm">
+                                &lt;form action="/submit"&gt;
+                            </code>
+                        </div>
+
+                        <div class="danger-box">
+                            <div class="text-white font-semibold mb-2">eval() user input:</div>
+                            <code class="text-red-200 text-sm">
+                                eval(userCode);
+                            </code>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-green-300 font-bold mb-4 text-xl">✓ Safe</div>
+                        
+                        <div class="safe-box mb-4">
+                            <div class="text-white font-semibold mb-2">Escape HTML:</div>
+                            <code class="text-green-200 text-sm">
+                                element.textContent = userInput;<br>
+                                // or _.escapeHtml(userInput)
+                            </code>
+                        </div>
+
+                        <div class="safe-box mb-4">
+                            <div class="text-white font-semibold mb-2">Validate URLs:</div>
+                            <code class="text-green-200 text-sm">
+                                const safe = _.sanitizeURL(userURL);<br>
+                                link.href = safe;
+                            </code>
+                        </div>
+
+                        <div class="safe-box mb-4">
+                            <div class="text-white font-semibold mb-2">CSRF token:</div>
+                            <code class="text-green-200 text-sm">
+                                &lt;input name="csrf" value="${token}"&gt;
+                            </code>
+                        </div>
+
+                        <div class="safe-box">
+                            <div class="text-white font-semibold mb-2">Never use eval():</div>
+                            <code class="text-green-200 text-sm">
+                                // Use Function constructor<br>
+                                // or better: avoid dynamic code
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if YakaJS is available
+        if (typeof _ === 'undefined') {
+            document.body.innerHTML = '<div class="glass-card rounded-2xl p-8 m-8"><h1 class="text-white text-2xl">YakaJS not loaded. Please build the project first: npm run build</h1></div>';
+        } else {
+            // Store tokens
+            let currentCSRFToken = null;
+
+            // XSS Protection Demo
+            const xssInput = document.getElementById('xssInput');
+            if (xssInput) {
+                xssInput.value = '<script>alert("XSS Attack!")</script>';
+            }
+
+            window.testXSS = function() {
+                const input = document.getElementById('xssInput').value;
+                const unsafeOutput = document.getElementById('unsafeOutput');
+                const safeOutput = document.getElementById('safeOutput');
+
+                if (unsafeOutput) {
+                    unsafeOutput.textContent = `Raw: ${input}`;
+                }
+
+                if (safeOutput && _.escapeHtml) {
+                    const escaped = _.escapeHtml(input);
+                    safeOutput.textContent = escaped;
+                } else if (safeOutput) {
+                    const escaped = input
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+                    safeOutput.textContent = escaped;
+                }
+            };
+
+            // HTML Sanitization
+            window.sanitizeHTML = function() {
+                const input = document.getElementById('htmlInput').value;
+                const originalHTML = document.getElementById('originalHTML');
+                const sanitizedHTML = document.getElementById('sanitizedHTML');
+
+                if (originalHTML) {
+                    originalHTML.textContent = input;
+                }
+
+                if (sanitizedHTML && _.sanitize) {
+                    const safe = _.sanitize(input);
+                    sanitizedHTML.textContent = safe;
+                } else if (sanitizedHTML) {
+                    // Fallback sanitization
+                    const safe = input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+                    sanitizedHTML.textContent = safe;
+                }
+            };
+
+            // URL Sanitization
+            window.testURL = function(url) {
+                const result = document.getElementById('urlResult');
+                if (!result) return;
+
+                result.classList.remove('hidden');
+                
+                const isSafe = url.match(/^https?:\/\//) && !url.includes('@');
+                
+                if (isSafe) {
+                    result.className = 'safe-box mb-4';
+                    result.innerHTML = `
+                        <div class="text-green-300 font-bold mb-2">✓ Safe URL</div>
+                        <div class="text-white text-sm break-all">${url}</div>
+                    `;
+                } else {
+                    result.className = 'danger-box mb-4';
+                    result.innerHTML = `
+                        <div class="text-red-300 font-bold mb-2">❌ Dangerous URL Blocked</div>
+                        <div class="text-white text-sm break-all">${url}</div>
+                        <div class="text-white/70 text-sm mt-2">
+                            Reason: ${!url.match(/^https?:\/\//) ? 'Invalid protocol' : 'Contains @ (possible phishing)'}
+                        </div>
+                    `;
+                }
+            };
+
+            // Input Sanitization
+            const alphaInput = document.getElementById('alphaInput');
+            const alphaOutput = document.getElementById('alphaOutput');
+            if (alphaInput && alphaOutput) {
+                alphaInput.addEventListener('input', (e) => {
+                    const sanitized = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                    alphaOutput.textContent = `Sanitized: ${sanitized}`;
+                });
+            }
+
+            const numericInput = document.getElementById('numericInput');
+            const numericOutput = document.getElementById('numericOutput');
+            if (numericInput && numericOutput) {
+                numericInput.addEventListener('input', (e) => {
+                    const sanitized = e.target.value.replace(/[^0-9]/g, '');
+                    numericOutput.textContent = `Sanitized: ${sanitized}`;
+                });
+            }
+
+            const emailInput = document.getElementById('emailInput');
+            const emailOutput = document.getElementById('emailOutput');
+            if (emailInput && emailOutput) {
+                emailInput.addEventListener('input', (e) => {
+                    const email = e.target.value;
+                    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+                    
+                    if (email.length === 0) {
+                        emailOutput.textContent = '';
+                    } else if (isValid) {
+                        emailOutput.className = 'safe-box mt-2 text-white text-sm min-h-[40px]';
+                        emailOutput.textContent = `✓ Valid email format`;
+                    } else {
+                        emailOutput.className = 'danger-box mt-2 text-white text-sm min-h-[40px]';
+                        emailOutput.textContent = `✗ Invalid email format`;
+                    }
+                });
+            }
+
+            // CSRF Token
+            window.generateCSRF = function() {
+                currentCSRFToken = generateRandomToken();
+                const tokenDiv = document.getElementById('csrfToken');
+                const tokenValue = document.getElementById('tokenValue');
+                
+                if (tokenDiv && tokenValue) {
+                    tokenDiv.classList.remove('hidden');
+                    tokenValue.textContent = currentCSRFToken;
+                }
+
+                // Auto-fill form token
+                const formCSRF = document.getElementById('formCSRF');
+                if (formCSRF) {
+                    formCSRF.value = currentCSRFToken;
+                }
+            };
+
+            window.validateCSRF = function() {
+                const inputToken = document.getElementById('validateToken').value;
+                const resultDiv = document.getElementById('csrfResult');
+                
+                if (!resultDiv) return;
+                resultDiv.classList.remove('hidden');
+
+                if (inputToken === currentCSRFToken) {
+                    resultDiv.className = 'safe-box mt-4';
+                    resultDiv.innerHTML = '<div class="text-green-300 font-bold">✓ Valid CSRF Token</div>';
+                } else {
+                    resultDiv.className = 'danger-box mt-4';
+                    resultDiv.innerHTML = '<div class="text-red-300 font-bold">❌ Invalid CSRF Token</div>';
+                }
+            };
+
+            // CSP Nonce
+            window.generateNonce = function() {
+                const nonce = generateRandomToken(32);
+                const resultDiv = document.getElementById('nonceResult');
+                const nonceValue = document.getElementById('nonceValue');
+                
+                if (resultDiv && nonceValue) {
+                    resultDiv.classList.remove('hidden');
+                    nonceValue.textContent = nonce;
+                }
+            };
+
+            // Secure Form
+            window.submitSecureForm = function(event) {
+                event.preventDefault();
+                
+                const name = document.getElementById('formName').value;
+                const email = document.getElementById('formEmail').value;
+                const comment = document.getElementById('formComment').value;
+                const csrf = document.getElementById('formCSRF').value;
+
+                // Validate CSRF
+                if (csrf !== currentCSRFToken) {
+                    const resultDiv = document.getElementById('formResult');
+                    if (resultDiv) {
+                        resultDiv.classList.remove('hidden');
+                        resultDiv.className = 'danger-box mt-4';
+                        resultDiv.innerHTML = '<div class="text-red-300 font-bold">❌ CSRF Token Invalid - Submission Blocked</div>';
+                    }
+                    return;
+                }
+
+                // Sanitize inputs
+                const safeName = name.replace(/[<>]/g, '');
+                const safeComment = comment.replace(/[<>]/g, '');
+
+                const resultDiv = document.getElementById('formResult');
+                if (resultDiv) {
+                    resultDiv.classList.remove('hidden');
+                    resultDiv.className = 'safe-box mt-4';
+                    resultDiv.innerHTML = `
+                        <div class="text-green-300 font-bold mb-2">✓ Form Submitted Securely</div>
+                        <div class="text-white text-sm">
+                            <div><strong>Name:</strong> ${safeName}</div>
+                            <div><strong>Email:</strong> ${email}</div>
+                            <div><strong>Comment:</strong> ${safeComment}</div>
+                            <div class="mt-2 text-white/70">All inputs sanitized and CSRF token validated</div>
+                        </div>
+                    `;
+                }
+            };
+
+            // Helper: Generate random token
+            function generateRandomToken(length = 64) {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let token = '';
+                for (let i = 0; i < length; i++) {
+                    token += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                return token;
+            }
+
+            // Initialize form with CSRF token
+            generateCSRF();
+        }
+    </script>
+</body>
+</html>

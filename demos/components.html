@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI Components - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
+    
+    <style>
+        /* Raw Black with Noise & Gradient Design */
+        
+        /* Outfit Font */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Outfit', system-ui, sans-serif;
+        }
+        
+        /* Raw Black Background with Noise and Gradient */
+        body {
+            background: 
+                /* Subtle gradient overlay */
+                linear-gradient(135deg, 
+                    rgba(99, 102, 241, 0.05) 0%,
+                    rgba(139, 92, 246, 0.03) 25%,
+                    rgba(168, 85, 247, 0.05) 50%,
+                    rgba(217, 70, 239, 0.03) 75%,
+                    rgba(99, 102, 241, 0.05) 100%
+                ),
+                /* Noise texture using SVG pattern */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
+                /* Base black */
+                #000000;
+            background-size: 400% 400%, 200px 200px, auto;
+            background-attachment: fixed, fixed, fixed;
+            animation: gradientShift 20s ease infinite;
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%, 0 0, 0 0; }
+            50% { background-position: 100% 50%, 100px 100px, 0 0; }
+            100% { background-position: 0% 50%, 0 0, 0 0; }
+        }
+        
+        /* Glassmorphism on Black */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-dark {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 
+                0 4px 24px 0 rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+        }
+        
+        /* Smooth transitions */
+        .transition-glass {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 
+                0 16px 48px 0 rgba(139, 92, 246, 0.2),
+                0 0 80px 0 rgba(139, 92, 246, 0.1),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Code blocks on black */
+        pre {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.25rem;
+            overflow-x: auto;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        code {
+            color: #a78bfa;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+        
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn-primary {
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(139, 92, 246, 1);
+            transform: scale(1.05);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-backdrop.show {
+            display: flex;
+        }
+        
+        .modal {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            animation: slideIn 0.3s ease;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+        
+        .tooltip-content {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            white-space: nowrap;
+            margin-bottom: 0.5rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+        
+        .tooltip:hover .tooltip-content {
+            opacity: 1;
+        }
+        
+        /* Popover */
+        .popover {
+            position: relative;
+        }
+        
+        .popover-content {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            min-width: 200px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 100;
+            color: white;
+        }
+        
+        .popover-content.show {
+            display: block;
+            animation: fadeIn 0.2s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Dropdown */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 100;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        .dropdown-menu.show {
+            display: block;
+        }
+        
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            border-radius: 0.25rem;
+            color: white;
+            transition: background 0.2s;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(139, 92, 246, 0.3);
+        }
+        
+        /* Tabs */
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-button.active {
+            background: rgba(139, 92, 246, 0.3);
+            border-bottom-color: rgba(139, 92, 246, 0.8);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Accordion */
+        .accordion-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .accordion-header {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        
+        .accordion-header:hover {
+            background: rgba(139, 92, 246, 0.2);
+        }
+        
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+        
+        .accordion-content.show {
+            max-height: 500px;
+            padding: 1rem;
+        }
+        
+        /* Carousel */
+        .carousel {
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+        }
+        
+        .carousel-track {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+        
+        .carousel-slide {
+            min-width: 100%;
+            padding: 3rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+        }
+        
+        .carousel-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(139, 92, 246, 0.8);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: white;
+            transition: all 0.3s;
+        }
+        
+        .carousel-button:hover {
+            background: rgba(139, 92, 246, 1);
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .carousel-button.prev { left: 1rem; }
+        .carousel-button.next { right: 1rem; }
+        
+        /* Progress Bar */
+        .progress-bar {
+            height: 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 9999px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+            transition: width 0.5s ease;
+            border-radius: 9999px;
+        }
+        
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .toast {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            min-width: 300px;
+            animation: slideInRight 0.3s ease;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .toast.success { border-left: 4px solid #10b981; }
+        .toast.error { border-left: 4px solid #ef4444; }
+        .toast.warning { border-left: 4px solid #f59e0b; }
+        .toast.info { border-left: 4px solid #3b82f6; }
+        
+        .toast-message {
+            flex: 1;
+            color: white;
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="font-sans text-white">
+    
+    <!-- Header -->
+    <header class="glass-dark sticky top-0 z-50 py-4">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl hover:text-yellow-300 transition">←</a>
+                    <h1 class="text-2xl font-bold">UI Components Demo</h1>
+                </div>
+                <a href="index.html" class="glass px-4 py-2 rounded-full text-sm hover:bg-white/25 transition">
+                    Back to Demos
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Introduction -->
+        <div class="glass-card rounded-2xl p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">🎨 UI Components</h2>
+            <p class="text-lg text-gray-100">
+                Interactive UI component examples built with YakaJS. Each component is fully functional and customizable.
+            </p>
+        </div>
+
+        <!-- Modal -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">1. Modal Dialog</h3>
+            <p class="text-gray-100 mb-4">Click the button to open a modal dialog</p>
+            
+            <button id="openModal" class="btn btn-primary">Open Modal</button>
+            
+            <div id="modalBackdrop" class="modal-backdrop">
+                <div class="modal">
+                    <h3 class="text-2xl font-bold mb-4" style="color: #6b21a8;">Welcome to YakaJS!</h3>
+                    <p class="mb-6" style="color: #333;">This is a modal dialog built with YakaJS. Modals are great for displaying important information or collecting user input.</p>
+                    <div class="flex gap-4">
+                        <button id="closeModal" class="btn btn-primary">Close</button>
+                        <button id="closeModalAlt" class="btn" style="background: rgba(0,0,0,0.1); color: #333;">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tooltips -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">2. Tooltips</h3>
+            <p class="text-gray-100 mb-4">Hover over elements to see tooltips</p>
+            
+            <div class="flex gap-4 flex-wrap">
+                <span class="tooltip glass px-4 py-2 rounded-full">
+                    Hover me!
+                    <span class="tooltip-content">This is a tooltip</span>
+                </span>
+                <span class="tooltip glass px-4 py-2 rounded-full">
+                    Information
+                    <span class="tooltip-content">Tooltips provide helpful hints</span>
+                </span>
+                <span class="tooltip glass px-4 py-2 rounded-full">
+                    Help
+                    <span class="tooltip-content">Get instant help here</span>
+                </span>
+            </div>
+        </div>
+
+        <!-- Popovers -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">3. Popovers</h3>
+            <p class="text-gray-100 mb-4">Click to toggle popovers with more content</p>
+            
+            <div class="flex gap-4 flex-wrap">
+                <div class="popover">
+                    <button class="btn btn-primary popover-trigger">Show Popover</button>
+                    <div class="popover-content">
+                        <h4 class="font-bold mb-2">Popover Title</h4>
+                        <p class="text-sm">This is a popover with more detailed information that appears on click.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dropdown -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">4. Dropdown with Search</h3>
+            <p class="text-gray-100 mb-4">Searchable dropdown menu</p>
+            
+            <div class="relative" style="max-width: 300px;">
+                <button id="dropdownBtn" class="btn btn-primary w-full flex justify-between items-center">
+                    <span id="dropdownLabel">Select an option</span>
+                    <span>▼</span>
+                </button>
+                <div id="dropdownMenu" class="dropdown-menu">
+                    <input type="text" id="dropdownSearch" placeholder="Search..." 
+                           class="w-full px-3 py-2 mb-2 rounded border-0 outline-none"
+                           style="background: rgba(0,0,0,0.1);">
+                    <div id="dropdownItems">
+                        <div class="dropdown-item" data-value="apple">🍎 Apple</div>
+                        <div class="dropdown-item" data-value="banana">🍌 Banana</div>
+                        <div class="dropdown-item" data-value="cherry">🍒 Cherry</div>
+                        <div class="dropdown-item" data-value="grape">🍇 Grape</div>
+                        <div class="dropdown-item" data-value="orange">🍊 Orange</div>
+                        <div class="dropdown-item" data-value="strawberry">🍓 Strawberry</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">5. Tabs Component</h3>
+            <p class="text-gray-100 mb-4">Navigate between different content panels</p>
+            
+            <div>
+                <div class="flex gap-2 mb-4 border-b border-white/20">
+                    <button class="tab-button active" data-tab="tab1">Home</button>
+                    <button class="tab-button" data-tab="tab2">Profile</button>
+                    <button class="tab-button" data-tab="tab3">Settings</button>
+                </div>
+                <div id="tab1" class="tab-content active">
+                    <h4 class="text-xl font-bold mb-2">Home Tab</h4>
+                    <p>Welcome to the home tab! This is where your main content goes.</p>
+                </div>
+                <div id="tab2" class="tab-content">
+                    <h4 class="text-xl font-bold mb-2">Profile Tab</h4>
+                    <p>View and edit your profile information here.</p>
+                </div>
+                <div id="tab3" class="tab-content">
+                    <h4 class="text-xl font-bold mb-2">Settings Tab</h4>
+                    <p>Configure your application settings in this panel.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accordion -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">6. Accordion</h3>
+            <p class="text-gray-100 mb-4">Expandable content sections</p>
+            
+            <div class="accordion">
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <span>What is YakaJS?</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        YakaJS is a lightweight JavaScript library for building modern web applications with ease. It provides powerful DOM manipulation, state management, and routing capabilities.
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <span>How do I get started?</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        Simply include the YakaJS script in your HTML file and start using the _ function to select and manipulate elements. Check out our documentation for detailed guides.
+                    </div>
+                </div>
+                <div class="accordion-item">
+                    <div class="accordion-header">
+                        <span>Is it free to use?</span>
+                        <span class="accordion-icon">▼</span>
+                    </div>
+                    <div class="accordion-content">
+                        Yes! YakaJS is completely free and open source. You can use it in personal and commercial projects without any restrictions.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carousel -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">7. Carousel / Slider</h3>
+            <p class="text-gray-100 mb-4">Navigate through slides</p>
+            
+            <div class="carousel">
+                <div class="carousel-track">
+                    <div class="carousel-slide">
+                        <h4 class="text-2xl font-bold mb-2">Slide 1</h4>
+                        <p>Welcome to the first slide of our carousel!</p>
+                    </div>
+                    <div class="carousel-slide">
+                        <h4 class="text-2xl font-bold mb-2">Slide 2</h4>
+                        <p>This is the second slide with more content.</p>
+                    </div>
+                    <div class="carousel-slide">
+                        <h4 class="text-2xl font-bold mb-2">Slide 3</h4>
+                        <p>And here's the final slide. Great job navigating!</p>
+                    </div>
+                </div>
+                <button class="carousel-button prev">‹</button>
+                <button class="carousel-button next">›</button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">8. Progress Bar</h3>
+            <p class="text-gray-100 mb-4">Visual progress indicator</p>
+            
+            <div class="mb-4">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+                </div>
+                <p class="mt-2 text-center">Progress: <span id="progressText">0</span>%</p>
+            </div>
+            
+            <div class="flex gap-2">
+                <button id="progressStart" class="btn btn-primary">Start Progress</button>
+                <button id="progressReset" class="btn btn-secondary">Reset</button>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="glass-card rounded-2xl p-8 mb-6 transition-glass">
+            <h3 class="text-2xl font-bold mb-4">9. Toast Notifications</h3>
+            <p class="text-gray-100 mb-4">Show temporary notification messages</p>
+            
+            <div class="flex gap-2 flex-wrap">
+                <button id="toastSuccess" class="btn btn-primary">Success Toast</button>
+                <button id="toastError" class="btn" style="background: #ef4444; color: white;">Error Toast</button>
+                <button id="toastWarning" class="btn" style="background: #f59e0b; color: white;">Warning Toast</button>
+                <button id="toastInfo" class="btn" style="background: #3b82f6; color: white;">Info Toast</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Modal
+        _('#openModal').on('click', () => {
+            _('#modalBackdrop').addClass('show');
+        });
+        
+        _('#closeModal, #closeModalAlt').on('click', () => {
+            _('#modalBackdrop').removeClass('show');
+        });
+        
+        _('#modalBackdrop').on('click', (e) => {
+            if (e.target.id === 'modalBackdrop') {
+                _('#modalBackdrop').removeClass('show');
+            }
+        });
+
+        // Popovers
+        _('.popover-trigger').on('click', function(e) {
+            e.stopPropagation();
+            const popover = _(this).parent();
+            const content = popover.find('.popover-content');
+            content.toggleClass('show');
+        });
+        
+        _(document).on('click', () => {
+            _('.popover-content').removeClass('show');
+        });
+        
+        _('.popover-content').on('click', (e) => {
+            e.stopPropagation();
+        });
+
+        // Dropdown
+        let dropdownOpen = false;
+        
+        _('#dropdownBtn').on('click', (e) => {
+            e.stopPropagation();
+            dropdownOpen = !dropdownOpen;
+            _('#dropdownMenu').toggleClass('show');
+        });
+        
+        _('.dropdown-item').on('click', function() {
+            const value = _(this).attr('data-value');
+            const text = _(this).text();
+            _('#dropdownLabel').text(text);
+            _('#dropdownMenu').removeClass('show');
+            dropdownOpen = false;
+        });
+        
+        _('#dropdownSearch').on('input', function() {
+            const search = _(this).val().toLowerCase();
+            _('.dropdown-item').each(function() {
+                const text = _(this).text().toLowerCase();
+                if (text.includes(search)) {
+                    _(this).show();
+                } else {
+                    _(this).hide();
+                }
+            });
+        });
+        
+        _(document).on('click', () => {
+            if (dropdownOpen) {
+                _('#dropdownMenu').removeClass('show');
+                dropdownOpen = false;
+            }
+        });
+
+        // Tabs
+        _('.tab-button').on('click', function() {
+            const targetTab = _(this).attr('data-tab');
+            
+            _('.tab-button').removeClass('active');
+            _(this).addClass('active');
+            
+            _('.tab-content').removeClass('active');
+            _('#' + targetTab).addClass('active');
+        });
+
+        // Accordion
+        _('.accordion-header').on('click', function() {
+            const content = _(this).next('.accordion-content');
+            const icon = _(this).find('.accordion-icon');
+            
+            if (content.hasClass('show')) {
+                content.removeClass('show');
+                icon.text('▼');
+            } else {
+                _('.accordion-content').removeClass('show');
+                _('.accordion-icon').text('▼');
+                content.addClass('show');
+                icon.text('▲');
+            }
+        });
+
+        // Carousel
+        let currentSlide = 0;
+        const totalSlides = _('.carousel-slide').length;
+        
+        function updateCarousel() {
+            const offset = -currentSlide * 100;
+            _('.carousel-track').css('transform', `translateX(${offset}%)`);
+        }
+        
+        _('.carousel-button.prev').on('click', () => {
+            currentSlide = currentSlide > 0 ? currentSlide - 1 : totalSlides - 1;
+            updateCarousel();
+        });
+        
+        _('.carousel-button.next').on('click', () => {
+            currentSlide = currentSlide < totalSlides - 1 ? currentSlide + 1 : 0;
+            updateCarousel();
+        });
+
+        // Progress Bar
+        let progressInterval;
+        
+        _('#progressStart').on('click', () => {
+            let progress = 0;
+            clearInterval(progressInterval);
+            
+            progressInterval = setInterval(() => {
+                progress += 1;
+                _('#progressFill').css('width', progress + '%');
+                _('#progressText').text(progress);
+                
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                }
+            }, 30);
+        });
+        
+        _('#progressReset').on('click', () => {
+            clearInterval(progressInterval);
+            _('#progressFill').css('width', '0%');
+            _('#progressText').text('0');
+        });
+
+        // Toast Notifications
+        function showToast(message, type) {
+            const toast = _('<div>')
+                .addClass('toast')
+                .addClass(type)
+                .html(`
+                    <div class="toast-message">${message}</div>
+                    <button class="toast-close">×</button>
+                `);
+            
+            _('#toast-container').append(toast);
+            
+            toast.find('.toast-close').on('click', function() {
+                _(this).parent().remove();
+            });
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+        
+        _('#toastSuccess').on('click', () => {
+            showToast('✓ Operation completed successfully!', 'success');
+        });
+        
+        _('#toastError').on('click', () => {
+            showToast('✗ An error occurred. Please try again.', 'error');
+        });
+        
+        _('#toastWarning').on('click', () => {
+            showToast('⚠ Warning: Please check your input.', 'warning');
+        });
+        
+        _('#toastInfo').on('click', () => {
+            showToast('ℹ This is an informational message.', 'info');
+        });
+    </script>
+
+</body>
+</html>

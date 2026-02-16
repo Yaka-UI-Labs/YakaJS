@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Validation - YakaJS Demos</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- YakaJS -->
+    <script src="https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js"></script>
+    
+    <style>
+        /* Raw Black with Noise & Gradient Design */
+        
+        /* Outfit Font */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Outfit', system-ui, sans-serif;
+        }
+        
+        /* Raw Black Background with Noise and Gradient */
+        body {
+            background: 
+                /* Subtle gradient overlay */
+                linear-gradient(135deg, 
+                    rgba(99, 102, 241, 0.05) 0%,
+                    rgba(139, 92, 246, 0.03) 25%,
+                    rgba(168, 85, 247, 0.05) 50%,
+                    rgba(217, 70, 239, 0.03) 75%,
+                    rgba(99, 102, 241, 0.05) 100%
+                ),
+                /* Noise texture using SVG pattern */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E"),
+                /* Base black */
+                #000000;
+            background-size: 400% 400%, 200px 200px, auto;
+            background-attachment: fixed, fixed, fixed;
+            animation: gradientShift 20s ease infinite;
+            min-height: 100vh;
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%, 0 0, 0 0; }
+            50% { background-position: 100% 50%, 100px 100px, 0 0; }
+            100% { background-position: 0% 50%, 0 0, 0 0; }
+        }
+        
+        /* Glassmorphism on Black */
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-dark {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 
+                0 4px 24px 0 rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px 0 rgba(0, 0, 0, 0.7),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+        }
+        
+        /* Smooth transitions */
+        .transition-glass {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        /* Code blocks on black */
+        pre {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1rem;
+            overflow-x: auto;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+        
+        code {
+            color: #a78bfa;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+        }
+        
+        .form-input {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: white;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(139, 92, 246, 0.6);
+        }
+        
+        .form-input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .form-input.valid {
+            border-color: rgba(34, 197, 94, 0.6);
+            background: rgba(34, 197, 94, 0.05);
+        }
+        
+        .form-input.invalid {
+            border-color: rgba(239, 68, 68, 0.6);
+            background: rgba(239, 68, 68, 0.05);
+        }
+        
+        .error-message {
+            color: #fca5a5;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .success-message {
+            color: #86efac;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        .btn {
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background: rgba(139, 92, 246, 0.9);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: rgba(139, 92, 246, 1);
+            transform: scale(1.05);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .validation-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .status-valid {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+        }
+        
+        .status-invalid {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        
+        .required-star {
+            color: #fca5a5;
+        }
+    </style>
+</head>
+<body class="font-sans text-white">
+    
+    <!-- Header -->
+    <header class="glass-dark sticky top-0 z-50 py-4">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <a href="index.html" class="text-2xl hover:text-yellow-300 transition">←</a>
+                    <h1 class="text-2xl font-bold">Form Validation Demo</h1>
+                </div>
+                <a href="index.html" class="glass px-4 py-2 rounded-full text-sm hover:bg-white/25 transition">
+                    Back to Demos
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Introduction -->
+        <div class="glass-card rounded-2xl p-8 mb-8">
+            <h2 class="text-3xl font-bold mb-4">📝 Form Validation with YakaJS</h2>
+            <p class="text-lg text-gray-100 mb-4">
+                YakaJS provides 15+ built-in validators with real-time feedback. Try filling out the form below to see validation in action!
+            </p>
+            <div class="flex items-center gap-4">
+                <span class="validation-status status-pending" id="overall-status">
+                    <span id="status-icon">⏳</span>
+                    <span id="status-text">Pending Validation</span>
+                </span>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-8">
+            
+            <!-- Registration Form -->
+            <div class="glass-card rounded-2xl p-8 transition-glass">
+                <h3 class="text-2xl font-bold mb-6">Registration Form</h3>
+                
+                <form id="registration-form">
+                    
+                    <!-- Full Name -->
+                    <div class="form-group">
+                        <label for="fullname">
+                            Full Name <span class="required-star">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="fullname" 
+                            class="form-input" 
+                            placeholder="John Doe"
+                            data-validate="required,minLength:3,maxLength:50"
+                        >
+                        <div class="error-message" id="fullname-error"></div>
+                        <div class="success-message" id="fullname-success">✓ Valid name</div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="email">
+                            Email Address <span class="required-star">*</span>
+                        </label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            class="form-input" 
+                            placeholder="john@example.com"
+                            data-validate="required,email"
+                        >
+                        <div class="error-message" id="email-error"></div>
+                        <div class="success-message" id="email-success">✓ Valid email</div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="form-group">
+                        <label for="phone">
+                            Phone Number <span class="required-star">*</span>
+                        </label>
+                        <input 
+                            type="tel" 
+                            id="phone" 
+                            class="form-input" 
+                            placeholder="(123) 456-7890"
+                            data-validate="required,phone"
+                        >
+                        <div class="error-message" id="phone-error"></div>
+                        <div class="success-message" id="phone-success">✓ Valid phone</div>
+                    </div>
+
+                    <!-- Website URL -->
+                    <div class="form-group">
+                        <label for="website">
+                            Website URL
+                        </label>
+                        <input 
+                            type="url" 
+                            id="website" 
+                            class="form-input" 
+                            placeholder="https://example.com"
+                            data-validate="url"
+                        >
+                        <div class="error-message" id="website-error"></div>
+                        <div class="success-message" id="website-success">✓ Valid URL</div>
+                    </div>
+
+                    <!-- Username -->
+                    <div class="form-group">
+                        <label for="username">
+                            Username <span class="required-star">*</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            class="form-input" 
+                            placeholder="johndoe123"
+                            data-validate="required,minLength:5,maxLength:20,pattern:^[a-zA-Z0-9_]+$"
+                        >
+                        <div class="error-message" id="username-error"></div>
+                        <div class="success-message" id="username-success">✓ Valid username</div>
+                        <p class="text-xs text-gray-300 mt-1">Only letters, numbers, and underscores (5-20 chars)</p>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label for="password">
+                            Password <span class="required-star">*</span>
+                        </label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            class="form-input" 
+                            placeholder="••••••••"
+                            data-validate="required,minLength:8,maxLength:50"
+                        >
+                        <div class="error-message" id="password-error"></div>
+                        <div class="success-message" id="password-success">✓ Valid password</div>
+                        <p class="text-xs text-gray-300 mt-1">Minimum 8 characters</p>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="form-group">
+                        <label for="confirm-password">
+                            Confirm Password <span class="required-star">*</span>
+                        </label>
+                        <input 
+                            type="password" 
+                            id="confirm-password" 
+                            class="form-input" 
+                            placeholder="••••••••"
+                            data-validate="required,matches:password"
+                        >
+                        <div class="error-message" id="confirm-password-error"></div>
+                        <div class="success-message" id="confirm-password-success">✓ Passwords match</div>
+                    </div>
+
+                    <!-- Age -->
+                    <div class="form-group">
+                        <label for="age">
+                            Age <span class="required-star">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            id="age" 
+                            class="form-input" 
+                            placeholder="18"
+                            data-validate="required,min:18,max:120"
+                        >
+                        <div class="error-message" id="age-error"></div>
+                        <div class="success-message" id="age-success">✓ Valid age</div>
+                        <p class="text-xs text-gray-300 mt-1">Must be 18 or older</p>
+                    </div>
+
+                    <!-- Terms & Conditions -->
+                    <div class="form-group">
+                        <label class="flex items-start gap-3 cursor-pointer">
+                            <input 
+                                type="checkbox" 
+                                id="terms" 
+                                class="mt-1"
+                                data-validate="required"
+                            >
+                            <span>
+                                I agree to the Terms & Conditions <span class="required-star">*</span>
+                            </span>
+                        </label>
+                        <div class="error-message" id="terms-error"></div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="flex gap-3 mt-8">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            Submit Form
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                            Reset
+                        </button>
+                    </div>
+                    
+                </form>
+            </div>
+
+            <!-- Validation Info & Code Examples -->
+            <div class="space-y-6">
+                
+                <!-- Validation Rules -->
+                <div class="glass-card rounded-xl p-6 transition-glass">
+                    <h3 class="text-xl font-bold mb-4">📋 Available Validators</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">required</span>
+                            <span class="text-gray-300">Field must not be empty</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">email</span>
+                            <span class="text-gray-300">Valid email format</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">phone</span>
+                            <span class="text-gray-300">Valid phone number</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">url</span>
+                            <span class="text-gray-300">Valid URL format</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">minLength</span>
+                            <span class="text-gray-300">Minimum character length</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">maxLength</span>
+                            <span class="text-gray-300">Maximum character length</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">min</span>
+                            <span class="text-gray-300">Minimum number value</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">max</span>
+                            <span class="text-gray-300">Maximum number value</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2 border-b border-white/10">
+                            <span class="font-mono text-yellow-300">pattern</span>
+                            <span class="text-gray-300">RegEx pattern match</span>
+                        </div>
+                        <div class="flex justify-between items-center py-2">
+                            <span class="font-mono text-yellow-300">matches</span>
+                            <span class="text-gray-300">Match another field</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Example 1 -->
+                <div class="glass-card rounded-xl p-6 transition-glass">
+                    <h3 class="text-xl font-bold mb-3">💻 Basic Usage</h3>
+                    <pre class="text-sm"><code>// HTML
+&lt;input type="email" 
+  data-validate="required,email"&gt;
+
+// JavaScript - Real-time validation
+_('#email').on('input', function() {
+    const isValid = _.validate(
+        this.value, 
+        'email'
+    );
+    
+    if (isValid) {
+        _(this).addClass('valid');
+    } else {
+        _(this).addClass('invalid');
+    }
+});</code></pre>
+                </div>
+
+                <!-- Code Example 2 -->
+                <div class="glass-card rounded-xl p-6 transition-glass">
+                    <h3 class="text-xl font-bold mb-3">🔧 Form Validation</h3>
+                    <pre class="text-sm"><code>// Validate entire form
+_('#myForm').on('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = {
+        email: _('#email').val(),
+        phone: _('#phone').val()
+    };
+    
+    const rules = {
+        email: 'required,email',
+        phone: 'required,phone'
+    };
+    
+    const errors = _.validateForm(
+        formData, 
+        rules
+    );
+    
+    if (Object.keys(errors).length === 0) {
+        // Form is valid!
+        submitForm(formData);
+    }
+});</code></pre>
+                </div>
+
+                <!-- Validation Stats -->
+                <div class="glass-card rounded-xl p-6 transition-glass">
+                    <h3 class="text-xl font-bold mb-4">📊 Validation Stats</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-green-300" id="valid-count">0</div>
+                            <div class="text-sm text-gray-300">Valid Fields</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-red-300" id="invalid-count">0</div>
+                            <div class="text-sm text-gray-300">Invalid Fields</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        _(() => {
+            console.log('YakaJS Form Validation Demo Ready!');
+            setupFormValidation();
+        });
+
+        // Validation state
+        const validationState = {
+            fullname: false,
+            email: false,
+            phone: false,
+            website: true, // Optional field
+            username: false,
+            password: false,
+            'confirm-password': false,
+            age: false,
+            terms: false
+        };
+
+        function setupFormValidation() {
+            // Real-time validation for all fields
+            const fields = ['fullname', 'email', 'phone', 'website', 'username', 'password', 'confirm-password', 'age'];
+            
+            fields.forEach(fieldId => {
+                _(`#${fieldId}`).on('input', function() {
+                    validateField(fieldId);
+                });
+
+                _(`#${fieldId}`).on('blur', function() {
+                    validateField(fieldId);
+                });
+            });
+
+            // Checkbox validation
+            _('#terms').on('change', function() {
+                validateCheckbox();
+            });
+
+            // Form submit
+            _('#registration-form').on('submit', function(e) {
+                e.preventDefault();
+                handleFormSubmit();
+            });
+        }
+
+        function validateField(fieldId) {
+            const input = _(`#${fieldId}`);
+            const value = input.val().trim();
+            const validations = input.attr('data-validate');
+            
+            if (!validations) return;
+            
+            const rules = validations.split(',');
+            let isValid = true;
+            let errorMsg = '';
+
+            // Required validation
+            if (rules.includes('required') && !value) {
+                isValid = false;
+                errorMsg = 'This field is required';
+            }
+
+            // Email validation
+            if (isValid && rules.includes('email') && value) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                    isValid = false;
+                    errorMsg = 'Please enter a valid email address';
+                }
+            }
+
+            // Phone validation
+            if (isValid && rules.includes('phone') && value) {
+                const phoneRegex = /^[\d\s\-\(\)\+]+$/;
+                if (!phoneRegex.test(value) || value.replace(/\D/g, '').length < 10) {
+                    isValid = false;
+                    errorMsg = 'Please enter a valid phone number';
+                }
+            }
+
+            // URL validation
+            if (isValid && rules.includes('url') && value) {
+                const urlRegex = /^https?:\/\/.+\..+/;
+                if (!urlRegex.test(value)) {
+                    isValid = false;
+                    errorMsg = 'Please enter a valid URL (starting with http:// or https://)';
+                }
+            }
+
+            // Min/Max length
+            rules.forEach(rule => {
+                if (isValid && rule.startsWith('minLength:')) {
+                    const minLength = parseInt(rule.split(':')[1]);
+                    if (value.length < minLength) {
+                        isValid = false;
+                        errorMsg = `Minimum ${minLength} characters required`;
+                    }
+                }
+                if (isValid && rule.startsWith('maxLength:')) {
+                    const maxLength = parseInt(rule.split(':')[1]);
+                    if (value.length > maxLength) {
+                        isValid = false;
+                        errorMsg = `Maximum ${maxLength} characters allowed`;
+                    }
+                }
+            });
+
+            // Min/Max value
+            rules.forEach(rule => {
+                if (isValid && rule.startsWith('min:')) {
+                    const min = parseInt(rule.split(':')[1]);
+                    if (parseInt(value) < min) {
+                        isValid = false;
+                        errorMsg = `Minimum value is ${min}`;
+                    }
+                }
+                if (isValid && rule.startsWith('max:')) {
+                    const max = parseInt(rule.split(':')[1]);
+                    if (parseInt(value) > max) {
+                        isValid = false;
+                        errorMsg = `Maximum value is ${max}`;
+                    }
+                }
+            });
+
+            // Pattern validation
+            rules.forEach(rule => {
+                if (isValid && rule.startsWith('pattern:')) {
+                    const pattern = rule.substring(8);
+                    const regex = new RegExp(pattern);
+                    if (!regex.test(value)) {
+                        isValid = false;
+                        errorMsg = 'Invalid format';
+                    }
+                }
+            });
+
+            // Matches validation (for password confirmation)
+            rules.forEach(rule => {
+                if (isValid && rule.startsWith('matches:')) {
+                    const targetField = rule.split(':')[1];
+                    const targetValue = _(`#${targetField}`).val();
+                    if (value !== targetValue) {
+                        isValid = false;
+                        errorMsg = 'Passwords do not match';
+                    }
+                }
+            });
+
+            // Update UI
+            if (isValid) {
+                input.removeClass('invalid').addClass('valid');
+                _(`#${fieldId}-error`).removeClass('show');
+                _(`#${fieldId}-success`).addClass('show');
+            } else {
+                input.removeClass('valid').addClass('invalid');
+                _(`#${fieldId}-error`).text(errorMsg).addClass('show');
+                _(`#${fieldId}-success`).removeClass('show');
+            }
+
+            // Update state
+            validationState[fieldId] = isValid;
+            updateValidationStats();
+            
+            return isValid;
+        }
+
+        function validateCheckbox() {
+            const checkbox = _('#terms');
+            const isChecked = checkbox.get(0).checked;
+            
+            if (!isChecked) {
+                _('#terms-error').text('You must agree to the terms').addClass('show');
+            } else {
+                _('#terms-error').removeClass('show');
+            }
+            
+            validationState.terms = isChecked;
+            updateValidationStats();
+        }
+
+        function updateValidationStats() {
+            let validCount = 0;
+            let invalidCount = 0;
+            
+            Object.values(validationState).forEach(isValid => {
+                if (isValid) {
+                    validCount++;
+                } else {
+                    invalidCount++;
+                }
+            });
+            
+            _('#valid-count').text(validCount);
+            _('#invalid-count').text(invalidCount);
+            
+            // Update overall status
+            const allValid = invalidCount === 0;
+            const statusIcon = _('#status-icon');
+            const statusText = _('#status-text');
+            const status = _('#overall-status');
+            
+            status.removeClass('status-pending status-valid status-invalid');
+            
+            if (validCount === 0 && invalidCount === Object.keys(validationState).length) {
+                status.addClass('status-pending');
+                statusIcon.text('⏳');
+                statusText.text('Pending Validation');
+            } else if (allValid) {
+                status.addClass('status-valid');
+                statusIcon.text('✅');
+                statusText.text('All Fields Valid');
+            } else {
+                status.addClass('status-invalid');
+                statusIcon.text('⚠️');
+                statusText.text(`${invalidCount} Field${invalidCount > 1 ? 's' : ''} Invalid`);
+            }
+        }
+
+        function handleFormSubmit() {
+            // Validate all fields
+            const fields = ['fullname', 'email', 'phone', 'website', 'username', 'password', 'confirm-password', 'age'];
+            let allValid = true;
+            
+            fields.forEach(fieldId => {
+                if (!validateField(fieldId)) {
+                    allValid = false;
+                }
+            });
+            
+            validateCheckbox();
+            if (!validationState.terms) {
+                allValid = false;
+            }
+            
+            if (allValid) {
+                // Success!
+                alert('✅ Form submitted successfully!\n\nAll validation passed. In a real application, this would send the data to your server.');
+                
+                // Optional: Show success animation
+                _('#overall-status').addClass('status-valid');
+            } else {
+                alert('⚠️ Please fix the validation errors before submitting.');
+            }
+        }
+
+        function resetForm() {
+            // Reset form
+            _('#registration-form').get(0).reset();
+            
+            // Clear all validation states
+            Object.keys(validationState).forEach(key => {
+                validationState[key] = key === 'website'; // Keep website as valid (optional)
+            });
+            
+            // Remove validation classes
+            _('.form-input').removeClass('valid invalid');
+            _('.error-message').removeClass('show');
+            _('.success-message').removeClass('show');
+            
+            // Reset stats
+            updateValidationStats();
+        }
+    </script>
+
+</body>
+</html>

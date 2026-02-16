@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YakaJS Tests</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 40px;
+            margin: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .link-box {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+        }
+        .link-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+        }
+        .link-box h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .link-box p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 YakaJS Test Suite</h1>
+        
+        <div class="link-box" onclick="window.location.href='test-runner.html'">
+            <h2>▶️ Run Tests</h2>
+            <p>Launch the interactive test runner with 90+ unit tests</p>
+            <a href="test-runner.html" class="btn">Open Test Runner</a>
+        </div>
+
+        <div class="link-box" onclick="window.location.href='README.md'">
+            <h2>📖 Documentation</h2>
+            <p>Read about the test suite and how to add new tests</p>
+            <a href="README.md" class="btn">View README</a>
+        </div>
+
+        <div class="link-box" onclick="window.location.href='../'">
+            <h2>🏠 Back to Main</h2>
+            <p>Return to the YakaJS repository</p>
+            <a href="../" class="btn">Go Back</a>
+        </div>
+    </div>
+</body>
+</html>
