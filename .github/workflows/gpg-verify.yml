@@ -13,6 +13,10 @@ jobs:
   verify-signatures:
     name: Verify GPG Signatures
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write  # For posting PR comments
+      actions: read  # For uploading artifacts
     
     steps:
       - name: Checkout repository

@@ -76,7 +76,17 @@ jobs:
               
               # Preset the passphrase in GPG agent
               GPG_KEY_GRIP=$(gpg --with-keygrip --list-secret-keys | grep "Keygrip" | head -1 | awk '{print $3}')
-              echo "$GPG_PASSPHRASE" | /usr/lib/gnupg2/gpg-preset-passphrase --preset "$GPG_KEY_GRIP"
+              
+              # Try both possible paths for gpg-preset-passphrase
+              if [ -f "/usr/lib/gnupg/gpg-preset-passphrase" ]; then
+                echo "$GPG_PASSPHRASE" | /usr/lib/gnupg/gpg-preset-passphrase --preset "$GPG_KEY_GRIP"
+              elif [ -f "/usr/lib/gnupg2/gpg-preset-passphrase" ]; then
+                echo "$GPG_PASSPHRASE" | /usr/lib/gnupg2/gpg-preset-passphrase --preset "$GPG_KEY_GRIP"
+              else
+                echo "Warning: gpg-preset-passphrase not found, trying alternative method..."
+                gpgconf --kill gpg-agent
+                gpg-agent --daemon --allow-preset-passphrase
+              fi
               
               git commit -S -m "Gemini: automated code fixes"
               echo "Commit signed with GPG"

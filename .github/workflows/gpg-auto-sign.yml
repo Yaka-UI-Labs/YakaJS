@@ -16,6 +16,9 @@ jobs:
   auto-sign-commit:
     name: Create GPG-Signed Commit
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # For pushing commits
+      actions: read  # For workflow status
     
     steps:
       - name: Checkout repository
@@ -60,8 +63,16 @@ jobs:
           # Get keygrip and preset passphrase
           GPG_KEY_GRIP=$(gpg --with-keygrip --list-secret-keys "$GPG_KEY_ID" | grep "Keygrip" | head -1 | awk '{print $3}')
           
-          # Preset the passphrase using gpg-preset-passphrase
-          echo "$GPG_PASSPHRASE" | /usr/lib/gnupg/gpg-preset-passphrase --preset "$GPG_KEY_GRIP"
+          # Preset the passphrase using gpg-preset-passphrase (try both paths)
+          if [ -f "/usr/lib/gnupg/gpg-preset-passphrase" ]; then
+            echo "$GPG_PASSPHRASE" | /usr/lib/gnupg/gpg-preset-passphrase --preset "$GPG_KEY_GRIP"
+          elif [ -f "/usr/lib/gnupg2/gpg-preset-passphrase" ]; then
+            echo "$GPG_PASSPHRASE" | /usr/lib/gnupg2/gpg-preset-passphrase --preset "$GPG_KEY_GRIP"
+          else
+            echo "Warning: gpg-preset-passphrase not found, trying alternative method..."
+            gpgconf --kill gpg-agent
+            gpg-agent --daemon --allow-preset-passphrase
+          fi
           
           echo "✅ GPG configured successfully"
           echo "🔑 Using key: $GPG_KEY_ID"
