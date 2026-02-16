@@ -1,0 +1,144 @@
+name: Auto GPG Sign Commits (Bot)
+
+on:
+  workflow_dispatch:
+    inputs:
+      commit_message:
+        description: 'Commit message'
+        required: true
+        default: 'chore: automated update'
+      files_to_add:
+        description: 'Files to add (comma-separated, or "." for all)'
+        required: false
+        default: '.'
+
+jobs:
+  auto-sign-commit:
+    name: Create GPG-Signed Commit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT || github.token }}
+      
+      - name: Setup GPG
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.BOT_GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.BOT_GPG_PASSPHRASE }}
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "⚠️ BOT_GPG_PRIVATE_KEY not configured"
+            echo "Commits will not be GPG signed"
+            echo "gpg_enabled=false" >> $GITHUB_ENV
+            exit 0
+          fi
+          
+          echo "Setting up GPG for automated signing..."
+          
+          # Import the bot's GPG key
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          
+          # Get the key ID
+          GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format=long | grep sec | awk '{print $2}' | cut -d'/' -f2 | head -1)
+          echo "GPG_KEY_ID=$GPG_KEY_ID" >> $GITHUB_ENV
+          echo "gpg_enabled=true" >> $GITHUB_ENV
+          
+          # Configure GPG
+          export GPG_TTY=$(tty)
+          
+          # Configure GPG agent to allow preset passphrase
+          mkdir -p ~/.gnupg
+          chmod 700 ~/.gnupg
+          echo "allow-preset-passphrase" >> ~/.gnupg/gpg-agent.conf
+          echo "default-cache-ttl 3600" >> ~/.gnupg/gpg-agent.conf
+          echo "max-cache-ttl 3600" >> ~/.gnupg/gpg-agent.conf
+          gpg-connect-agent reloadagent /bye
+          
+          # Get keygrip and preset passphrase
+          GPG_KEY_GRIP=$(gpg --with-keygrip --list-secret-keys "$GPG_KEY_ID" | grep "Keygrip" | head -1 | awk '{print $3}')
+          
+          # Preset the passphrase using gpg-preset-passphrase
+          echo "$GPG_PASSPHRASE" | /usr/lib/gnupg/gpg-preset-passphrase --preset "$GPG_KEY_GRIP"
+          
+          echo "✅ GPG configured successfully"
+          echo "🔑 Using key: $GPG_KEY_ID"
+      
+      - name: Configure Git
+        run: |
+          git config user.name "yakajs-bot[bot]"
+          git config user.email "yakajs-bot[bot]@users.noreply.github.com"
+          
+          if [ "$gpg_enabled" = "true" ]; then
+            git config user.signingkey "$GPG_KEY_ID"
+            git config commit.gpgsign true
+            echo "✅ Git configured with GPG signing"
+          else
+            echo "ℹ️ Git configured without GPG signing"
+          fi
+      
+      - name: Stage and commit changes
+        run: |
+          # Stage files
+          FILES="${{ github.event.inputs.files_to_add }}"
+          if [ -z "$FILES" ] || [ "$FILES" = "." ]; then
+            git add .
+            echo "📁 Staged all changes"
+          else
+            IFS=',' read -ra FILE_ARRAY <<< "$FILES"
+            for file in "${FILE_ARRAY[@]}"; do
+              git add "$file"
+              echo "📄 Staged: $file"
+            done
+          fi
+          
+          # Check if there are changes
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "ℹ️ No changes to commit"
+            exit 0
+          fi
+          
+          # Commit with or without GPG
+          COMMIT_MSG="${{ github.event.inputs.commit_message }}"
+          
+          if [ "$gpg_enabled" = "true" ]; then
+            git commit -S -m "$COMMIT_MSG"
+            echo "✅ Created GPG-signed commit"
+          else
+            git commit -m "$COMMIT_MSG"
+            echo "✅ Created commit (not GPG signed)"
+          fi
+          
+          # Verify the commit
+          LAST_COMMIT=$(git rev-parse HEAD)
+          echo "📋 Commit: $LAST_COMMIT"
+          
+          if [ "$gpg_enabled" = "true" ]; then
+            echo "🔍 Verifying signature..."
+            git verify-commit "$LAST_COMMIT" 2>&1 || echo "⚠️ Signature verification failed"
+          fi
+      
+      - name: Push changes
+        run: |
+          git push origin ${{ github.ref_name }}
+          echo "✅ Changes pushed to ${{ github.ref_name }}"
+      
+      - name: Summary
+        run: |
+          echo "## 🤖 Automated Commit Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit Message**: ${{ github.event.inputs.commit_message }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "$gpg_enabled" = "true" ]; then
+            echo "- **GPG Signing**: ✅ Enabled" >> $GITHUB_STEP_SUMMARY
+            echo "- **Key ID**: $GPG_KEY_ID" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **GPG Signing**: ⚠️ Not configured" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "To enable GPG signing, configure these secrets:" >> $GITHUB_STEP_SUMMARY
+            echo "- \`BOT_GPG_PRIVATE_KEY\`" >> $GITHUB_STEP_SUMMARY
+            echo "- \`BOT_GPG_PASSPHRASE\`" >> $GITHUB_STEP_SUMMARY
+          fi

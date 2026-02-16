@@ -1,0 +1,182 @@
+name: Auto GPG Sign and Verify
+
+on:
+  push:
+    branches:
+      - '**'  # Trigger on all branches
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  verify-signatures:
+    name: Verify GPG Signatures
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 10  # Fetch last 10 commits for verification
+      
+      - name: Import maintainer GPG key
+        run: |
+          # Import known trusted GPG keys
+          # Add maintainer's public key (dill-lk)
+          cat > maintainer_key.asc << 'EOF'
+          -----BEGIN PGP PUBLIC KEY BLOCK-----
+          
+          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
+          =Qp9S
+          -----END PGP PUBLIC KEY BLOCK-----
+          EOF
+          
+          gpg --import maintainer_key.asc
+          rm maintainer_key.asc
+          echo "Imported maintainer GPG key: EF13362EBFF67089"
+      
+      - name: Verify commit signatures
+        id: verify
+        run: |
+          echo "## GPG Signature Verification Report" > verification_report.md
+          echo "" >> verification_report.md
+          echo "Verifying last 10 commits..." >> verification_report.md
+          echo "" >> verification_report.md
+          
+          VERIFIED_COUNT=0
+          UNVERIFIED_COUNT=0
+          TOTAL_COUNT=0
+          
+          # Get list of commits
+          for commit in $(git log --format="%H" -n 10); do
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            AUTHOR=$(git log --format="%an" -n 1 $commit)
+            MESSAGE=$(git log --format="%s" -n 1 $commit)
+            DATE=$(git log --format="%ai" -n 1 $commit)
+            
+            echo "### Commit: ${commit:0:7}" >> verification_report.md
+            echo "- **Author**: $AUTHOR" >> verification_report.md
+            echo "- **Date**: $DATE" >> verification_report.md
+            echo "- **Message**: $MESSAGE" >> verification_report.md
+            
+            # Verify signature
+            VERIFY_OUTPUT=$(git verify-commit $commit 2>&1 || echo "No signature")
+            
+            if echo "$VERIFY_OUTPUT" | grep -q "Good signature"; then
+              echo "- **Status**: ✅ **VERIFIED**" >> verification_report.md
+              SIGNER=$(echo "$VERIFY_OUTPUT" | grep "Good signature" | sed 's/.*from "\(.*\)".*/\1/')
+              echo "- **Signed by**: $SIGNER" >> verification_report.md
+              VERIFIED_COUNT=$((VERIFIED_COUNT + 1))
+            elif echo "$VERIFY_OUTPUT" | grep -q "gpg:"; then
+              echo "- **Status**: ⚠️ **SIGNATURE ISSUE**" >> verification_report.md
+              echo "- **Details**: Signature present but verification failed" >> verification_report.md
+              echo "\`\`\`" >> verification_report.md
+              echo "$VERIFY_OUTPUT" >> verification_report.md
+              echo "\`\`\`" >> verification_report.md
+              UNVERIFIED_COUNT=$((UNVERIFIED_COUNT + 1))
+            else
+              echo "- **Status**: ℹ️ **NOT SIGNED**" >> verification_report.md
+              echo "- **Note**: This commit is not GPG signed (optional but recommended)" >> verification_report.md
+              UNVERIFIED_COUNT=$((UNVERIFIED_COUNT + 1))
+            fi
+            
+            echo "" >> verification_report.md
+          done
+          
+          # Summary
+          echo "---" >> verification_report.md
+          echo "" >> verification_report.md
+          echo "### Summary" >> verification_report.md
+          echo "" >> verification_report.md
+          echo "- **Total Commits**: $TOTAL_COUNT" >> verification_report.md
+          echo "- **✅ Verified**: $VERIFIED_COUNT" >> verification_report.md
+          echo "- **⚠️ Not Verified**: $UNVERIFIED_COUNT" >> verification_report.md
+          echo "" >> verification_report.md
+          
+          if [ $VERIFIED_COUNT -eq $TOTAL_COUNT ]; then
+            echo "🎉 **All commits are GPG signed and verified!**" >> verification_report.md
+            echo "all_verified=true" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️ **Note**: GPG signing is optional but recommended for security." >> verification_report.md
+            echo "See [GPG_SIGNING.md](../GPG_SIGNING.md) for setup instructions." >> verification_report.md
+            echo "all_verified=false" >> $GITHUB_OUTPUT
+          fi
+          
+          cat verification_report.md
+      
+      - name: Upload verification report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpg-verification-report
+          path: verification_report.md
+          retention-days: 90
+      
+      - name: Comment on PR (if applicable)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('verification_report.md', 'utf8');
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: report
+            });
+      
+      - name: Summary
+        run: |
+          echo "✅ GPG verification check completed!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat verification_report.md >> $GITHUB_STEP_SUMMARY

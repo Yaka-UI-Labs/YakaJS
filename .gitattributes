@@ -1,3 +1,24 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:beeca3a95655ccff28f13da0a1b5b87bcbb559148a9a4f858587b538a17e681b
-size 476
+# Text normalization and line ending configuration
+# GPG signing is configured via git config, not gitattributes
+
+# Text files - normalize line endings
+*.js    text
+*.ts    text
+*.json  text
+*.md    text
+*.yml   text
+*.yaml  text
+*.html  text
+*.css   text
+*.txt   text
+
+# Binary files
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
