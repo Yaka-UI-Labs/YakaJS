@@ -6,6 +6,8 @@
 [![CDN](https://img.shields.io/badge/CDN-jsDelivr-orange.svg)](https://cdn.jsdelivr.net/gh/Yaka-UI-Labs/YakaJS@latest/dist/min.yaka.js)
 [![Documentation](https://img.shields.io/badge/📚-Documentation-brightgreen.svg)](DOCUMENTATION.md)
 [![Features](https://img.shields.io/badge/🎯-234%20Features-purple.svg)](FEATURES.md)
+[![Benchmarks](https://img.shields.io/badge/⚡-Benchmarks-ff69b4.svg)](benchmarks.html)
+[![Tests](https://img.shields.io/badge/🧪-Test%20Suite-yellow.svg)](tests/)
 
 ![An illustration showing a variety of differently themed Octocats. Monuments from different cities are indicated in the background like the Space Needle, Berlin Fernsehturm and Transamerica Pyramid.](https://github.com/Yaka-UI-Labs/.github/blob/main/profile/pro.png)
 
@@ -301,6 +303,37 @@ _.createRouter(); // SPA routing!
 - **21 premium features** that no other library has
 - **0 dependencies** (just vanilla JavaScript)
 - **100% browser compatible** (modern browsers)
+- **[⚡ Performance benchmarks](benchmarks.html)** - See the speed comparisons
+- **[🧪 90+ unit tests](tests/)** - Comprehensive test coverage
+
+## ⚡ Performance & Testing
+
+### Benchmarks
+
+We don't just claim to be fast - we prove it! Check out our **[interactive benchmarks page](benchmarks.html)** to see real performance comparisons between YakaJS, jQuery, and Vanilla JavaScript.
+
+**Benchmark Categories:**
+- 🎯 DOM Manipulation (selection, creation, append, class manipulation)
+- 🎪 Event Handling (attachment, triggering)
+- 🌐 AJAX/HTTP Operations
+- 🎬 Animation Performance
+- 🛠️ Utility Functions
+
+Run the benchmarks in your own browser to see the results! YakaJS is optimized with batched DOM operations to prevent layout thrashing and ensure lightning-fast performance.
+
+### Test Suite
+
+YakaJS includes a **[comprehensive test suite](tests/)** with 90+ unit tests covering all major features:
+
+- ✅ **DOM Manipulation** (20 tests) - Element selection, creation, manipulation
+- ✅ **Event Handling** (10 tests) - Click, hover, keyboard, delegation
+- ✅ **AJAX & HTTP** (10 tests) - GET, POST, serialization, error handling
+- ✅ **Animations** (10 tests) - Fade, slide, custom animations
+- ✅ **State Management** (10 tests) - Stores, signals, reactivity
+- ✅ **Security** (10 tests) - XSS protection, CSRF, sanitization
+- ✅ **Utilities** (20 tests) - Array, object, string operations
+
+**Run the tests yourself:** Open `tests/test-runner.html` in your browser for a beautiful interactive test runner with real-time results!
 
 ## 🌟 Feature Highlights
 
