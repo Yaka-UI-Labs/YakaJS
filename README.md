@@ -757,9 +757,6 @@ Have an idea? [Let us know!](https://github.com/Yaka-UI-Labs/YakaJS/issues)
 - **[Interactive Demos](demos/index.html)** - See it in action
 - **[API Documentation](docs/API_REFERENCE.md)** - Full API reference
 - **[Migration Guide](docs/MIGRATION_GUIDE.md)** - Moving from jQuery?
-- **Minification Guide** - See `MINIFICATION.md`
-- **Implementation Details** - See `.github/docs/IMPLEMENTATION_SUMMARY.md`
-- **jQuery Comparison** - See `JQUERY_BEATING.md`
 
 ### Browser Support
 
