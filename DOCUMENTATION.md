@@ -397,7 +397,7 @@ See [Best Practices](docs/BEST_PRACTICES.md) for more tips!
 ### Quick Links
 - 🐛 [Report a Bug](https://github.com/Yaka-UI-Labs/YakaJS/issues/new?template=bug_report.md)
 - 💡 [Request a Feature](https://github.com/Yaka-UI-Labs/YakaJS/issues/new?template=feature_request.md)
-- 📧 Email: support@yakajs.dev (coming soon!)
+- 📧 Email: support@yakajs.dev
 
 ---
 
